@@ -1,6 +1,5 @@
 from memoria.models.album import Album
 from memoria.models.album import ImageInAlbum
-from memoria.models.auth import Token
 from memoria.models.image import Image
 from memoria.models.metadata import ImageSource
 from memoria.models.metadata import Person
@@ -26,6 +25,5 @@ __all__ = [
     "RoughLocation",
     "Tag",
     "TagOnImage",
-    "Token",
     "UserProfile",
 ]

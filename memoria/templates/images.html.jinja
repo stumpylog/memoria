@@ -1,0 +1,51 @@
+{% extends "base.html.jinja" %}
+{% block title %}{{ title }}{% endblock title %} {# Use title from context #}
+
+{% block content %}
+{% include "partials/navbar.html.jinja" %}
+
+<div class="container mt-4">
+    <h2>Images</h2>
+
+    {# Display the images for the current page #}
+    <div class="row">
+        {% for image in page_obj %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm"> {# h-100 for equal height, shadow-sm for subtle effect #}
+                        {# Check if thumbnail_url is not None/empty #}
+                        {% if image.thumbnail_url %}
+                            {# Display the thumbnail image #}
+                            <img src="{{ image.thumbnail_url }}" class="card-img-top" alt="Thumbnail for {{ image.image_fs_id }}" style="aspect-ratio: 1 / 1; object-fit: cover;">
+                            {#
+                                Style Explanation:
+                                - aspect-ratio: 1 / 1 makes the image container square. Adjust if needed (e.g., 16/9).
+                                - object-fit: cover scales the image to maintain aspect ratio while filling the container, cropping if necessary.
+                            #}
+                        {% else %}
+                            {# Fallback if no thumbnail URL - using Bootstrap utilities #}
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="aspect-ratio: 1 / 1;">
+                                <span class="text-muted small">No Preview</span>
+                            </div>
+                        {% endif %}
+
+                        {# Optional: Add card body for details or actions #}
+                        <div class="card-body">
+                            <p class="card-text small text-muted text-truncate" title="{{ image.image_fs_id }}">
+                                {# Displaying image_fs_id, truncated if too long #}
+                                {{ image.image_fs_id }}
+                            </p>
+                            {# <a href="#" class="btn btn-sm btn-outline-secondary">Details</a> #}
+                        </div>
+                    </div>
+            </div>
+        {% else %}
+            <div class="col">
+                <p>No images available.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% include "partials/pagination.html.jinja" %}
+
+</div>
+{% endblock content %}

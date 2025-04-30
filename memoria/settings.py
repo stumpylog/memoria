@@ -15,6 +15,17 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
+# STATIC_ROOT = BASE_DIR / "static"
+MEDIA_ROOT = BASE_DIR / "media"
+
+THUMBNAIL_DIR = MEDIA_ROOT / "thumbnails"
+THUMBNAIL_DIR.mkdir(exist_ok=True, parents=True)
+
+FULL_SIZE_DIR = MEDIA_ROOT / "fullsize"
+FULL_SIZE_DIR.mkdir(exist_ok=True, parents=True)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -38,6 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_jinja",
+    "treenode",
     "memoria",
 ]
 
@@ -85,6 +97,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.request",
             ],
         },
     },
@@ -149,6 +162,62 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    },
+    "treenode": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    },
+}
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,  # Keep this False unless you have a reason to disable existing loggers
+    "formatters": {
+        "verbose": {
+            # Include more detail like process and thread IDs
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "simple": {
+            # A concise format
+            "format": "{levelname} {name} {asctime} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+            "level": "DEBUG",  # You can set different levels for different handlers
+        },
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            # Use pathlib.Path object for the filename
+            "filename": LOGS_DIR / "django.log",
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB max file size
+            "backupCount": 5,  # Keep up to 5 old log files
+            "formatter": "verbose",
+            "level": "INFO",  # Log INFO and above to the file
+        },
+    },
+    "loggers": {
+        # The root logger catches everything unless specifically handled by child loggers
+        "": {
+            "handlers": ["console", "file"],  # Send root logger messages to both handlers
+            "level": "INFO",  # Set the minimum level for the root logger
+        },
+        # Logger specifically for Django's internal messages
+        "django": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": False,  # Prevent Django logs from going up to the root logger again
+        },
+    },
+}
+
 LOGIN_REDIRECT_URL = "/home/"
 LOGOUT_REDIRECT_URL = "/logout/"
-LOGIN_URL = "/accounts/login/"
+LOGIN_URL = "/login/"
+MEDIA_URL = "/media/"

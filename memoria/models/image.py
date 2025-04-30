@@ -180,10 +180,24 @@ class Image(AbstractTimestampMixin, models.Model):
         return (settings.THUMBNAIL_DIR / self.image_fs_id).with_suffix(".webp").resolve()
 
     @property
+    def thumbnail_url(self) -> str | None:
+        """
+        Constructs the full URL for the thumbnail.
+        """
+        return settings.MEDIA_URL + self.thumbnail_path.relative_to(settings.MEDIA_ROOT).as_posix()
+
+    @property
     def full_size_path(self) -> Path:
         if TYPE_CHECKING:
             assert isinstance(settings.FULL_SIZE_DIR, Path)
         return (settings.FULL_SIZE_DIR / self.image_fs_id).with_suffix(".webp").resolve()
+
+    @property
+    def full_size_url(self) -> str | None:
+        """
+        Constructs the full URL for the full size image.
+        """
+        return settings.MEDIA_URL + self.full_size_path.relative_to(settings.MEDIA_ROOT).as_posix()
 
     @property
     def image_fs_id(self) -> str:

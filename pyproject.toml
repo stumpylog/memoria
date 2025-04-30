@@ -23,7 +23,8 @@ dependencies = [
   "pydantic-settings>=2.4",
   "redis[hiredis]>=5.0.8",
   "simpleiso3166[search]>=0.1",
-  "exifmwg"
+  "exifmwg",
+  "django-treenode",
 ]
 
 optional-dependencies.mariadb = [

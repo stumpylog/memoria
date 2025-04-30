@@ -7,20 +7,22 @@ if TYPE_CHECKING:
 
     from memoria.models.image import Image  # noqa: F401
 
-
 from django.db import models
 from simpleiso3166.countries import Country
+from treenode.models import TreeNodeModel
 
 from memoria.models.abstract import AbstractBoxInImage
 from memoria.models.abstract import AbstractSimpleNamedModel
 from memoria.models.abstract import AbstractTimestampMixin
 
 
-class Tag(AbstractTimestampMixin, models.Model):
+class Tag(AbstractTimestampMixin, TreeNodeModel):
     """
     Holds the information about a Tag, roughly a tag, in a tree structure,
     whose structure makes sense to the user
     """
+
+    treenode_display_field = "name"
 
     name = models.CharField(max_length=100, db_index=True)
 
@@ -32,17 +34,9 @@ class Tag(AbstractTimestampMixin, models.Model):
         db_index=True,
     )
 
-    parent = models.ForeignKey(
-        "self",
-        on_delete=models.CASCADE,
-        related_name="children",
-        null=True,
-    )
-
-    class Meta:
-        constraints: Sequence = [
-            models.UniqueConstraint(fields=["name", "parent"], name="name-to-parent"),
-        ]
+    class Meta(TreeNodeModel.Meta):
+        verbose_name = "Tag"
+        verbose_name_plural = "Tags"
 
     def __str__(self) -> str:
         return f"Tag {self.name}"
@@ -57,7 +51,7 @@ class TagOnImage(models.Model):  # noqa: DJ008
     image = models.ForeignKey(
         "Image",
         on_delete=models.CASCADE,
-        help_text="A Tag is on this Image at the given location",
+        help_text="A Tag is on this Image",
     )
 
     applied = models.BooleanField(default=False, help_text="This tag is applied to this image")

@@ -276,6 +276,15 @@ wheels = [
 ]
 
 [[package]]
+name = "django-treenode"
+version = "0.23.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e0/11/20c510af1c637a0104c0cffed816c4e0211094c895311535b7e0bb456d55/django_treenode-0.23.1.tar.gz", hash = "sha256:4701a822c1af85e6c5c3e3074555fd52356ce857c1e50f08451e7880a35fbb8c", size = 26569 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/51/3d/610934d186c2b75a2f4056cd2f7a1d878afbcc249bdaa73e5c3c15eb8709/django_treenode-0.23.1-py3-none-any.whl", hash = "sha256:c432c8d92c05421f8e549f868bd2e5c9e632e111b7a8ccb25e12d945ed5274bf", size = 21813 },
+]
+
+[[package]]
 name = "django-typer"
 version = "3.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -719,6 +728,7 @@ dependencies = [
     { name = "blake3" },
     { name = "django" },
     { name = "django-jinja" },
+    { name = "django-treenode" },
     { name = "django-typer", extra = ["rich"] },
     { name = "exifmwg" },
     { name = "huey" },
@@ -766,6 +776,7 @@ requires-dist = [
     { name = "blake3", specifier = ">=0.4.1" },
     { name = "django", specifier = "~=5.2" },
     { name = "django-jinja", specifier = "~=2.11" },
+    { name = "django-treenode" },
     { name = "django-typer", extras = ["rich"], specifier = ">=2.2.1" },
     { name = "exifmwg" },
     { name = "granian", extras = ["uvloop"], marker = "extra == 'webserver'", specifier = "~=2.2.0" },
