@@ -16,8 +16,28 @@ Including another URLconf
 """
 
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import path
 
+from memoria.views import AlbumsView
+from memoria.views import DatesView
+from memoria.views import GalleriesView
+from memoria.views import HomePageView
+from memoria.views import LocationsView
+from memoria.views import PeopleView
+from memoria.views import ProfileView
+from memoria.views import SettingsView
+
 urlpatterns = [
+    path("home/", HomePageView.as_view(), name="home"),
+    path("galleries/", GalleriesView.as_view(), name="galleries"),
+    path("albums/", AlbumsView.as_view(), name="albums"),
+    path("people/", PeopleView.as_view(), name="people"),
+    path("locations/", LocationsView.as_view(), name="locations"),
+    path("dates/", DatesView.as_view(), name="dates"),
+    path("profile/", ProfileView.as_view(), name="profile"),
+    path("settings/", SettingsView.as_view(), name="settings"),
+    path("login/", auth_views.LoginView.as_view(template_name="login.html.jinja"), name="login"),
+    path("logout/", auth_views.LogoutView.as_view(template_name="logout.html.jinja"), name="logout"),
     path("admin/", admin.site.urls),
 ]

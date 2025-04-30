@@ -1,0 +1,35 @@
+{% extends "base.html.jinja" %}
+{% block title %}{{ title }}{% endblock title %}
+{% block content %}
+{% include "partials/navbar.html.jinja" %}
+
+<div class="container mt-5">
+    <h1 class="mb-4">Dates</h1>
+    <p class="lead">Browse photos by date.</p>
+
+    <div class="row">
+        <!-- Date filter content will go here -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Calendar View</h5>
+                    <!-- Calendar placeholder -->
+                    <div class="calendar-placeholder p-4 bg-light text-center">
+                        Calendar view will be displayed here
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">April 2025</h5>
+                    <p class="card-text">15 photos</p>
+                    <a href="#" class="btn btn-primary">View Photos</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

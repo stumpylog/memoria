@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_jinja",
+    "memoria",
 ]
 
 MIDDLEWARE = [
@@ -54,11 +56,27 @@ ROOT_URLCONF = "memoria.urls"
 TEMPLATES = [
     {
         "BACKEND": "django_jinja.jinja2.Jinja2",
+        "DIRS": [BASE_DIR / "memoria" / "templates"],
+        "APP_DIRS": False,
+        "OPTIONS": {
+            "match_extension": ".jinja",
+            "match_regex": r"^(?!admin/).*",
+            "context_processors": [
+                "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
-            "match_extension": ".html.jinja",
-            "match_regex": r"^(?!admin/).*",
             "context_processors": [
                 "django.contrib.auth.context_processors.auth",
                 "django.template.context_processors.debug",
@@ -130,3 +148,7 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+LOGIN_REDIRECT_URL = "/home/"
+LOGOUT_REDIRECT_URL = "/logout/"
+LOGIN_URL = "/accounts/login/"

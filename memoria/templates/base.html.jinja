@@ -1,14 +1,10 @@
-{# templates/base.jinja #}
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="{% block meta_description %}">
-        <meta name="keywords" content="{% block meta_keywords %}">
         <title>
             {% block title %}
-                memoria
             {% endblock title %}
         </title>
         <link href="{{ static('bootstrap/css/bootstrap.min.css') }}"

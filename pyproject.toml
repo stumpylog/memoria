@@ -23,6 +23,7 @@ dependencies = [
   "pydantic-settings>=2.4",
   "redis[hiredis]>=5.0.8",
   "simpleiso3166[search]>=0.1",
+  "exifmwg"
 ]
 
 optional-dependencies.mariadb = [
@@ -35,6 +36,12 @@ optional-dependencies.postgres = [
 ]
 optional-dependencies.webserver = [
   "granian[uvloop]~=2.2.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest >=8.1.1,<9",
+  "djLint"
 ]
 
 [tool.hatch.build.targets.wheel]
