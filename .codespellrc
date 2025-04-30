@@ -1,0 +1,3 @@
+[codespell]
+skip = src-frontend/pnpm-lock.yaml
+ignore-words-list = Nome
