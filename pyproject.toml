@@ -1,16 +1,12 @@
-[build-system]
-build-backend = "hatchling.build"
-
-requires = [ "hatchling" ]
-
 [project]
 name = "memoria"
 version = "0.0.1"
 description = "Add your description here"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 
 classifiers = [
   "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -18,8 +14,8 @@ classifiers = [
 dependencies = [
   "blake3>=0.4.1",
   "django~=5.2",
+  "django-jinja~=2.11",
   "django-typer[rich]>=2.2.1",
-  "granian>=2.2",
   "huey>=2.5.1",
   "imagehash>=4.3.1",
   "pydantic[email]>=2.8.2",
@@ -29,11 +25,23 @@ dependencies = [
   "simpleiso3166[search]>=0.1",
 ]
 
+optional-dependencies.mariadb = [
+  "mysqlclient~=2.2.7",
+]
+optional-dependencies.postgres = [
+  "psycopg[c]==3.2.5",
+  # Direct dependency for proper resolution of the pre-built wheels
+  "psycopg-c==3.2.5",
+]
+optional-dependencies.webserver = [
+  "granian[uvloop]~=2.2.0",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = [ "memoria" ]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py310"
 line-length = 120
 fix = true
 show-fixes = true

@@ -53,13 +53,19 @@ ROOT_URLCONF = "memoria.urls"
 
 TEMPLATES = [
     {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "BACKEND": "django_jinja.jinja2.Jinja2",
         "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
+            "match_extension": ".html.jinja",
+            "match_regex": r"^(?!admin/).*",
             "context_processors": [
-                "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
             ],
         },
@@ -115,6 +121,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

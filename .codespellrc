@@ -1,3 +1,3 @@
 [codespell]
-skip = src-frontend/pnpm-lock.yaml
+skip = static/bootstrap/*
 ignore-words-list = Nome
