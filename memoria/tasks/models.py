@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from logging import Logger
 from pathlib import Path
 
-from django.contrib.auth.models import Group
+from django.db.models.query import QuerySet
 
 from memoria.models import ImageSource
 
@@ -12,6 +12,6 @@ class ImageIndexTaskModel:
     image_path: Path
     hash_threads: int = 4
     source: ImageSource | None = None
-    view_groups: list[Group] | None = None
-    edit_groups: list[Group] | None = None
+    view_groups: QuerySet | None = None
+    edit_groups: QuerySet | None = None
     logger: Logger | None = None
