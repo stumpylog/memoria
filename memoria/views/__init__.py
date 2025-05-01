@@ -8,20 +8,30 @@ from memoria.views.profile import ManageGroupsView
 from memoria.views.profile import ProfileView
 from memoria.views.profile import UpdateEmailView
 from memoria.views.profile import UpdateProfileView
-from memoria.views.settings import SettingsView
+from memoria.views.settings import AddGroupView
+from memoria.views.settings import AddUserView
+from memoria.views.settings import AdminSettingsView
+from memoria.views.settings import ManageUserGroupsView
+from memoria.views.settings import RemoveGroupView
+from memoria.views.settings import ToggleUserActiveView
 from memoria.views.sources import SourcesView
 
 __all__ = [
+    "AddGroupView",
+    "AddUserView",
+    "AdminSettingsView",
     "AlbumsView",
     "DatesView",
     "HomePageView",
     "ImagesView",
     "LocationsView",
     "ManageGroupsView",
+    "ManageUserGroupsView",
     "PeopleView",
     "ProfileView",
-    "SettingsView",
+    "RemoveGroupView",
     "SourcesView",
+    "ToggleUserActiveView",
     "UpdateEmailView",
     "UpdateProfileView",
 ]

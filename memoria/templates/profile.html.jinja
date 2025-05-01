@@ -55,7 +55,7 @@
                             <h5 class="card-title">Update Email Address</h5>
                             <form method="post" action="{{ url('profile_update_email') }}">
                                 {% csrf_token %}
-                                {{ bootstrap_form(email_form) }}
+                                {{ bootstrap_form(email_form, show_label=False) }}
                                 {{ bootstrap_button(button_type="submit", content="Update Email") }}
                             </form>
                         </div>

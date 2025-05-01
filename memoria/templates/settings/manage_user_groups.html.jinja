@@ -1,0 +1,29 @@
+{% extends "base.html.jinja" %}
+{% block title %}
+    {{ title }}
+{% endblock title %}
+{% block content %}
+    {% include "partials/navbar.html.jinja" %}
+    <div class="container mt-5">
+        {{ bootstrap_messages() }}
+        <h1 class="mb-4">{{ title }}</h1>
+        <p>
+            Managing groups for user: <strong>{{ target_user.username }}</strong>
+        </p>
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Update Group Memberships</h5>
+                <form method="post"
+                      action="{{ url('admin_manage_user_groups', pk=target_user.pk) }}">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                    {{ bootstrap_form(manage_groups_form, show_label=False) }}
+                    <button type="submit" class="btn btn-primary mt-3">Save Group Changes</button>
+                </form>
+            </div>
+        </div>
+        <p class="mt-4">
+            {# Link back to the main admin settings page #}
+            <a href="{{ url("settings") }}#manage-users" class="btn btn-secondary">Back to Manage Users</a>
+        </p>
+    </div>
+{% endblock content %}

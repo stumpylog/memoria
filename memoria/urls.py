@@ -9,33 +9,35 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.views.generic import RedirectView
 
-from memoria.views import AlbumsView
-from memoria.views import DatesView
-from memoria.views import HomePageView
-from memoria.views import ImagesView
-from memoria.views import LocationsView
-from memoria.views import ManageGroupsView
-from memoria.views import PeopleView
-from memoria.views import ProfileView
-from memoria.views import SettingsView
-from memoria.views import SourcesView
-from memoria.views import UpdateEmailView
-from memoria.views import UpdateProfileView
+from memoria import views
 
 urlpatterns = [
     path("", RedirectView.as_view(pattern_name="home")),
-    path("home/", HomePageView.as_view(), name="home"),
-    path("images/", ImagesView.as_view(), name="images"),
-    path("sources/", SourcesView.as_view(), name="sources"),
-    path("albums/", AlbumsView.as_view(), name="albums"),
-    path("people/", PeopleView.as_view(), name="people"),
-    path("locations/", LocationsView.as_view(), name="locations"),
-    path("dates/", DatesView.as_view(), name="dates"),
-    path("profile/", ProfileView.as_view(), name="profile"),
-    path("profile/update-email/", UpdateEmailView.as_view(), name="profile_update_email"),
-    path("profile/update-profile/", UpdateProfileView.as_view(), name="profile_update_details"),
-    path("profile/manage-groups/", ManageGroupsView.as_view(), name="profile_manage_groups"),
-    path("settings/", SettingsView.as_view(), name="settings"),
+    path("home/", views.HomePageView.as_view(), name="home"),
+    path("images/", views.ImagesView.as_view(), name="images"),
+    path("sources/", views.SourcesView.as_view(), name="sources"),
+    path("albums/", views.AlbumsView.as_view(), name="albums"),
+    path("people/", views.PeopleView.as_view(), name="people"),
+    path("locations/", views.LocationsView.as_view(), name="locations"),
+    path("dates/", views.DatesView.as_view(), name="dates"),
+    path("profile/", views.ProfileView.as_view(), name="profile"),
+    path("profile/update-email/", views.UpdateEmailView.as_view(), name="profile_update_email"),
+    path("profile/update-profile/", views.UpdateProfileView.as_view(), name="profile_update_details"),
+    path("profile/manage-groups/", views.ManageGroupsView.as_view(), name="profile_manage_groups"),
+    path("settings/", views.AdminSettingsView.as_view(), name="settings"),
+    path("settings/users/add/", views.AddUserView.as_view(), name="admin_add_user"),
+    path(
+        "settings/users/<int:pk>/toggle-active/",
+        views.ToggleUserActiveView.as_view(),
+        name="admin_toggle_user_active",
+    ),
+    path(
+        "settings/users/<int:pk>/manage-groups/",
+        views.ManageUserGroupsView.as_view(),
+        name="admin_manage_user_groups",
+    ),
+    path("settings/groups/add/", views.AddGroupView.as_view(), name="admin_add_group"),
+    path("settings/groups/<int:pk>/remove/", views.RemoveGroupView.as_view(), name="admin_remove_group"),
     path("login/", auth_views.LoginView.as_view(template_name="login.html.jinja"), name="login"),
     path("logout/", auth_views.LogoutView.as_view(template_name="logout.html.jinja"), name="logout"),
     path(
