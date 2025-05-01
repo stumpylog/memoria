@@ -1,4 +1,3 @@
-from typing import Any
 from typing import ClassVar
 
 from django import forms
@@ -17,11 +16,6 @@ class UserEmailForm(forms.ModelForm):
         model = User
         fields: ClassVar[list] = ["email"]
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        # Add Bootstrap 5 form-control class to the email field
-        self.fields["email"].widget.attrs["class"] = "form-control"
-
 
 class UserProfileUpdateForm(forms.ModelForm):
     """Form for updating the user's profile details (bio, images per page)."""
@@ -29,13 +23,6 @@ class UserProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields: ClassVar[list] = ["bio", "images_per_page", "timezone"]
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        # Add Bootstrap 5 form-control class to the fields
-        self.fields["bio"].widget.attrs["class"] = "form-control"
-        self.fields["images_per_page"].widget.attrs["class"] = "form-control"
-        self.fields["timezone"].widget.attrs["class"] = "form-control form-select"
 
 
 class GroupMembershipForm(forms.Form):
@@ -48,7 +35,7 @@ class GroupMembershipForm(forms.Form):
         queryset=Group.objects.all(),
         widget=forms.CheckboxSelectMultiple,  # Render as checkboxes
         required=False,  # User doesn't have to be in any group
-        label="Select Groups",
+        label=None,
     )
 
     # We might need to pass the user instance to the form

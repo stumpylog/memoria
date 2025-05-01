@@ -65,7 +65,7 @@
                                {% if request.resolver_match.url_name == 'profile' %}aria-current="page"{% endif %}
                                href="{{ url('profile') }}"><i class="bi bi-person"></i> Profile</a>
                         </li>
-                        {% if user.is_staff %}
+                        {% if user.is_staff or user.is_superuser %}
                             <li>
                                 <a class="dropdown-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
                                    {% if request.resolver_match.url_name == 'settings' %}aria-current="page"{% endif %}

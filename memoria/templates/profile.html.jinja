@@ -49,25 +49,14 @@
                 </div>
             </div>
             <div class="col-md-8">
-                {# Separate form for Email #}
                 {% if email_form %}
                     <div class="card mb-4">
                         <div class="card-body">
                             <h5 class="card-title">Update Email Address</h5>
                             <form method="post" action="{{ url('profile_update_email') }}">
                                 {% csrf_token %}
-                                {# Render the email field using Django form rendering #}
-                                {# Add Bootstrap classes manually or use django-widget-tweaks #}
-                                <div class="mb-3">
-                                    <label for="{{ email_form.email.id_for_label }}" class="form-label">{{ email_form.email.label }}</label>
-                                    {{ email_form.email }}
-                                    {% if email_form.email.errors %}
-                                        <div class="text-danger">
-                                            {% for error in email_form.email.errors %}<small>{{ error }}</small>{% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <button type="submit" class="btn btn-primary">Update Email</button>
+                                {{ bootstrap_form(email_form) }}
+                                {{ bootstrap_button(button_type="submit", content="Update Email") }}
                             </form>
                         </div>
                     </div>
@@ -79,42 +68,14 @@
                             <h5 class="card-title">Update Profile Details</h5>
                             <form method="post" action="{{ url('profile_update_details') }}">
                                 {% csrf_token %}
-                                {# Render profile form fields #}
-                                <div class="mb-3">
-                                    <label for="{{ profile_form.bio.id_for_label }}" class="form-label">{{ profile_form.bio.label }}</label>
-                                    {{ profile_form.bio }}
-                                    {% if profile_form.bio.errors %}
-                                        <div class="text-danger">
-                                            {% for error in profile_form.bio.errors %}<small>{{ error }}</small>{% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="mb-3">
-                                    <label for="{{ profile_form.timezone.id_for_label }}" class="form-label">{{ profile_form.timezone.label }}</label>
-                                    {{ profile_form.timezone }}
-                                    {% if profile_form.timezone.errors %}
-                                        <div class="text-danger">
-                                            {% for error in profile_form.timezone.errors %}<small>{{ error }}</small>{% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="mb-3">
-                                    <label for="{{ profile_form.images_per_page.id_for_label }}"
-                                           class="form-label">{{ profile_form.images_per_page.label }}</label>
-                                    {{ profile_form.images_per_page }}
-                                    {% if profile_form.images_per_page.errors %}
-                                        <div class="text-danger">
-                                            {% for error in profile_form.images_per_page.errors %}<small>{{ error }}</small>{% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <button type="submit" class="btn btn-primary">Update Profile</button>
+                                {{ bootstrap_form(profile_form) }}
+                                {{ bootstrap_button(button_type="submit", content="Update Profile") }}
                             </form>
                         </div>
                     </div>
                 {% endif %}
                 {# Group Management Section for Staff Users - Now using a form #}
-                {% if user.is_staff and group_form %}
+                {% if (user.is_staff or user.is_superuser) and group_form %}
                     {# Check user is staff and group_form exists #}
                     <div class="card mb-4">
                         <div class="card-body">

@@ -4,7 +4,6 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import HttpRequest
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
@@ -15,6 +14,7 @@ from memoria.forms import GroupMembershipForm
 from memoria.forms import UserEmailForm
 from memoria.forms import UserProfileUpdateForm
 from memoria.models import UserProfile
+from memoria.views.mixins import UserIsActiveStaffOrSuperuserTestMixin
 
 User = get_user_model()
 
@@ -63,7 +63,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             # Instantiate with the current profile instance data
             profile_form = UserProfileUpdateForm(instance=profile)
 
-        if user.is_staff:
+        if user.is_staff or user.is_superuser:
             group_form_session_data = self.request.session.pop("profile_group_form_data", None)
             if group_form_session_data:
                 # Pass the user instance to set initial values correctly
@@ -71,6 +71,8 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             else:
                 # Pass the user instance to set initial values correctly
                 group_form: GroupMembershipForm = GroupMembershipForm(user=user)
+        else:
+            group_form = None
 
         user_groups = user.groups.all()
 
@@ -127,20 +129,10 @@ class UpdateProfileView(LoginRequiredMixin, View):
         return redirect("profile")  # Redirect back to the main profile view
 
 
-class ManageGroupsView(LoginRequiredMixin, UserPassesTestMixin, View):
+class ManageGroupsView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, View):
     """
     Handles POST requests to manage user group memberships (staff only).
     """
-
-    # This view doesn't use a Django Form object for the group management,
-    # so detailed errors are handled via the messages framework directly
-    # if any exceptions occur.
-
-    def test_func(self) -> bool:
-        """
-        Only allow staff users to access this view.
-        """
-        return self.request.user.is_staff
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseRedirect:  # noqa: ARG002
         user: User = request.user  # The user making the request (staff)
