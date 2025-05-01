@@ -1,0 +1,4 @@
+#!/usr/bin/with-contenv bash
+
+
+exec gunicorn --bind 127.0.0.1:8000 myproject.wsgi

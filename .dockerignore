@@ -1,0 +1,7 @@
+.venv/
+.ruff_cache/
+.pytest_cache/
+.vscode/
+logs/
+media/
+samples/
