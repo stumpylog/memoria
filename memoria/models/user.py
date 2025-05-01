@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from timezone_field import TimeZoneField
 
 from memoria.models.abstract import AbstractTimestampMixin
 
@@ -26,6 +27,8 @@ class UserProfile(AbstractTimestampMixin, models.Model):
         default=ImagesPerPageChoices.THIRTY,
         choices=ImagesPerPageChoices.choices,
     )
+
+    timezone = TimeZoneField(default="America/Los_Angeles")
 
     def __str__(self):
         return f"{self.user.username}'s profile"

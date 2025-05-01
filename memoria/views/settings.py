@@ -1,9 +1,16 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views.generic import TemplateView
 
 
-class SettingsView(LoginRequiredMixin, TemplateView):
+class SettingsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = "settings.html.jinja"
+
+    def test_func(self) -> bool:
+        """
+        Only allow staff users to access this view.
+        """
+        return self.request.user.is_staff
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

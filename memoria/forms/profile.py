@@ -28,13 +28,14 @@ class UserProfileUpdateForm(forms.ModelForm):
 
     class Meta:
         model = UserProfile
-        fields: ClassVar[list] = ["bio", "images_per_page"]
+        fields: ClassVar[list] = ["bio", "images_per_page", "timezone"]
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         # Add Bootstrap 5 form-control class to the fields
         self.fields["bio"].widget.attrs["class"] = "form-control"
         self.fields["images_per_page"].widget.attrs["class"] = "form-control"
+        self.fields["timezone"].widget.attrs["class"] = "form-control form-select"
 
 
 class GroupMembershipForm(forms.Form):

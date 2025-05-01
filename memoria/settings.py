@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+from django_jinja.builtins import DEFAULT_EXTENSIONS
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -52,6 +54,8 @@ INSTALLED_APPS = [
     "django_jinja",
     "django_jinja.contrib._humanize",
     "treenode",
+    "timezone_field",
+    "django_bootstrap5",
     "memoria",
 ]
 
@@ -84,6 +88,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
             ],
+            "extensions": [*DEFAULT_EXTENSIONS, "django_bootstrap5.jinja2.BootstrapTags"],
         },
     },
     {

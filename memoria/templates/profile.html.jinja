@@ -7,19 +7,8 @@
     {% include "partials/navbar.html.jinja" %}
     <div class="container mt-5">
         <h1 class="mb-4">Your Profile</h1>
-        {# Display Django messages here #}
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
-                     role="alert">
-                    {{ message }}
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="alert"
-                            aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
+        {# Display django.contrib.messages as Bootstrap alerts #}
+        {{ bootstrap_messages() }}
         <div class="row">
             <div class="col-md-4">
                 <div class="card">
@@ -97,6 +86,15 @@
                                     {% if profile_form.bio.errors %}
                                         <div class="text-danger">
                                             {% for error in profile_form.bio.errors %}<small>{{ error }}</small>{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ profile_form.timezone.id_for_label }}" class="form-label">{{ profile_form.timezone.label }}</label>
+                                    {{ profile_form.timezone }}
+                                    {% if profile_form.timezone.errors %}
+                                        <div class="text-danger">
+                                            {% for error in profile_form.timezone.errors %}<small>{{ error }}</small>{% endfor %}
                                         </div>
                                     {% endif %}
                                 </div>
