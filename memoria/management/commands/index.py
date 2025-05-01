@@ -40,7 +40,7 @@ def get_or_create_groups(group_names: list[str]):
         Group.objects.bulk_create(groups_to_create)
 
     # Return all groups (both existing and newly created)
-    return Group.objects.filter(name__in=lowercase_names)
+    return Group.objects.annotate(lower_name=Lower("name")).filter(lower_name__in=lowercase_names)
 
 
 class Command(TyperCommand):
@@ -85,7 +85,7 @@ class Command(TyperCommand):
 
         edit_groups = None
         if edit_group:
-            edit_groups = view_groups = get_or_create_groups(edit_group)
+            edit_groups = get_or_create_groups(edit_group)
 
         self.image_paths: list[Path] = []
 
