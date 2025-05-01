@@ -42,6 +42,10 @@ def handle_existing_image(
         pkg.logger.info(f"  Updating source to {pkg.source}")
         existing_image.source = pkg.source
         existing_image.save()
+    if pkg.view_groups is not None:
+        existing_image.view_groups.set(pkg.view_groups)
+    if pkg.edit_groups is not None:
+        existing_image.edit_groups.set(pkg.edit_groups)
     # Check for an updated location
     if pkg.image_path.resolve() != existing_image.original_path:
         pkg.logger.info(f"  Updating path from {existing_image.original_path.resolve()} to {pkg.image_path.resolve()}")
@@ -304,7 +308,7 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
             except ValueError:
                 pass
 
-    with ExifTool(EXIF_TOOL_EXE) as tool:
+    with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool:
         metadata = tool.read_image_metadata(pkg.image_path)
 
     new_img = ImageModel.objects.create(
@@ -323,6 +327,10 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
         # This time cannot be dirty
         is_dirty=False,
     )
+    if pkg.view_groups:
+        new_img.view_groups.set(pkg.view_groups)
+    if pkg.edit_groups:
+        new_img.edit_groups.set(pkg.edit_groups)
 
     pkg.logger.info("  Creating thumbnail")
     with Image.open(pkg.image_path) as im_file:

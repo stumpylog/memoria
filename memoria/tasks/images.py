@@ -48,7 +48,7 @@ def sync_metadata_to_files(images: list[ImageModel]) -> None:
             logger.exception(f"Failed to process metadata for image {image.original_path}")
 
     if metadata_items:
-        with ExifTool(EXIF_TOOL_EXE) as tool:
+        with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool:
             tool.bulk_write_image_metadata(metadata_items)
         for image in images:
             image.update_hashes()
@@ -65,6 +65,7 @@ def index_single_image(pkg: ImageIndexTaskModel) -> None:
     # Duplicate check
     image_hash = calculate_blake3_hash(pkg.image_path, hash_threads=pkg.hash_threads)
 
+    # If no source, we use the parent folder name
     if not pkg.source:
         img_src, _ = ImageSource.objects.get_or_create(name=pkg.image_path.parent.name)
         pkg.source = img_src

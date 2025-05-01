@@ -1,12 +1,18 @@
 import logging
+from typing import TYPE_CHECKING
 from typing import Any
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
+from django.db.models.query import QuerySet
 from django.views.generic import ListView
 
 from memoria.models import Image
 from memoria.models import UserProfile
+
+if TYPE_CHECKING:
+    from django.contrib.auth.models import Group
 
 User = get_user_model()
 
@@ -17,6 +23,33 @@ class ImagesView(LoginRequiredMixin, ListView):
     model = Image
     default_paginate_by = UserProfile.ImagesPerPageChoices.THIRTY
     template_name = "images.html.jinja"
+
+    def get_queryset(self) -> QuerySet[Image]:
+        # Get the base queryset
+        queryset = super().get_queryset()
+
+        # Get the current user's groups
+        user: User = self.request.user
+        user_groups: QuerySet[Group] = user.groups.all()
+
+        # If the user is a superuser, show all objects
+        if user.is_superuser:
+            return queryset
+
+        # Filter the queryset
+        # We want objects where the object's view_groups *intersect* with the user's groups
+        # OR where the object's edit_groups *intersect* with the user's groups
+
+        filter_condition: Q = (
+            Q(view_groups__in=user_groups)
+            | Q(edit_groups__in=user_groups)
+            | Q(view_groups__isnull=True, edit_groups__isnull=True)
+        )
+
+        # Apply the filter to the queryset and ensure distinct results
+        filtered_queryset: QuerySet[Image] = queryset.filter(filter_condition).distinct()
+
+        return filtered_queryset
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)

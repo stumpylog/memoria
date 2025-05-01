@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from blake3 import blake3
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.db import models
 from exifmwg.models import RotationEnum
 from imagehash import average_hash
@@ -48,6 +49,7 @@ class Image(AbstractTimestampMixin, models.Model):
         help_text="The BLAKE3 checksum of the original file",
     )
 
+    # TODO: These two might not be needed, as the production server probably handles the etag/last modified
     thumbnail_checksum = models.CharField(
         max_length=64,
         unique=True,
@@ -79,7 +81,7 @@ class Image(AbstractTimestampMixin, models.Model):
     height = models.PositiveIntegerField(verbose_name="height in pixels")
     width = models.PositiveIntegerField(verbose_name="width in pixels")
 
-    orientation = models.SmallIntegerField(
+    orientation = models.PositiveSmallIntegerField(
         choices=OrientationChoices.choices,
         default=OrientationChoices.HORIZONTAL,
         help_text="MWG Orientation flag",
@@ -156,6 +158,18 @@ class Image(AbstractTimestampMixin, models.Model):
         Tag,
         through=TagOnImage,
         help_text="These tags apply to the image",
+    )
+
+    view_groups = models.ManyToManyField(
+        Group,
+        help_text="These groups may view the image",
+        related_name="viewable_images",
+    )
+
+    edit_groups = models.ManyToManyField(
+        Group,
+        help_text="These groups may edit (and view) the image",
+        related_name="editable_images",
     )
 
     class Meta:

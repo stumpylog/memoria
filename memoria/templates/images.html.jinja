@@ -15,30 +15,30 @@
                         {# h-100 for equal height, shadow-sm for subtle effect #}
                         {# Check if thumbnail_url is not None/empty #}
                         {% if image.thumbnail_url %}
-                            {# Display the thumbnail image #}
-                            <img src="{{ image.thumbnail_url }}"
-                                 class="card-img-top"
-                                 alt="Thumbnail for {{ image.image_fs_id }}"
-                                 style="aspect-ratio: 1 / 1;
-                                        object-fit: cover">
-                            {#
-                                Style Explanation:
-                                - aspect-ratio: 1 / 1 makes the image container square. Adjust if needed (e.g., 16/9).
-                                - object-fit: cover scales the image to maintain aspect ratio while filling the container, cropping if necessary.
-                            #}
+                            {# Image container with fixed height but preserved aspect ratio #}
+                            <div style="height: 200px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        overflow: hidden">
+                                <img src="{{ image.thumbnail_url }}"
+                                     class="img-fluid img-thumbnail"
+                                     alt="Thumbnail for {{ image.image_fs_id }}"
+                                     style="max-height: 100%;
+                                            object-fit: contain">
+                            </div>
                         {% else %}
                             {# Fallback if no thumbnail URL - using Bootstrap utilities #}
                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light"
-                                 style="aspect-ratio: 1 / 1">
+                                 style="height: 200px">
                                 <span class="text-muted small">No Preview</span>
                             </div>
                         {% endif %}
                         {# Optional: Add card body for details or actions #}
                         <div class="card-body">
-                            <p class="card-text small text-muted text-truncate"
-                               title="{{ image.image_fs_id }}">
+                            <p class="card-text small text-muted" title="{{ image.image_fs_id }}">
                                 {# Displaying image_fs_id, truncated if too long #}
-                                {{ image.image_fs_id }}
+                                {{ image.description }}
                             </p>
                             {# <a href="#" class="btn btn-sm btn-outline-secondary">Details</a> #}
                         </div>
@@ -50,7 +50,8 @@
                 </div>
             {% endfor %}
         </div>
-        {# TODO: Investigate https://django-bootstrap5.readthedocs.io/en/latest/templatetags.html#bootstrap-pagination#}
-        {% include "partials/pagination.html.jinja" %}
     </div>
+    {# TODO: Investigate https://django-bootstrap5.readthedocs.io/en/latest/templatetags.html#bootstrap-pagination#}
+    {% include "partials/pagination.html.jinja" %}
+</div>
 {% endblock content %}
