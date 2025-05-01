@@ -5,13 +5,13 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.contrib.auth.models import Group
 from django.http import HttpRequest
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.views import View
 from django.views.generic import TemplateView
 
+from memoria.forms import GroupMembershipForm
 from memoria.forms import UserEmailForm
 from memoria.forms import UserProfileUpdateForm
 from memoria.models import UserProfile
@@ -43,14 +43,36 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         user: User = self.request.user
         profile: UserProfile = get_or_create_user_profile(user)
 
-        # Instantiate forms with initial data for display
-        email_form = UserEmailForm(instance=user)
-        profile_form = UserProfileUpdateForm(instance=profile)
+        # Check if email form data/errors are in the session (from a failed POST)
+        email_form_session_data = self.request.session.pop("profile_email_form_data", None)
+        if email_form_session_data:
+            # Reconstruct the form with the data from the session
+            email_form = UserEmailForm(email_form_session_data, instance=user)
+            # The form.is_valid() check might be needed here if errors weren't stored explicitly
+            # but instantiating with data usually regenerates errors on access if validation failed.
+            # For simplicity, we rely on Django forms regenerating errors when template accesses .errors
+        else:
+            # Instantiate with the current user instance data
+            email_form = UserEmailForm(instance=user)
+
+        profile_form_session_data = self.request.session.pop("profile_details_form_data", None)
+        if profile_form_session_data:
+            # Reconstruct the form with the data from the session
+            profile_form = UserProfileUpdateForm(profile_form_session_data, instance=profile)
+        else:
+            # Instantiate with the current profile instance data
+            profile_form = UserProfileUpdateForm(instance=profile)
+
+        if user.is_staff:
+            group_form_session_data = self.request.session.pop("profile_group_form_data", None)
+            if group_form_session_data:
+                # Pass the user instance to set initial values correctly
+                group_form: GroupMembershipForm = GroupMembershipForm(group_form_session_data, user=user)
+            else:
+                # Pass the user instance to set initial values correctly
+                group_form: GroupMembershipForm = GroupMembershipForm(user=user)
 
         user_groups = user.groups.all()
-
-        # Get all groups to display for staff users
-        all_groups = Group.objects.all() if user.is_staff else None
 
         context.update(
             {
@@ -58,8 +80,8 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                 "user": user,
                 "email_form": email_form,
                 "profile_form": profile_form,
+                "group_form": group_form,
                 "user_groups": user_groups,
-                "all_groups": all_groups,  # Pass None if not staff
             },
         )
         return context
@@ -78,9 +100,8 @@ class UpdateEmailView(LoginRequiredMixin, View):
             email_form.save()
             messages.success(request, "Your email address was successfully updated!")
         else:
-            # Note: Form errors won't be directly displayed on the redirected page
-            # via messages. A general error message is added.
-            messages.error(request, "Failed to update email. Please correct the errors.")
+            request.session["profile_email_form_data"] = request.POST  # Store raw POST data
+            messages.error(request, "Please correct the errors below.")  # Generic error message
 
         return redirect("profile")  # Redirect back to the main profile view
 
@@ -99,8 +120,9 @@ class UpdateProfileView(LoginRequiredMixin, View):
             profile_form.save()
             messages.success(request, "Your profile details were successfully updated!")
         else:
-            # Note: Form errors won't be directly displayed on the redirected page.
-            messages.error(request, "Failed to update profile details. Please correct the errors.")
+            # If invalid, store form data in session and add an error message
+            request.session["profile_details_form_data"] = request.POST  # Store raw POST data
+            messages.error(request, "Please correct the errors below.")  # Generic error message
 
         return redirect("profile")  # Redirect back to the main profile view
 
@@ -110,6 +132,10 @@ class ManageGroupsView(LoginRequiredMixin, UserPassesTestMixin, View):
     Handles POST requests to manage user group memberships (staff only).
     """
 
+    # This view doesn't use a Django Form object for the group management,
+    # so detailed errors are handled via the messages framework directly
+    # if any exceptions occur.
+
     def test_func(self) -> bool:
         """
         Only allow staff users to access this view.
@@ -117,25 +143,27 @@ class ManageGroupsView(LoginRequiredMixin, UserPassesTestMixin, View):
         return self.request.user.is_staff
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseRedirect:  # noqa: ARG002
-        user: User = request.user
+        user: User = request.user  # The user making the request (staff)
+        user_to_manage: User = user  # Assuming staff manages their own groups for now
 
-        user_to_manage: User = user
+        # Instantiate the form with POST data and the user instance
+        group_form = GroupMembershipForm(request.POST, user=user_to_manage)
 
-        selected_group_ids_str: list[str] = request.POST.getlist("groups")
-        selected_group_ids: list[int] = []
-        for group_id_str in selected_group_ids_str:
+        if group_form.is_valid():
+            # Get the list of selected group objects from the cleaned data
+            selected_groups = group_form.cleaned_data["groups"]
+
             try:
-                selected_group_ids.append(int(group_id_str))
-            except ValueError:  # noqa: PERF203
-                messages.error(request, f"Invalid group ID received: {group_id_str}")
-                return redirect("profile")  # Redirect on error
+                # Update the user's groups using the set method
+                user_to_manage.groups.set(selected_groups)
+                messages.success(request, f"Group memberships for {user_to_manage.username} successfully updated!")
 
-        try:
-            selected_groups = Group.objects.filter(pk__in=selected_group_ids)
-            user_to_manage.groups.set(selected_groups)
-            messages.success(request, f"Group memberships for {user_to_manage.username} successfully updated!")
+            except Exception as e:  # noqa: BLE001
+                messages.error(request, f"An unexpected error occurred while updating group memberships: {e}")
 
-        except Exception as e:  # noqa: BLE001
-            messages.error(request, f"An error occurred while updating group memberships: {e}")
+        else:
+            # If the form is invalid (e.g., invalid group ID somehow), store data in session
+            request.session["profile_group_form_data"] = request.POST  # Store raw POST data
+            messages.error(request, "Please correct the errors below for group management.")  # Generic error
 
-        return redirect("profile")  # Redirect back to the main profile view
+        return redirect("profile")  # Always redirect back to the main profile view

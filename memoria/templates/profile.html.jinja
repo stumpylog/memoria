@@ -7,7 +7,7 @@
     {% include "partials/navbar.html.jinja" %}
     <div class="container mt-5">
         <h1 class="mb-4">Your Profile</h1>
-        {# Display Django messages here, they will appear after redirects #}
+        {# Display Django messages here #}
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
@@ -32,14 +32,12 @@
                             <p>Last Login: {{ user.last_login | naturaltime }}</p>
                         </p>
                         {# Display the current bio #}
-                        {# Assuming user.profile exists and has a bio field #}
                         {% if user.profile %}
                             <p class="card-text">Bio: {{ user.profile.bio | default("No bio yet.") }}</p>
                         {% else %}
                             <p class="card-text">Bio: No bio yet.</p>
                         {% endif %}
                         {# Display the current images per page setting #}
-                        {# Assuming user.profile exists and has an images_per_page field #}
                         {% if user.profile %}
                             <p class="card-text">Images per page: {{ user.profile.images_per_page }}</p>
                         {% else %}
@@ -69,6 +67,8 @@
                             <h5 class="card-title">Update Email Address</h5>
                             <form method="post" action="{{ url('profile_update_email') }}">
                                 {% csrf_token %}
+                                {# Render the email field using Django form rendering #}
+                                {# Add Bootstrap classes manually or use django-widget-tweaks #}
                                 <div class="mb-3">
                                     <label for="{{ email_form.email.id_for_label }}" class="form-label">{{ email_form.email.label }}</label>
                                     {{ email_form.email }}
@@ -90,7 +90,7 @@
                             <h5 class="card-title">Update Profile Details</h5>
                             <form method="post" action="{{ url('profile_update_details') }}">
                                 {% csrf_token %}
-                                {# Bio Field #}
+                                {# Render profile form fields #}
                                 <div class="mb-3">
                                     <label for="{{ profile_form.bio.id_for_label }}" class="form-label">{{ profile_form.bio.label }}</label>
                                     {{ profile_form.bio }}
@@ -100,7 +100,6 @@
                                         </div>
                                     {% endif %}
                                 </div>
-                                {# Images per page Field #}
                                 <div class="mb-3">
                                     <label for="{{ profile_form.images_per_page.id_for_label }}"
                                            class="form-label">{{ profile_form.images_per_page.label }}</label>
@@ -116,47 +115,52 @@
                         </div>
                     </div>
                 {% endif %}
-                {# Group Management Section for Staff Users - Separate Form #}
-                {% if user.is_staff and all_groups is not none %}
-                    {# Check all_groups as it's None for non-staff #}
+                {# Group Management Section for Staff Users - Now using a form #}
+                {% if user.is_staff and group_form %}
+                    {# Check user is staff and group_form exists #}
                     <div class="card mb-4">
                         <div class="card-body">
                             <h5 class="card-title">Manage Groups</h5>
-                            {% if all_groups %}
-                                <p>Select groups to join or leave:</p>
-                                <form method="post" action="{{ url('profile_manage_groups') }}">
-                                    {% csrf_token %}
-                                    <ul class="list-group mb-3">
-                                        {% for group in all_groups %}
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                {{ group.name }}
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input" type="checkbox" role="switch"
-                                                        id="group_{{ group.pk }}" name="groups" value="{{ group.pk }}"
-                                                        {# Check if the current group is in the user's groups #}
-                                                        {% if group in user_groups %}checked{% endif %}>
-                                                        <label class="form-check-label" for="group_{{ group.pk }}">
-                                                            {% if group in user_groups %}
-                                                                Member
-                                                            {% else %}
-                                                                Not Member
-                                                            {% endif %}
-                                                        </label>
-                                                    </div>
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-                                        <button type="submit" class="btn btn-success">Update Group Membership</button>
-                                    </form>
-                                {% else %}
-                                    <p class="card-text">
-                                        <small>No groups available to manage.</small>
-                                    </p>
-                                {% endif %}
-                            </div>
+                            {# Display form errors if any #}
+                            {% if group_form.errors %}
+                                <div class="alert alert-danger">
+                                    <strong>Please correct the following errors:</strong>
+                                    <ul>
+                                        {% for field, errors in group_form.errors.items() %}<li>{{ field }}: {{ errors | join(", ") }}</li>{% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            <form method="post" action="{{ url('profile_manage_groups') }}">
+                                {% csrf_token %}
+                                {# Manually render the groups field using Bootstrap List Group and Form Switches #}
+                                <ul class="list-group mb-3">
+                                    {# Iterate through each choice in the form field #}
+                                    {% for choice in group_form.groups %}
+                                        {# Each list item represents a group with its name and a toggle switch #}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {# Display the group name on the left #}
+                                            <label class="form-check-label" for="switchCheckDefault">{{ choice.choice_label }}</label>
+                                            {# The div for the form switch and its status label on the right #}
+                                            <div class="form-check form-switch">
+                                                {# Manually render the checkbox input with Bootstrap classes and dynamic attributes #}
+                                                <input class="form-check-input"
+                                                       type="checkbox"
+                                                       role="switch"
+                                                       id="{{ choice.id_for_label }}"
+                                                       name="{{ choice.data.name }}"
+                                                       value="{{ choice.data.value }}"
+                                                       {% if choice.data.selected %}checked{% endif %}>
+                                                {# Add 'checked' if the choice is selected #}
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                                <button type="submit" class="btn btn-success">Update Group Membership</button>
+                            </form>
                         </div>
-                    {% endif %}
-                </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
-    {% endblock content %}
+    </div>
+{% endblock content %}
