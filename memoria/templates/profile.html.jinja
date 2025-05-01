@@ -18,27 +18,17 @@
                         {# Display the current email address #}
                         <h6 class="card-subtitle mb-2 text-body-secondary">{{ user.email }}</h6>
                         <p class="card-text">
-                            <p>Last Login: {{ user.last_login | naturaltime }}</p>
+                            <ul class="list-group">
+                                <li class="list-group-item">Joined: {{ user.date_joined.astimezone(user.profile.timezone).date() }}</li>
+                                <li class="list-group-item">Last Login: {{ user.last_login | naturaltime }}</li>
+                            </ul>
                         </p>
-                        {# Display the current bio #}
-                        {% if user.profile %}
-                            <p class="card-text">Bio: {{ user.profile.bio | default("No bio yet.") }}</p>
-                        {% else %}
-                            <p class="card-text">Bio: No bio yet.</p>
-                        {% endif %}
-                        {# Display the current images per page setting #}
-                        {% if user.profile %}
-                            <p class="card-text">Images per page: {{ user.profile.images_per_page }}</p>
-                        {% else %}
-                            <p class="card-text">Images per page: N/A</p>
-                        {% endif %}
                         <hr>
-                        {# Add a separator before groups #}
                         <h6 class="card-subtitle mb-2 text-body-secondary">Groups</h6>
                         {# Iterate over the 'user_groups' context variable #}
                         {% if user_groups %}
-                            <ul class="list-unstyled">
-                                {% for group in user_groups %}<li>{{ group.name }}</li>{% endfor %}
+                            <ul class="list-group">
+                                {% for group in user_groups %}<li class="list-group-item">{{ group.name }}</li>{% endfor %}
                             </ul>
                         {% else %}
                             <p class="card-text">

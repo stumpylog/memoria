@@ -1,5 +1,3 @@
-from typing import ClassVar
-
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -14,7 +12,7 @@ class UserEmailForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields: ClassVar[list] = ["email"]
+        fields = ("first_name", "last_name", "email")
 
 
 class UserProfileUpdateForm(forms.ModelForm):
@@ -22,7 +20,7 @@ class UserProfileUpdateForm(forms.ModelForm):
 
     class Meta:
         model = UserProfile
-        fields: ClassVar[list] = ["bio", "images_per_page", "timezone"]
+        fields = ("bio", "images_per_page", "timezone")
 
 
 class GroupMembershipForm(forms.Form):

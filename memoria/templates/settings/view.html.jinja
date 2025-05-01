@@ -70,60 +70,92 @@
                                                         {% else %}
                                                             {{ bootstrap_button(button_type="submit", button_class="btn-success", content="Activate") }}
                                                         {% endif %}
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <p>No users found.</p>
-                            {% endif %}
+                                                    </form>
+                                                </div>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p>No users found.</p>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-                </div>
-                {# Manage Groups Tab #}
-                <div class="tab-pane fade"
-                     id="manage-groups"
-                     role="tabpanel"
-                     aria-labelledby="manage-groups-tab">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Manage Groups</h5>
-                            {# Section for adding a new group #}
-                            <h6 class="mt-4 mb-3">Add New Group</h6>
-                            <form method="post" action="{{ url('admin_add_group') }}">
-                                {# Corrected Jinja2 URL syntax #}
-                                {% csrf_token %}
-                                {{ bootstrap_form(add_group_form) }} {# Corrected Jinja2 form rendering syntax #}
-                                <button type="submit" class="btn btn-success">Add Group</button>
-                            </form>
-                            <hr class="my-4">
-                            {# Section for listing and removing existing groups #}
-                            <h6 class="mb-3">Existing Groups</h6>
-                            {% if groups %}
-                                <ul class="list-group">
-                                    {% for group in groups %}
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            {{ group.name }}
-                                            {# Form for removing group #}
-                                            <form method="post"
-                                                  action="{{ url('admin_remove_group', pk=group.pk) }}"
-                                                  class="d-inline-block">
-                                                {% csrf_token %}
-                                                {{ bootstrap_button(button_type="submit", button_class="btn btn-sm btn-danger", content="Remove") }}
-                                            </form>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <p>No groups found.</p>
-                            {% endif %}
+                    {# Manage Groups Tab #}
+                    <div class="tab-pane fade"
+                         id="manage-groups"
+                         role="tabpanel"
+                         aria-labelledby="manage-groups-tab">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Manage Groups</h5>
+                                {# Section for adding a new group #}
+                                <h6 class="mt-4 mb-3">Add New Group</h6>
+                                <form method="post" action="{{ url('admin_add_group') }}">
+                                    {# Corrected Jinja2 URL syntax #}
+                                    {% csrf_token %}
+                                    {{ bootstrap_form(add_group_form) }} {# Corrected Jinja2 form rendering syntax #}
+                                    <button type="submit" class="btn btn-success">Add Group</button>
+                                </form>
+                                <hr class="my-4">
+                                {# Section for listing and removing existing groups #}
+                                <h6 class="mb-3">Existing Groups</h6>
+                                {% if groups %}
+                                    <ul class="list-group">
+                                        {% for group in groups %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                {{ group.name }}
+                                                {# Form for removing group #}
+                                                <form method="post"
+                                                      action="{{ url('admin_remove_group', pk=group.pk) }}"
+                                                      class="d-inline-block">
+                                                    {% csrf_token %}
+                                                    {{ bootstrap_button(button_type="submit", button_class="btn btn-sm btn-danger", content="Remove") }}
+                                                </form>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p>No groups found.</p>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock content %}
+{% block extra_js %}
+    <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get the hash from the URL
+    const hash = window.location.hash;
+
+    // If a hash exists, try to find and activate the corresponding tab
+    if (hash) {
+      // Find the list-group item link whose href matches the hash
+      const triggerEl = document.querySelector('.list-group-item[href="' + hash + '"]');
+
+      // If a matching link is found, activate its associated tab
+      if (triggerEl) {
+        // Use Bootstrap's Tab.getOrCreateInstance to show the tab
+        const listTab = bootstrap.Tab.getOrCreateInstance(triggerEl);
+        listTab.show();
+      }
+    }
+
+    // Optional: Update the URL hash when a tab is clicked
+    const listGroupLinks = document.querySelectorAll('.list-group-item[data-bs-toggle="list"]');
+    listGroupLinks.forEach(link => {
+      link.addEventListener('click', function(event) {
+        // Prevent default anchor behavior
+        // event.preventDefault(); // You might want to comment this out if you rely on default hash behavior for scrolling
+
+        // Update the URL hash without a page reload
+        history.pushState(null, '', this.href);
+      });
+    });
+  });
+    </script>
+{% endblock extra_js %}

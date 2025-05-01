@@ -55,11 +55,13 @@ class AddGroupForm(forms.ModelForm):
         max_length=150,  # Max length for Group name in Django
         validators=[
             RegexValidator(
-                r"^[\w.@+-]+$",
-                _("Enter a valid group name. This value may contain only letters, numbers, and @/./+/-/_ characters."),
+                r"^[ \w\.@+-]+$",
+                _(
+                    "Enter a valid group name. This value may contain only letters, numbers, and @/./+/-/_/ / characters.",
+                ),
             ),
         ],
-        help_text=_("Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."),
+        help_text=_("Required. 150 characters or fewer. Letters, digits and @/./+/-/_/ / only."),
     )
 
     class Meta:
