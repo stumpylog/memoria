@@ -1,54 +1,52 @@
 {% extends "base.html.jinja" %}
-{% block title %}{{ title }}{% endblock title %}
+{% block title %}
+    {{ title }}
+{% endblock title %}
 {% block content %}
-{% include "partials/navbar.html.jinja" %}
-
-<div class="container mt-5">
-    <h1 class="mb-4">Your Profile</h1>
-
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <!-- User avatar placeholder -->
-                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px;">
-                            <span class="h1">{{ user.username.0|upper }}</span>
+    {% include "partials/navbar.html.jinja" %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Your Profile</h1>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <!-- User avatar placeholder -->
+                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mx-auto">
+                                <span class="h1">{{ user.username.0|upper }}</span>
+                            </div>
                         </div>
+                        <h5 class="card-title">{{ user.username }}</h5>
+                        <p class="card-text">{{ user.email }}</p>
+                        <p>Last Login: {{ user.last_login }}</p>
                     </div>
-                    <h5 class="card-title">{{ user.username }}</h5>
-                    <p class="card-text">{{ user.email }}</p>
-                    <p>Last Login: {{ user.last_login }}</p>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Profile Information</h5>
-
-                    <form>
-                        <div class="mb-3">
-                            <label for="displayName" class="form-label">Display Name</label>
-                            <input type="text" class="form-control" id="displayName" value="{{ user.username }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" value="{{ user.email }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="bio" class="form-label">Bio</label>
-                            <textarea class="form-control" id="bio" rows="3"></textarea>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </form>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Profile Information</h5>
+                        <form>
+                            <div class="mb-3">
+                                <label for="displayName" class="form-label">Display Name</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="displayName"
+                                       value="{{ user.username }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" value="{{ user.email }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="bio" class="form-label">Bio</label>
+                                <textarea class="form-control" id="bio" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock content %}

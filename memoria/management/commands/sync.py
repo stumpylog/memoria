@@ -3,10 +3,9 @@ from typing import Annotated
 
 from django.core.paginator import Paginator
 from django_typer.management import TyperCommand
-from typer import Option
-
 from scansteward.models import Image as ImageModel
 from scansteward.tasks.images import sync_metadata_to_files
+from typer import Option
 
 logger = logging.getLogger(__name__)
 

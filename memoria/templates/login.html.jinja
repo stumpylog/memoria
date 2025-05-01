@@ -1,86 +1,69 @@
 {% extends "base.html.jinja" %}
-{% block title %}Login{% endblock title %}
+{% block title %}
+    Login
+{% endblock title %}
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="text-center mb-0">Login</h3>
-                </div>
-                <div class="card-body">
-                    {# Display non-field errors if any #}
-                    {% if form.non_field_errors() %}
-                        <div class="alert alert-danger" role="alert">
-                            {% for error in form.non_field_errors() %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    {# Display success message if passed from view #}
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}" role="alert">
-                                {{ message }}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="text-center mb-0">Login</h3>
+                    </div>
+                    <div class="card-body">
+                        {# Display non-field errors if any #}
+                        {% if form.non_field_errors() %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for error in form.non_field_errors() %}{{ error }}{% endfor %}
                             </div>
-                        {% endfor %}
-                    {% endif %}
-
-                    {# The login form #}
-                    <form method="post" novalidate>
-                        {# Include the CSRF token for security #}
-                        {% csrf_token %}
-
-                        {# Username field #}
-                        <div class="mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
-                            {{ form.username.as_widget(attrs={'class': 'form-control', 'placeholder': 'Enter your username', 'required': True}) }}
-                            {% if form.username.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.username.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        {# Password field #}
-                        <div class="mb-3">
-                            <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label }}</label>
-                            {{ form.password.as_widget(attrs={'class': 'form-control', 'placeholder': 'Enter your password', 'required': True}) }}
-                            {% if form.password.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.password.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        {# Remember me checkbox #}
-                        <div class="mb-3 form-check">
-                            {% if form.remember_me %}
-                                {{ form.remember_me.as_widget(attrs={'class': 'form-check-input'}) }}
-                                <label class="form-check-label" for="{{ form.remember_me.id_for_label }}">
-                                    Remember me
-                                </label>
-                            {% endif %}
-                        </div>
-
-                        {# Submit button #}
-                        <div class="d-grid gap-2 mb-3">
-                            <button type="submit" class="btn btn-primary">Login</button>
-                        </div>
-
-                        {# Additional options #}
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url('password_reset') }}" class="text-decoration-none">Forgot password?</a>
-                        </div>
-                    </form>
+                        {% endif %}
+                        {# Display success message if passed from view #}
+                        {% if messages %}
+                            {% for message in messages %}<div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>{% endfor %}
+                        {% endif %}
+                        {# The login form #}
+                        <form method="post" novalidate>
+                            {# Include the CSRF token for security #}
+                            {% csrf_token %}
+                            {# Username field #}
+                            <div class="mb-3">
+                                <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
+                                {{ form.username.as_widget(attrs={'class': 'form-control', 'placeholder': 'Enter your username', 'required': True}) }}
+                                {% if form.username.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.username.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {# Password field #}
+                            <div class="mb-3">
+                                <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label }}</label>
+                                {{ form.password.as_widget(attrs={'class': 'form-control', 'placeholder': 'Enter your password', 'required': True}) }}
+                                {% if form.password.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.password.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {# Remember me checkbox #}
+                            <div class="mb-3 form-check">
+                                {% if form.remember_me %}
+                                    {{ form.remember_me.as_widget(attrs={'class': 'form-check-input'}) }}
+                                    <label class="form-check-label" for="{{ form.remember_me.id_for_label }}">Remember me</label>
+                                {% endif %}
+                            </div>
+                            {# Submit button #}
+                            <div class="d-grid gap-2 mb-3">
+                                <button type="submit" class="btn btn-primary">Login</button>
+                            </div>
+                            {# Additional options #}
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url('password_reset') }}" class="text-decoration-none">Forgot password?</a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock content %}

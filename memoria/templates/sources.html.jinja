@@ -1,23 +1,23 @@
 {% extends "base.html.jinja" %}
-{% block title %}{{ title }}{% endblock title %}
+{% block title %}
+    {{ title }}
+{% endblock title %}
 {% block content %}
-{% include "partials/navbar.html.jinja" %}
-
-<div class="container mt-5">
-    <h1 class="mb-4">Image Sources</h1>
-    <p class="lead">View and manage your photo sources.</p>
-
-    <div class="row">
-        <!-- Gallery content will go here -->
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Gallery 1</h5>
-                    <p class="card-text">Gallery description here</p>
-                    <a href="#" class="btn btn-primary">View Gallery</a>
+    {% include "partials/navbar.html.jinja" %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Image Sources</h1>
+        <p class="lead">View and manage your photo sources.</p>
+        <div class="row">
+            <!-- Gallery content will go here -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Gallery 1</h5>
+                        <p class="card-text">Gallery description here</p>
+                        <a href="#" class="btn btn-primary">View Gallery</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock content %}

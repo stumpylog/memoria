@@ -24,7 +24,7 @@ class ImagesView(LoginRequiredMixin, ListView):
 
         return context
 
-    def get_paginate_by(self, queryset) -> int:
+    def get_paginate_by(self, queryset) -> int:  # noqa: ARG002
         """
         Dynamically determine paginate_by based on user profile.
         """
@@ -44,22 +44,18 @@ class ImagesView(LoginRequiredMixin, ListView):
             logger.warning(
                 f"Invalid pagination preference ({user_preference}) for user {user.username}. Using default.",
             )
-            return self.default_paginate_by
 
         except UserProfile.DoesNotExist:
             # Handle the case where the user does not have a profile
             logger.warning(f"Profile not found for user {user.username}. Using default paginate_by.")
-            return self.default_paginate_by
         except AttributeError:
             # Handle case if the 'items_per_page' field doesn't exist on the Profile
             logger.warning(
                 f"'items_per_page' field not found on Profile for user {user.username}. Using default paginate_by.",
             )
-            return self.default_paginate_by
-        except Exception as e:
+        except Exception:
             # Catch any other potential errors during profile access
-            logger.error(f"Error accessing profile pagination preference for user {user.username}: {e}. Using default.")
-            return self.default_paginate_by
+            logger.exception(f"Error accessing profile pagination preference for user {user.username}: Using default.")
 
         # If the user is not authenticated (though LoginRequiredMixin should prevent this)
         # or if profile access fails, fall back to the default
