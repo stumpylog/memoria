@@ -20,10 +20,16 @@ urlpatterns = [
     path("people/", views.PeopleView.as_view(), name="people"),
     path("locations/", views.LocationsView.as_view(), name="locations"),
     path("dates/", views.DatesView.as_view(), name="dates"),
+    #
+    # User Profile
+    #
     path("profile/", views.ProfileView.as_view(), name="profile"),
     path("profile/update-email/", views.UpdateEmailView.as_view(), name="profile_update_email"),
     path("profile/update-profile/", views.UpdateProfileView.as_view(), name="profile_update_details"),
     path("profile/manage-groups/", views.ManageGroupsView.as_view(), name="profile_manage_groups"),
+    #
+    # Admin Settings
+    #
     path("settings/", views.AdminSettingsView.as_view(), name="settings"),
     path("settings/users/add/", views.AddUserView.as_view(), name="admin_add_user"),
     path(
@@ -38,11 +44,14 @@ urlpatterns = [
     ),
     path("settings/groups/add/", views.AddGroupView.as_view(), name="admin_add_group"),
     path("settings/groups/<int:pk>/remove/", views.RemoveGroupView.as_view(), name="admin_remove_group"),
-    path("login/", auth_views.LoginView.as_view(template_name="login.html.jinja"), name="login"),
-    path("logout/", auth_views.LogoutView.as_view(template_name="logout.html.jinja"), name="logout"),
+    #
+    # Authentication
+    #
+    path("login/", auth_views.LoginView.as_view(template_name="auth/login.html.jinja"), name="login"),
+    path("logout/", auth_views.LogoutView.as_view(template_name="auth/logout.html.jinja"), name="logout"),
     path(
         "password_reset/",
-        auth_views.PasswordResetView.as_view(template_name="password_reset.html.jinja"),
+        auth_views.PasswordResetView.as_view(template_name="auth/password_reset.html.jinja"),
         name="password_reset",
     ),
     path("admin/", admin.site.urls),

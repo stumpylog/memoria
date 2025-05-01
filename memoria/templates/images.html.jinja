@@ -36,7 +36,8 @@
                         {% endif %}
                         {# Optional: Add card body for details or actions #}
                         <div class="card-body">
-                            <p class="card-text small text-muted" title="{{ image.image_fs_id }}">
+                            <p class="card-text small text-muted text-truncate"
+                               title="{{ image.image_fs_id }}">
                                 {# Displaying image_fs_id, truncated if too long #}
                                 {{ image.description }}
                             </p>
