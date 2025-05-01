@@ -14,10 +14,13 @@ from memoria.views import DatesView
 from memoria.views import HomePageView
 from memoria.views import ImagesView
 from memoria.views import LocationsView
+from memoria.views import ManageGroupsView
 from memoria.views import PeopleView
 from memoria.views import ProfileView
 from memoria.views import SettingsView
 from memoria.views import SourcesView
+from memoria.views import UpdateEmailView
+from memoria.views import UpdateProfileView
 
 urlpatterns = [
     path("", RedirectView.as_view(pattern_name="home")),
@@ -29,6 +32,9 @@ urlpatterns = [
     path("locations/", LocationsView.as_view(), name="locations"),
     path("dates/", DatesView.as_view(), name="dates"),
     path("profile/", ProfileView.as_view(), name="profile"),
+    path("profile/update-email/", UpdateEmailView.as_view(), name="profile_update_email"),
+    path("profile/update-profile/", UpdateProfileView.as_view(), name="profile_update_details"),
+    path("profile/manage-groups/", ManageGroupsView.as_view(), name="profile_manage_groups"),
     path("settings/", SettingsView.as_view(), name="settings"),
     path("login/", auth_views.LoginView.as_view(template_name="login.html.jinja"), name="login"),
     path("logout/", auth_views.LogoutView.as_view(template_name="logout.html.jinja"), name="logout"),

@@ -10,5 +10,9 @@
   "[html][django-html][handlebars][hbs][mustache][jinja][jinja-html][nj][njk][nunjucks][twig]": {
     "editor.defaultFormatter": "monosans.djlint"
   },
-  "cSpell.words": ["memoria"]
+  "cSpell.words": ["memoria"],
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.ruff_cache": true
+  }
 }

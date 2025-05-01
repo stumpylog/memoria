@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class ImagesView(LoginRequiredMixin, ListView):
     model = Image
-    default_paginate_by = 30
+    default_paginate_by = UserProfile.ImagesPerPageChoices.THIRTY
     template_name = "images.html.jinja"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:

@@ -16,7 +16,6 @@
     <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center me-3"
            href="{{ url('home') }}">
-            <!-- Inline SVG slide logo -->
             <svg xmlns="http://www.w3.org/2000/svg"
                  width="32"
                  height="32"
@@ -66,11 +65,13 @@
                                {% if request.resolver_match.url_name == 'profile' %}aria-current="page"{% endif %}
                                href="{{ url('profile') }}"><i class="bi bi-person"></i> Profile</a>
                         </li>
-                        <li>
-                            <a class="dropdown-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
-                               {% if request.resolver_match.url_name == 'settings' %}aria-current="page"{% endif %}
-                               href="{{ url('settings') }}"><i class="bi bi-gear"></i> Settings</a>
-                        </li>
+                        {% if user.is_staff %}
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
+                                   {% if request.resolver_match.url_name == 'settings' %}aria-current="page"{% endif %}
+                                   href="{{ url('settings') }}"><i class="bi bi-gear"></i> Settings</a>
+                            </li>
+                        {% endif %}
                         <li>
                             <hr class="dropdown-divider">
                         </li>

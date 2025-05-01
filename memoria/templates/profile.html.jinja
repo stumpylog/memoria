@@ -1,3 +1,4 @@
+{# profile.html.jinja #}
 {% extends "base.html.jinja" %}
 {% block title %}
     {{ title }}
@@ -6,47 +7,156 @@
     {% include "partials/navbar.html.jinja" %}
     <div class="container mt-5">
         <h1 class="mb-4">Your Profile</h1>
+        {# Display Django messages here, they will appear after redirects #}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                     role="alert">
+                    {{ message }}
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
         <div class="row">
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <div class="mb-3">
-                            <!-- User avatar placeholder -->
-                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mx-auto">
-                                <span class="h1">{{ user.username.0|upper }}</span>
-                            </div>
-                        </div>
+                        <div class="mb-3">{# Placeholder for user avatar or profile image if you add one #}</div>
                         <h5 class="card-title">{{ user.username }}</h5>
-                        <p class="card-text">{{ user.email }}</p>
-                        <p>Last Login: {{ user.last_login }}</p>
+                        {# Display the current email address #}
+                        <h6 class="card-subtitle mb-2 text-body-secondary">{{ user.email }}</h6>
+                        <p class="card-text">
+                            <p>Last Login: {{ user.last_login | naturaltime }}</p>
+                        </p>
+                        {# Display the current bio #}
+                        {# Assuming user.profile exists and has a bio field #}
+                        {% if user.profile %}
+                            <p class="card-text">Bio: {{ user.profile.bio | default("No bio yet.") }}</p>
+                        {% else %}
+                            <p class="card-text">Bio: No bio yet.</p>
+                        {% endif %}
+                        {# Display the current images per page setting #}
+                        {# Assuming user.profile exists and has an images_per_page field #}
+                        {% if user.profile %}
+                            <p class="card-text">Images per page: {{ user.profile.images_per_page }}</p>
+                        {% else %}
+                            <p class="card-text">Images per page: N/A</p>
+                        {% endif %}
+                        <hr>
+                        {# Add a separator before groups #}
+                        <h6 class="card-subtitle mb-2 text-body-secondary">Groups</h6>
+                        {# Iterate over the 'user_groups' context variable #}
+                        {% if user_groups %}
+                            <ul class="list-unstyled">
+                                {% for group in user_groups %}<li>{{ group.name }}</li>{% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="card-text">
+                                <small>Not a member of any groups.</small>
+                            </p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             <div class="col-md-8">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Profile Information</h5>
-                        <form>
-                            <div class="mb-3">
-                                <label for="displayName" class="form-label">Display Name</label>
-                                <input type="text"
-                                       class="form-control"
-                                       id="displayName"
-                                       value="{{ user.username }}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="email" value="{{ user.email }}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="bio" class="form-label">Bio</label>
-                                <textarea class="form-control" id="bio" rows="3"></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                        </form>
+                {# Separate form for Email #}
+                {% if email_form %}
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Update Email Address</h5>
+                            <form method="post" action="{{ url('profile_update_email') }}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="{{ email_form.email.id_for_label }}" class="form-label">{{ email_form.email.label }}</label>
+                                    {{ email_form.email }}
+                                    {% if email_form.email.errors %}
+                                        <div class="text-danger">
+                                            {% for error in email_form.email.errors %}<small>{{ error }}</small>{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <button type="submit" class="btn btn-primary">Update Email</button>
+                            </form>
+                        </div>
                     </div>
+                {% endif %}
+                {# Separate form for Profile Details (Bio, Images per page) #}
+                {% if profile_form %}
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Update Profile Details</h5>
+                            <form method="post" action="{{ url('profile_update_details') }}">
+                                {% csrf_token %}
+                                {# Bio Field #}
+                                <div class="mb-3">
+                                    <label for="{{ profile_form.bio.id_for_label }}" class="form-label">{{ profile_form.bio.label }}</label>
+                                    {{ profile_form.bio }}
+                                    {% if profile_form.bio.errors %}
+                                        <div class="text-danger">
+                                            {% for error in profile_form.bio.errors %}<small>{{ error }}</small>{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {# Images per page Field #}
+                                <div class="mb-3">
+                                    <label for="{{ profile_form.images_per_page.id_for_label }}"
+                                           class="form-label">{{ profile_form.images_per_page.label }}</label>
+                                    {{ profile_form.images_per_page }}
+                                    {% if profile_form.images_per_page.errors %}
+                                        <div class="text-danger">
+                                            {% for error in profile_form.images_per_page.errors %}<small>{{ error }}</small>{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <button type="submit" class="btn btn-primary">Update Profile</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+                {# Group Management Section for Staff Users - Separate Form #}
+                {% if user.is_staff and all_groups is not none %}
+                    {# Check all_groups as it's None for non-staff #}
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Manage Groups</h5>
+                            {% if all_groups %}
+                                <p>Select groups to join or leave:</p>
+                                <form method="post" action="{{ url('profile_manage_groups') }}">
+                                    {% csrf_token %}
+                                    <ul class="list-group mb-3">
+                                        {% for group in all_groups %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                {{ group.name }}
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" role="switch"
+                                                        id="group_{{ group.pk }}" name="groups" value="{{ group.pk }}"
+                                                        {# Check if the current group is in the user's groups #}
+                                                        {% if group in user_groups %}checked{% endif %}>
+                                                        <label class="form-check-label" for="group_{{ group.pk }}">
+                                                            {% if group in user_groups %}
+                                                                Member
+                                                            {% else %}
+                                                                Not Member
+                                                            {% endif %}
+                                                        </label>
+                                                    </div>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                        <button type="submit" class="btn btn-success">Update Group Membership</button>
+                                    </form>
+                                {% else %}
+                                    <p class="card-text">
+                                        <small>No groups available to manage.</small>
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    </div>
-{% endblock content %}
+    {% endblock content %}
