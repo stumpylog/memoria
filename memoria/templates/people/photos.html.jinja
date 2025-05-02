@@ -1,0 +1,11 @@
+{% extends "base.html.jinja" %}
+{% from "macros/image_gallery.html.jinja" import image_gallery_with_pagination %}
+{% block title %}
+    {{ person.name }} - Photos
+{% endblock title %}
+{% block content %}
+    {% include "partials/navbar.html.jinja" %}
+    <div class="container mt-4">
+        {{ image_gallery_with_pagination(page_obj=page_obj, title="Photos of " ~ person.name) }}
+    </div>
+{% endblock content %}

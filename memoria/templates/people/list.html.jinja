@@ -17,7 +17,8 @@
                             </h5>
                             <p class="card-text">{{ person.images_count }} photos</p>
                             {# TODO: Need to create the detail view #}
-                            <a href="/people/{{ person.id }}/photos" class="btn btn-primary">View Photos</a>
+                            <a href="{{ url('person_photos', pk=person.pk) }}"
+                               class="btn btn-primary">View Photos</a>
                         </div>
                     </div>
                 </div>

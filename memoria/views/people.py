@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
+from django.db.models import QuerySet
 from django.http import HttpRequest
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
@@ -12,6 +13,7 @@ from django.views.generic import DetailView
 from django.views.generic import ListView
 
 from memoria.forms import PersonForm
+from memoria.models import Image
 from memoria.models import Person
 from memoria.models import UserProfile
 
@@ -19,7 +21,7 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-class PeopleView(LoginRequiredMixin, ListView):
+class PeopleListView(LoginRequiredMixin, ListView):
     template_name = "people/list.html.jinja"
     model = Person
     default_paginate_by = UserProfile.ImagesPerPageChoices.THIRTY
@@ -122,3 +124,30 @@ class PersonDetailView(LoginRequiredMixin, DetailView):
             request.session["edit_person_form_data"] = request.POST
             messages.error(request, "Error editing person. Please check the form.")  # Generic error message
         return redirect(redirect_url)
+
+
+class PersonPhotosListView(LoginRequiredMixin, ListView):
+    template_name = "people/photos.html.jinja"
+    model = Image
+    # TODO: Grab from the profile
+    paginate_by = UserProfile.ImagesPerPageChoices.THIRTY
+
+    def get_queryset(self) -> QuerySet:
+        """
+        Returns the queryset of images filtered by the person's primary key
+        from the URL.
+        """
+        queryset = super().get_queryset()
+
+        # Get the person_id from the URL kwargs
+        person_pk = self.kwargs.get("pk")
+
+        # TODO: Also filter to only the images a user can view
+
+        return queryset.filter(people__pk=person_pk) if person_pk else queryset.none()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        person_pk = self.kwargs.get("pk")
+        context["person"] = Person.objects.get(pk=person_pk)
+        return context

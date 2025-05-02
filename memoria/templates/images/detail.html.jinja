@@ -1,6 +1,6 @@
 {% extends "base.html.jinja" %}
 {% block title %}
-    {{ image.image_fs_id | default("Image Detail") }}
+    Image Detail for {{ image.original_path.stem }}
 {% endblock title %}
 {% block content %}
     {% include "partials/navbar.html.jinja" %}
@@ -23,7 +23,7 @@
                 {% endif %}
             </div>
             <div class="col-md-4">
-                <h2>{{ filename }}</h2>
+                <h2>{{ image.original_path.stem }}</h2>
                 {% if image.description %}
                     <p>{{ image.description }}</p>
                 {% else %}

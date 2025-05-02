@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -28,7 +27,8 @@ class ImageListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self) -> QuerySet[Image]:
         # Get the base queryset
-        queryset = super().get_queryset()
+        # TODO: Handle deleted images
+        queryset = super().get_queryset().filter()
 
         # Get the current user's groups
         user: User = self.request.user
@@ -43,6 +43,7 @@ class ImageListView(LoginRequiredMixin, ListView):
         # We want objects where the object's view_groups *intersect* with the user's groups
         # OR where the object's edit_groups *intersect* with the user's groups
 
+        # TODO: We are probably going to do this a lot, should extract it
         filter_condition: Q = (
             Q(view_groups__in=user_groups)
             | Q(edit_groups__in=user_groups)
@@ -102,10 +103,3 @@ class ImageDetailView(DetailView):
     model = Image
     template_name = "images/detail.html.jinja"  # We'll create this template next
     context_object_name = "image"  # The variable name for the image object in the template
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        context["filename"] = Path(self.object.original).stem
-
-        return context
