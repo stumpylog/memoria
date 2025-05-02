@@ -4,9 +4,10 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group
+from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
+from django.urls import reverse
 from django.views.generic import TemplateView
 from django.views.generic import View
 
@@ -52,25 +53,24 @@ class AdminSettingsView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixi
         return context
 
 
-# --- User Management Views ---
 class AddUserView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, View):
     """
     Handles the creation of a new user via a POST request using PRG pattern.
     Stores form data and errors in session on failure.
     """
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs):  # noqa: ARG002
         add_user_form = AddUserForm(request.POST)
         if add_user_form.is_valid():
             add_user_form.save()
             messages.success(request, f"User '{add_user_form.cleaned_data['username']}' created successfully.")
             # Redirect on success - no need to store form data/errors
-            return redirect(reverse_lazy("settings") + "#manage-users")
+            return redirect(reverse("settings") + "#manage-users")
         # Form is invalid - store data and errors in session
         request.session["add_user_form_data"] = request.POST
         messages.error(request, "Error creating user. Please check the form.")  # Generic error message
         # Redirect to the GET view
-        return redirect(reverse_lazy("settings") + "#manage-users")
+        return redirect(reverse("settings") + "#manage-users")
 
 
 class ToggleUserActiveView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, View):
@@ -78,20 +78,20 @@ class ToggleUserActiveView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestM
     Handles toggling the is_active status of a user via a POST request.
     """
 
-    def post(self, request, pk, *args, **kwargs):
+    def post(self, request: HttpRequest, pk: int, *args, **kwargs):  # noqa: ARG002
         user = get_object_or_404(User, pk=pk)
 
         if user.pk == self.request.user.pk:
             messages.error(request, "You cannot deactivate your own account.")
             # Redirect back to the settings page without making changes
-            return redirect(reverse_lazy("settings") + "#manage-users")
+            return redirect(reverse("settings") + "#manage-users")
 
         user.is_active = not user.is_active
         user.save()
         status = "activated" if user.is_active else "deactivated"
         messages.success(request, f"User '{user.username}' has been {status}.")
         # Redirect after action
-        return redirect(reverse_lazy("settings") + "#manage-users")
+        return redirect(reverse("settings") + "#manage-users")
 
 
 class ManageUserGroupsView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, TemplateView):
@@ -100,9 +100,9 @@ class ManageUserGroupsView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestM
     Displays current groups and a form to update memberships.
     """
 
-    template_name = "settings/manage_user_groups.html.jinja"  # You'll need to create this template
+    template_name = "settings/manage_user_groups.html.jinja"
 
-    def get_context_data(self, pk, **kwargs):
+    def get_context_data(self, pk: int, **kwargs):
         """
         Adds the target user, all groups, and the group management form to the context.
         Handles loading form data and errors from the session if available (PRG pattern).
@@ -126,7 +126,7 @@ class ManageUserGroupsView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestM
 
         return context
 
-    def post(self, request, pk, *args, **kwargs):
+    def post(self, request: HttpRequest, pk: int, *args, **kwargs):  # noqa: ARG002
         """
         Handles updating the group memberships for the target user via a POST request.
         Implements PRG pattern for form submission.
@@ -140,7 +140,7 @@ class ManageUserGroupsView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestM
             manage_groups_form.save()  # This updates the user's groups
             messages.success(request, f"Group memberships for '{user.username}' updated successfully.")
             # Redirect to the admin settings page after success
-            return redirect(reverse_lazy("settings") + "#manage-users")  # Redirect back to the user tab
+            return redirect(reverse("settings") + "#manage-users")  # Redirect back to the user tab
         # Form is invalid - store data and errors in session
         request.session["manage_user_groups_form_data"] = request.POST
         messages.error(
@@ -150,7 +150,7 @@ class ManageUserGroupsView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestM
         # Redirect back to the GET view for this user's group management page
         # Note: This redirects back to the manage_user_groups view itself, not the main settings page,
         # so the user stays on the correct page to fix errors.
-        return redirect(reverse_lazy("admin_manage_user_groups", pk=user.pk))
+        return redirect(reverse("admin_manage_user_groups", pk=user.pk))
 
 
 class AddGroupView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, View):
@@ -159,18 +159,18 @@ class AddGroupView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, Vi
     Stores form data and errors in session on failure.
     """
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs):  # noqa: ARG002
         add_group_form = AddGroupForm(request.POST)
         if add_group_form.is_valid():
             add_group_form.save()
             messages.success(request, f"Group '{add_group_form.cleaned_data['name']}' created successfully.")
             # Redirect on success - no need to store form data/errors
-            return redirect(reverse_lazy("settings") + "#manage-groups")
+            return redirect(reverse("settings") + "#manage-groups")
         # Form is invalid - store data and errors in session
         request.session["add_group_form_data"] = request.POST
         messages.error(request, "Error creating group. Please check the form.")  # Generic error message
         # Redirect to the GET view
-        return redirect(reverse_lazy("settings") + "#manage-groups")
+        return redirect(reverse("settings") + "#manage-groups")
 
 
 class RemoveGroupView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, View):
@@ -178,10 +178,10 @@ class RemoveGroupView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin,
     Handles the removal of a group via a POST request.
     """
 
-    def post(self, request, pk, *args, **kwargs):
+    def post(self, request: HttpRequest, pk: int, *args, **kwargs):  # noqa: ARG002
         group = get_object_or_404(Group, pk=pk)
         group_name = group.name
         group.delete()
         messages.success(request, f"Group '{group_name}' removed successfully.")
         # Redirect after action
-        return redirect(reverse_lazy("settings") + "#manage-groups")
+        return redirect(reverse("settings") + "#manage-groups")

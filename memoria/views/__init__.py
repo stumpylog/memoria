@@ -5,6 +5,7 @@ from memoria.views.images import ImageDetailView
 from memoria.views.images import ImageListView
 from memoria.views.locations import LocationsView
 from memoria.views.people import PeopleView
+from memoria.views.people import PersonDetailView
 from memoria.views.profile import ManageGroupsView
 from memoria.views.profile import ProfileView
 from memoria.views.profile import UpdateEmailView
@@ -30,6 +31,7 @@ __all__ = [
     "ManageGroupsView",
     "ManageUserGroupsView",
     "PeopleView",
+    "PersonDetailView",
     "ProfileView",
     "RemoveGroupView",
     "SourcesView",

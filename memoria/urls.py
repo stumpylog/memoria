@@ -21,7 +21,11 @@ urlpatterns = [
     path("images/<int:pk>/", views.ImageDetailView.as_view(), name="image_detail"),
     path("sources/", views.SourcesView.as_view(), name="sources"),
     path("albums/", views.AlbumsView.as_view(), name="albums"),
-    path("people/", views.PeopleView.as_view(), name="people"),
+    #
+    # Person related
+    #
+    path("people/", views.PeopleView.as_view(), name="people_list"),
+    path("people/<int:pk>/", views.PersonDetailView.as_view(), name="person_detail"),
     path("locations/", views.LocationsView.as_view(), name="locations"),
     path("dates/", views.DatesView.as_view(), name="dates"),
     #
