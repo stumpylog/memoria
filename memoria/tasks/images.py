@@ -16,7 +16,7 @@ from memoria.imageops.sync import fill_image_metadata_from_db
 from memoria.models import Image as ImageModel
 from memoria.models import ImageSource
 from memoria.tasks.models import ImageIndexTaskModel
-from memoria.utils import calculate_blake3_hash
+from memoria.tasks.models import ImageUpdateTaskModel
 from memoria.utils.constants import EXIF_TOOL_EXE
 
 logger = logging.getLogger(__name__)
@@ -56,27 +56,32 @@ def sync_metadata_to_files(images: list[ImageModel]) -> None:
 
 
 @db_task()
-def index_single_image(pkg: ImageIndexTaskModel) -> None:
-    if not pkg.logger:
-        pkg.logger = logger
+def index_image_batch(pkgs: list[ImageIndexTaskModel]) -> None:
+    with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool, transaction.atomic():
+        for pkg in pkgs:
+            if not pkg.logger:
+                pkg.logger = logger
 
-    pkg.logger.info(f"Indexing {pkg.image_path.stem}")
+            pkg.logger.info(f"Indexing {pkg.image_path.stem}")
 
-    # Duplicate check
-    image_hash = calculate_blake3_hash(pkg.image_path, hash_threads=pkg.hash_threads)
+            # If no source, we use the parent folder name
+            if not pkg.source:
+                img_src, _ = ImageSource.objects.get_or_create(name=pkg.image_path.parent.name)
+                pkg.source = img_src
 
-    # If no source, we use the parent folder name
-    if not pkg.source:
-        img_src, _ = ImageSource.objects.get_or_create(name=pkg.image_path.parent.name)
-        pkg.source = img_src
+                handle_new_image(pkg, tool)
 
-    # Update or create
+
+@db_task()
+def index_update_existing_images(pkgs: list[ImageUpdateTaskModel]) -> None:
     with transaction.atomic():
-        existing_image = ImageModel.objects.filter(original_checksum=image_hash).first()
-        if existing_image is not None:
-            handle_existing_image(existing_image, pkg)
-        else:
-            handle_new_image(pkg)
+        for pkg in pkgs:
+            if not pkg.logger:
+                pkg.logger = logger
+
+            pkg.logger.info(f"Checking {pkg.image_path.stem} for updates")
+
+            handle_existing_image(pkg)
 
 
 @db_periodic_task(crontab(minute="0", hour="0"))

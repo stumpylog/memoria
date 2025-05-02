@@ -1,0 +1,10 @@
+{% macro nav_link(endpoint, text, icon, request) %}
+    {% set is_active = request.resolver_match.url_name == endpoint %}
+    <li class="nav-item">
+        <a class="nav-link {% if is_active %}active{% endif %}"
+           {% if is_active %}aria-current="page"{% endif %}
+           href="{{ url(endpoint) }}">
+            <i class="bi bi-{{ icon }}"></i> {{ text }}
+        </a>
+    </li>
+{% endmacro %}

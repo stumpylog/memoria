@@ -30,11 +30,12 @@ class ImagesView(LoginRequiredMixin, ListView):
 
         # Get the current user's groups
         user: User = self.request.user
-        user_groups: QuerySet[Group] = user.groups.all()
 
         # If the user is a superuser, show all objects
         if user.is_superuser:
             return queryset
+
+        user_groups: QuerySet[Group] = user.groups.all()
 
         # Filter the queryset
         # We want objects where the object's view_groups *intersect* with the user's groups

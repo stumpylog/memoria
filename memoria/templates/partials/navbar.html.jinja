@@ -1,13 +1,4 @@
-{% macro nav_link(endpoint, text, icon) %}
-    {% set is_active = request.resolver_match.url_name == endpoint %}
-    <li class="nav-item">
-        <a class="nav-link {% if is_active %}active{% endif %}"
-           {% if is_active %}aria-current="page"{% endif %}
-           href="{{ url(endpoint) }}">
-            <i class="bi bi-{{ icon }}"></i> {{ text }}
-        </a>
-    </li>
-{% endmacro %}
+{% from "macros/navlink.html.jinja" import nav_link %}
 {% block extra_head %}
     <link href="{{ static('bootstrap-icons/bootstrap-icons.min.css') }}"
           rel="stylesheet">
@@ -40,13 +31,13 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                {{ nav_link('home', 'Home', 'house') }}
-                {{ nav_link('images', 'Images', 'grid-3x3') }}
-                {{ nav_link('sources', 'Sources', 'folder') }}
-                {{ nav_link('albums', 'Albums', 'collection') }}
-                {{ nav_link('people', 'People', 'people') }}
-                {{ nav_link('locations', 'Locations', 'geo-alt') }}
-                {{ nav_link('dates', 'Dates', 'calendar3') }}
+                {{ nav_link('home', 'Home', 'house', request) }}
+                {{ nav_link('images', 'Images', 'grid-3x3', request) }}
+                {{ nav_link('sources', 'Sources', 'folder', request) }}
+                {{ nav_link('albums', 'Albums', 'collection', request) }}
+                {{ nav_link('people', 'People', 'people', request) }}
+                {{ nav_link('locations', 'Locations', 'geo-alt', request) }}
+                {{ nav_link('dates', 'Dates', 'calendar3', request) }}
             </ul>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item dropdown">
@@ -77,7 +68,6 @@
                         </li>
                         <li>
                             <form action="{{ url('logout') }}" method="post" class="dropdown-item p-0">
-                                {# TODO: Why doesn't csrf_input work here? #}
                                 {% csrf_token %}
                                 <button type="submit"
                                         class="btn btn-link text-decoration-none px-3 py-2 w-100 text-start">

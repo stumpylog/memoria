@@ -180,16 +180,16 @@ CACHES = {
 
 LOGGING = {
     "version": 1,
-    "disable_existing_loggers": False,  # Keep this False unless you have a reason to disable existing loggers
+    "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            # Include more detail like process and thread IDs
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            # Include more detail like time
+            "format": "{asctime} {levelname} {name} : {message}",
             "style": "{",
         },
         "simple": {
             # A concise format
-            "format": "{levelname} {name} {asctime} {message}",
+            "format": "{asctime} {levelname} {name} : {message}",
             "style": "{",
         },
     },
@@ -197,28 +197,51 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "simple",
-            "level": "DEBUG",  # You can set different levels for different handlers
+            "level": "INFO",
         },
-        "file": {
+        "file_catchall": {
+            "class": "logging.handlers.RotatingFileHandler",
+            # Use pathlib.Path object for the filename
+            "filename": LOGS_DIR / "catchall.log",
+            "maxBytes": 1024 * 1024 * 5,
+            "backupCount": 5,
+            "formatter": "verbose",
+            "level": "DEBUG",
+        },
+        "file_django": {
             "class": "logging.handlers.RotatingFileHandler",
             # Use pathlib.Path object for the filename
             "filename": LOGS_DIR / "django.log",
-            "maxBytes": 1024 * 1024 * 5,  # 5 MB max file size
-            "backupCount": 5,  # Keep up to 5 old log files
+            "maxBytes": 1024 * 1024 * 5,
+            "backupCount": 5,
             "formatter": "verbose",
-            "level": "INFO",  # Log INFO and above to the file
+            "level": "DEBUG",
+        },
+        "file_memoria": {
+            "class": "logging.handlers.RotatingFileHandler",
+            # Use pathlib.Path object for the filename
+            "filename": LOGS_DIR / "memoria.log",
+            "maxBytes": 1024 * 1024 * 5,
+            "backupCount": 5,
+            "formatter": "verbose",
+            "level": "DEBUG",
         },
     },
     "loggers": {
-        # The root logger catches everything unless specifically handled by child loggers
+        # Catch anything not defined specifically
         "": {
-            "handlers": ["console", "file"],  # Send root logger messages to both handlers
-            "level": "INFO",  # Set the minimum level for the root logger
+            "handlers": ["file_catchall"],
+            "level": "DEBUG",
+        },
+        "memoria": {
+            "handlers": ["console", "file_memoria"],
+            "level": "DEBUG",
+            "propagate": False,  # Prevent Django logs from going up to the root logger again
         },
         # Logger specifically for Django's internal messages
         "django": {
-            "handlers": ["console", "file"],
-            "level": "INFO",
+            "handlers": ["console", "file_django"],
+            "level": "DEBUG",
             "propagate": False,  # Prevent Django logs from going up to the root logger again
         },
     },

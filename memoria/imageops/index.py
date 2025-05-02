@@ -17,19 +17,18 @@ from memoria.models import RoughLocation
 from memoria.models import Tag
 from memoria.models import TagOnImage
 from memoria.tasks.models import ImageIndexTaskModel
+from memoria.tasks.models import ImageUpdateTaskModel
 from memoria.utils import calculate_blake3_hash
 from memoria.utils import calculate_image_phash
 from memoria.utils import get_country_code_from_name
 from memoria.utils import get_subdivision_code_from_name
 from memoria.utils.constants import DATE_KEYWORD
-from memoria.utils.constants import EXIF_TOOL_EXE
 from memoria.utils.constants import LOCATION_KEYWORD
 from memoria.utils.constants import PEOPLE_KEYWORD
 
 
 def handle_existing_image(
-    existing_image: ImageModel,
-    pkg: ImageIndexTaskModel,
+    pkg: ImageUpdateTaskModel,
 ) -> None:
     """
     Handles an image that has already been indexed, either updating its source or changing the location
@@ -38,23 +37,23 @@ def handle_existing_image(
         assert pkg.logger is not None
     pkg.logger.info("  Image already indexed")
     # Set the source if requested
-    if pkg.source is not None and (existing_image.source is None or existing_image.source != pkg.source):
+    if pkg.source is not None and (pkg.image.source is None or pkg.image.source != pkg.source):
         pkg.logger.info(f"  Updating source to {pkg.source}")
-        existing_image.source = pkg.source
-        existing_image.save()
+        pkg.image.source = pkg.source
+        pkg.image.save()
     if pkg.view_groups is not None:
-        existing_image.view_groups.set(pkg.view_groups)
+        pkg.image.view_groups.set(pkg.view_groups)
     if pkg.edit_groups is not None:
-        existing_image.edit_groups.set(pkg.edit_groups)
+        pkg.image.edit_groups.set(pkg.edit_groups)
     # Check for an updated location
-    if pkg.image_path.resolve() != existing_image.original_path:
-        pkg.logger.info(f"  Updating path from {existing_image.original_path.resolve()} to {pkg.image_path.resolve()}")
-        existing_image.original_path = pkg.image_path.resolve()
-        existing_image.save()
+    if pkg.image_path.resolve() != pkg.image.original_path:
+        pkg.logger.info(f"  Updating path from {pkg.image.original_path.resolve()} to {pkg.image_path.resolve()}")
+        pkg.image.original_path = pkg.image_path.resolve()
+        pkg.image.save()
     pkg.logger.info(f"  {pkg.image_path.name} indexing completed")
 
 
-def handle_new_image(pkg: ImageIndexTaskModel) -> None:
+def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     """
     Handles a completely new image
     """
@@ -308,8 +307,7 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
             except ValueError:
                 pass
 
-    with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool:
-        metadata = tool.read_image_metadata(pkg.image_path)
+    metadata = tool.read_image_metadata(pkg.image_path)
 
     new_img = ImageModel.objects.create(
         file_size=pkg.image_path.stat().st_size,
@@ -319,7 +317,7 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
         description=metadata.Description,
         height=metadata.ImageHeight,
         width=metadata.ImageWidth,
-        original_checksum=calculate_blake3_hash(pkg.image_path, hash_threads=pkg.hash_threads),
+        original_checksum=pkg.original_hash,
         phash=calculate_image_phash(pkg.image_path),
         # These are placeholders, the files do not exist yet
         thumbnail_checksum="A",
@@ -347,6 +345,7 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
             assert img_copy is not None
         img_copy.save(new_img.full_size_path, quality=90)
 
+    # Try to save some memory here
     del img_copy, im_file
 
     # Update the file hashes, now that the files exist

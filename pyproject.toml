@@ -22,9 +22,6 @@ dependencies = [
   "exifmwg",
   "huey>=2.5.1",
   "imagehash>=4.3.1",
-  "pydantic[email]>=2.8.2",
-  "pydantic-extra-types>=2.9",
-  "pydantic-settings>=2.4",
   "redis[hiredis]>=5.0.8",
   "simpleiso3166[search]>=0.1",
 ]
@@ -34,8 +31,6 @@ optional-dependencies.mariadb = [
 ]
 optional-dependencies.postgres = [
   "psycopg[c]==3.2.5",
-  # Direct dependency for proper resolution of the pre-built wheels
-  "psycopg-c==3.2.5",
 ]
 optional-dependencies.webserver = [
   "granian[uvloop]~=2.2.0",
