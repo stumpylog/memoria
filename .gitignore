@@ -13,3 +13,6 @@ wheels/
 db.sqlite3
 logs/
 media/
+
+# Docs
+site/

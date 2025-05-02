@@ -1,0 +1,9 @@
+I want you help designing a role based access system.  We're using Django, with the standard User, Group and Permission models as the authentication system.
+
+There are a few custom models to consider, an Image, Person, Pet, ImageSource, Album, RoughDate, and RoughLocation.  I want it to be possible for users to view only a subset of each, or edit only a subset of each (which would be a subset of the viewable items).  Additionally, for users who are superusers, they should be able to view and edit anything.
+
+To manage Users, Groups and Permissions, any staff user should be able to do so.  Only a superuser can designate a User as staff however.
+
+So, for example, when listing Images, the user should see only the Images which they can view or edit.  When viewing Image details, they should only see it as editable if they have permissions.  If an Image has no permissions set (ie empty), it should be open to all.
+
+If you can, format your reply in Markdown, using diagrams and callouts from MkDocs Material to illustrate any point.  If you display any code, please use Django's class based views.

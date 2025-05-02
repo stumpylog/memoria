@@ -1,7 +1,18 @@
-.venv/
-.ruff_cache/
-.pytest_cache/
-.vscode/
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Development
+db.sqlite3
 logs/
 media/
-samples/
+
+# Docs
+site/
