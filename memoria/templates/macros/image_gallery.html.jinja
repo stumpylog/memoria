@@ -6,37 +6,42 @@
         <div class="row">
             {% for image in images %}
                 <div class="col-md-4 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        {# h-100 for equal height, shadow-sm for subtle effect #}
-                        {# Check if thumbnail_url is not None/empty #}
-                        {% if image.thumbnail_url %}
-                            {# Image container with fixed height but preserved aspect ratio #}
-                            <div style="height: 200px;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        overflow: hidden">
-                                <img src="{{ image.thumbnail_url }}"
-                                     class="img-fluid img-thumbnail"
-                                     alt="Thumbnail for {{ image.image_fs_id }}"
-                                     style="max-height: 100%;
-                                            object-fit: contain">
+                    {# Wrap the entire card in an anchor tag #}
+                    {# We use the 'url' tag with the name of the detail URL pattern and the image's primary key #}
+                    <a href="{{ url('image_detail', pk=image.pk) }}"
+                       class="text-decoration-none text-dark">
+                        <div class="card h-100 shadow-sm">
+                            {# h-100 for equal height, shadow-sm for subtle effect #}
+                            {# Check if thumbnail_url is not None/empty #}
+                            {% if image.thumbnail_url %}
+                                {# Image container with fixed height but preserved aspect ratio #}
+                                <div style="height: 200px;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            overflow: hidden">
+                                    <img src="{{ image.thumbnail_url }}"
+                                         class="img-fluid img-thumbnail"
+                                         alt="Thumbnail for {{ image.image_fs_id }}"
+                                         style="max-height: 100%;
+                                                object-fit: contain">
+                                </div>
+                            {% else %}
+                                {# Fallback if no thumbnail URL - using Bootstrap utilities #}
+                                <div class="card-img-top d-flex align-items-center justify-content-center bg-light"
+                                     style="height: 200px">
+                                    <span class="text-muted small">No Preview</span>
+                                </div>
+                            {% endif %}
+                            {# Optional: Add card body for details or actions #}
+                            <div class="card-body">
+                                <p class="card-text small text-muted text-truncate"
+                                   title="{{ image.image_fs_id }}">
+                                    {% if image.description %}{{ image.description }}{% endif %}
+                                </p>
                             </div>
-                        {% else %}
-                            {# Fallback if no thumbnail URL - using Bootstrap utilities #}
-                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light"
-                                 style="height: 200px">
-                                <span class="text-muted small">No Preview</span>
-                            </div>
-                        {% endif %}
-                        {# Optional: Add card body for details or actions #}
-                        <div class="card-body">
-                            <p class="card-text small text-muted text-truncate"
-                               title="{{ image.image_fs_id }}">
-                                {% if image.description %}{{ image.description }}{% endif %}
-                            </p>
                         </div>
-                    </div>
+                    </a> {# Close the anchor tag #}
                 </div>
             {% else %}
                 <div class="col">
@@ -47,7 +52,7 @@
     </div>
 {% endmacro %}
 {% macro image_gallery_with_pagination(page_obj, title="Images") %}
-    {{ image_gallery(page_obj, title) }}
-    {# Pagination component #}
+    {{ image_gallery(page_obj.object_list, title) }}
+    {# Adds the pagination to the bottom center #}
     {{ bootstrap_pagination(page_obj, justify_content="center") }}
 {% endmacro %}

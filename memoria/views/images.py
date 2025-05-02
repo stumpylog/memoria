@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -6,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.db.models.query import QuerySet
+from django.views.generic import DetailView
 from django.views.generic import ListView
 
 from memoria.models import Image
@@ -19,10 +21,10 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class ImagesView(LoginRequiredMixin, ListView):
+class ImageListView(LoginRequiredMixin, ListView):
     model = Image
     default_paginate_by = UserProfile.ImagesPerPageChoices.THIRTY
-    template_name = "images.html.jinja"
+    template_name = "images/wall.html.jinja"
 
     def get_queryset(self) -> QuerySet[Image]:
         # Get the base queryset
@@ -94,3 +96,16 @@ class ImagesView(LoginRequiredMixin, ListView):
         # If the user is not authenticated (though LoginRequiredMixin should prevent this)
         # or if profile access fails, fall back to the default
         return self.default_paginate_by
+
+
+class ImageDetailView(DetailView):
+    model = Image
+    template_name = "images/detail.html.jinja"  # We'll create this template next
+    context_object_name = "image"  # The variable name for the image object in the template
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["filename"] = Path(self.object.original).stem
+
+        return context

@@ -14,7 +14,11 @@ from memoria import views
 urlpatterns = [
     path("", RedirectView.as_view(pattern_name="home")),
     path("home/", views.HomePageView.as_view(), name="home"),
-    path("images/", views.ImagesView.as_view(), name="images"),
+    #
+    # Images
+    #
+    path("images/", views.ImageListView.as_view(), name="image_list"),
+    path("images/<int:pk>/", views.ImageDetailView.as_view(), name="image_detail"),
     path("sources/", views.SourcesView.as_view(), name="sources"),
     path("albums/", views.AlbumsView.as_view(), name="albums"),
     path("people/", views.PeopleView.as_view(), name="people"),

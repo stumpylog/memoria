@@ -14,7 +14,6 @@ from memoria.imageops.index import handle_existing_image
 from memoria.imageops.index import handle_new_image
 from memoria.imageops.sync import fill_image_metadata_from_db
 from memoria.models import Image as ImageModel
-from memoria.models import ImageSource
 from memoria.tasks.models import ImageIndexTaskModel
 from memoria.tasks.models import ImageUpdateTaskModel
 from memoria.utils.constants import EXIF_TOOL_EXE
@@ -62,14 +61,9 @@ def index_image_batch(pkgs: list[ImageIndexTaskModel]) -> None:
             if not pkg.logger:
                 pkg.logger = logger
 
-            pkg.logger.info(f"Indexing {pkg.image_path.stem}")
+            pkg.logger.info(f"Indexing {pkg.image_path.name}")
 
-            # If no source, we use the parent folder name
-            if not pkg.source:
-                img_src, _ = ImageSource.objects.get_or_create(name=pkg.image_path.parent.name)
-                pkg.source = img_src
-
-                handle_new_image(pkg, tool)
+            handle_new_image(pkg, tool)
 
 
 @db_task()

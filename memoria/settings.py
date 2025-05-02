@@ -191,6 +191,7 @@ LOGGING = {
             # A concise format
             "format": "{asctime} {levelname} {name} : {message}",
             "style": "{",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
     "handlers": {
@@ -236,13 +237,13 @@ LOGGING = {
         "memoria": {
             "handlers": ["console", "file_memoria"],
             "level": "DEBUG",
-            "propagate": False,  # Prevent Django logs from going up to the root logger again
+            "propagate": False,
         },
         # Logger specifically for Django's internal messages
         "django": {
             "handlers": ["console", "file_django"],
             "level": "DEBUG",
-            "propagate": False,  # Prevent Django logs from going up to the root logger again
+            "propagate": False,
         },
     },
 }

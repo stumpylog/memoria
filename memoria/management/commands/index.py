@@ -19,6 +19,8 @@ from memoria.tasks.models import ImageIndexTaskModel
 from memoria.tasks.models import ImageUpdateTaskModel
 from memoria.utils import calculate_blake3_hash
 
+logger = logging.getLogger("memoria.index")
+
 
 def get_or_create_groups(group_names: list[str]):
     # Convert all names to lowercase for case-insensitive comparison
@@ -42,6 +44,7 @@ def get_or_create_groups(group_names: list[str]):
 
     # Bulk create new groups
     if groups_to_create:
+        logger.info(f"Creating groups: {groups_to_create}")
         Group.objects.bulk_create(groups_to_create)
 
     # Return all groups (both existing and newly created)
@@ -73,8 +76,6 @@ class Command(TyperCommand):
         *,
         synchronous: Annotated[bool, Option(help="If True, run the indexing in the same process")] = True,
     ) -> None:
-        logger = logging.getLogger("memoria.index")
-
         if source:
             img_src, created = ImageSource.objects.get_or_create(name=source)
             if created:
