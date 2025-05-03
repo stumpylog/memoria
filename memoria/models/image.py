@@ -11,6 +11,7 @@ from imagehash import average_hash
 from PIL import Image as PILImage
 
 from memoria.models.abstract import AbstractTimestampMixin
+from memoria.models.metadata import ImageFolder
 from memoria.models.metadata import ImageSource
 from memoria.models.metadata import Person
 from memoria.models.metadata import PersonInImage
@@ -161,7 +162,15 @@ class Image(AbstractTimestampMixin, PermissionMixin, models.Model):
         help_text="These tags apply to the image",
     )
 
+    folder = models.ForeignKey(
+        ImageFolder,
+        related_name="images",
+        on_delete=models.CASCADE,
+        help_text="The folder this image belongs to",
+    )
+
     permissions_manager = PermissionManager()
+    objects = models.Manager()
 
     class Meta:
         ordering: Sequence[str] = ["pk"]

@@ -10,13 +10,13 @@ if TYPE_CHECKING:
 
 from django.db import models
 
-from memoria.models.abstract import AbstractSimpleNamedModel
+from memoria.models.abstract import AbstractSimpleNamedModelMixin
 from memoria.models.abstract import AbstractTimestampMixin
 from memoria.models.permissions import PermissionManager
 from memoria.models.permissions import PermissionMixin
 
 
-class Album(AbstractSimpleNamedModel, AbstractTimestampMixin, PermissionMixin, models.Model):
+class Album(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, PermissionMixin, models.Model):
     """
     Holds multiple Images in an ordered form, with a name and optional description
     """

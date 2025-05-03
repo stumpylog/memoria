@@ -1,6 +1,7 @@
 from datetime import date
 from typing import TYPE_CHECKING
 
+from django.contrib.contenttypes.models import ContentType
 from exifmwg import ExifTool
 from exifmwg.models import ImageMetadata
 from exifmwg.models import KeywordStruct
@@ -8,6 +9,8 @@ from PIL import Image
 from PIL import ImageOps
 
 from memoria.models import Image as ImageModel
+from memoria.models import ImageFolder
+from memoria.models import ObjectPermission
 from memoria.models import Person
 from memoria.models import PersonInImage
 from memoria.models import Pet
@@ -147,7 +150,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
                     LOCATION_KEYWORD.lower(),
                 }:
                     continue
-                existing_root_tag, _ = Tag.objects.get_or_create(name=keyword.Keyword)
+                existing_root_tag, _ = Tag.objects.get_or_create(name=keyword.Keyword, tn_parent=None)
                 applied_value = False
                 # If the keyword is applied, then it is applied
                 if keyword.Applied is not None and keyword.Applied:
@@ -309,46 +312,84 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
 
     metadata = tool.read_image_metadata(pkg.image_path)
 
+    path_from_parent = pkg.image_path.relative_to(pkg.parent_path).parent
+
+    parent, created = ImageFolder.objects.get_or_create(name=path_from_parent.parts[0], tn_parent=None)
+    if created:
+        pkg.logger.info(f"  Created new parent folder: {parent.name}")
+    else:
+        pkg.logger.info(f"  Using existing parent folder: {parent.name}")
+    for depth, child_name in enumerate(path_from_parent.parts[1:]):
+        child, created = ImageFolder.objects.get_or_create(name=child_name, tn_parent=parent)
+        if created:
+            pkg.logger.info(f"{' ' * (depth + 2)}Created new child folder: {child.name}")
+        else:
+            pkg.logger.info(f"{' ' * (depth + 2)}Using existing child folder: {child.name}")
+        parent = child
+
+    containing_folder = parent
+
     new_img = ImageModel.objects.create(
         file_size=pkg.image_path.stat().st_size,
         original=str(pkg.image_path.resolve()),
-        source=pkg.source,
         orientation=metadata.Orientation or ImageModel.OrientationChoices.HORIZONTAL,
         description=metadata.Description,
         height=metadata.ImageHeight,
         width=metadata.ImageWidth,
         original_checksum=pkg.original_hash,
         phash=calculate_image_phash(pkg.image_path),
+        # Relations
+        folder=containing_folder,
         # These are placeholders, the files do not exist yet
         thumbnail_checksum="A",
         full_size_checksum="B",
         # This time cannot be dirty
         is_dirty=False,
     )
+
+    # Add view permissions
     if pkg.view_groups:
-        new_img.view_groups.set(pkg.view_groups)
+        for group in pkg.view_groups:
+            ObjectPermission.objects.create(
+                content_type=ContentType.objects.get_for_model(ImageModel),
+                object_id=new_img.pk,
+                group=group,
+                can_view=True,
+            )
+
+    # Add edit permissions
     if pkg.edit_groups:
-        new_img.edit_groups.set(pkg.edit_groups)
+        for group in pkg.edit_groups:
+            # Check if this group already has view permissions
+            perm, created = ObjectPermission.objects.get_or_create(
+                content_type=ContentType.objects.get_for_model(ImageModel),
+                object_id=new_img.pk,
+                group=group,
+                defaults={"can_view": True, "can_edit": True},
+            )
 
-    pkg.logger.info("  Creating thumbnail")
+            # If permission existed and only had view access, add edit access
+            if not created and not perm.can_edit:
+                perm.can_edit = True
+                perm.save()
+
+    pkg.logger.info("Processing image")
+
     with Image.open(pkg.image_path) as im_file:
         img_copy = ImageOps.exif_transpose(im_file)
         if TYPE_CHECKING:
             assert img_copy is not None
-        img_copy.thumbnail((500, 500))
-        img_copy.save(new_img.thumbnail_path)
 
-    pkg.logger.info("  Creating WebP version")
-    with Image.open(pkg.image_path) as im_file:
-        img_copy = ImageOps.exif_transpose(im_file)
-        if TYPE_CHECKING:
-            assert img_copy is not None
-        img_copy.save(new_img.full_size_path, quality=90)
+        pkg.logger.info("  Creating thumbnail")
+        thumbnail = img_copy.copy()
+        thumbnail.thumbnail((500, 500))
+        thumbnail.save(new_img.thumbnail_path)
 
-    # Try to save some memory here
-    del img_copy, im_file
+        pkg.logger.info("  Creating WebP version")
+        img_copy.save(new_img.full_size_path, quality=80)
 
     # Update the file hashes, now that the files exist
+    pkg.logger.info("  Hashing created files")
     new_img.thumbnail_checksum = calculate_blake3_hash(new_img.thumbnail_path, hash_threads=pkg.hash_threads)
     new_img.full_size_checksum = calculate_blake3_hash(new_img.full_size_path, hash_threads=pkg.hash_threads)
     new_img.save()

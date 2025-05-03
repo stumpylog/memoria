@@ -14,7 +14,7 @@ from memoria.forms import GroupMembershipForm
 from memoria.forms import UserEmailForm
 from memoria.forms import UserProfileUpdateForm
 from memoria.models import UserProfile
-from memoria.views.mixins import UserIsActiveStaffOrSuperuserTestMixin
+from memoria.views.mixins import StaffOrSuperuserRequiredMixin
 
 User = get_user_model()
 
@@ -129,7 +129,7 @@ class UpdateProfileView(LoginRequiredMixin, View):
         return redirect("profile")  # Redirect back to the main profile view
 
 
-class ManageGroupsView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, View):
+class ManageGroupsView(LoginRequiredMixin, StaffOrSuperuserRequiredMixin, View):
     """
     Handles POST requests to manage user group memberships (staff only).
     """

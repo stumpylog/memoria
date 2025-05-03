@@ -14,13 +14,13 @@ from django.views.generic import View
 from memoria.forms import AddGroupForm
 from memoria.forms import AddUserForm
 from memoria.forms import ManageUserGroupsForm
-from memoria.views.mixins import UserIsActiveStaffOrSuperuserTestMixin
+from memoria.views.mixins import StaffOrSuperuserRequiredMixin
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class AdminSettingsView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, TemplateView):
+class AdminSettingsView(LoginRequiredMixin, StaffOrSuperuserRequiredMixin, TemplateView):
     """
     Displays the main admin settings page with tabs for managing users and groups.
     Provides forms for adding users and groups, handling forms data/errors from session.
@@ -53,7 +53,7 @@ class AdminSettingsView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixi
         return context
 
 
-class AddUserView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, View):
+class AddUserView(LoginRequiredMixin, StaffOrSuperuserRequiredMixin, View):
     """
     Handles the creation of a new user via a POST request using PRG pattern.
     Stores form data and errors in session on failure.
@@ -73,7 +73,7 @@ class AddUserView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, Vie
         return redirect(reverse("settings") + "#manage-users")
 
 
-class ToggleUserActiveView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, View):
+class ToggleUserActiveView(LoginRequiredMixin, StaffOrSuperuserRequiredMixin, View):
     """
     Handles toggling the is_active status of a user via a POST request.
     """
@@ -94,7 +94,7 @@ class ToggleUserActiveView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestM
         return redirect(reverse("settings") + "#manage-users")
 
 
-class ManageUserGroupsView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, TemplateView):
+class ManageUserGroupsView(LoginRequiredMixin, StaffOrSuperuserRequiredMixin, TemplateView):
     """
     View for managing a specific user's group memberships.
     Displays current groups and a form to update memberships.
@@ -153,7 +153,7 @@ class ManageUserGroupsView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestM
         return redirect(reverse("admin_manage_user_groups", pk=user.pk))
 
 
-class AddGroupView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, View):
+class AddGroupView(LoginRequiredMixin, StaffOrSuperuserRequiredMixin, View):
     """
     Handles the creation of a new group via a POST request using PRG pattern.
     Stores form data and errors in session on failure.
@@ -173,7 +173,7 @@ class AddGroupView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, Vi
         return redirect(reverse("settings") + "#manage-groups")
 
 
-class RemoveGroupView(LoginRequiredMixin, UserIsActiveStaffOrSuperuserTestMixin, View):
+class RemoveGroupView(LoginRequiredMixin, StaffOrSuperuserRequiredMixin, View):
     """
     Handles the removal of a group via a POST request.
     """

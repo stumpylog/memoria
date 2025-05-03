@@ -12,13 +12,13 @@ from simpleiso3166.countries import Country
 from treenode.models import TreeNodeModel
 
 from memoria.models.abstract import AbstractBoxInImage
-from memoria.models.abstract import AbstractSimpleNamedModel
+from memoria.models.abstract import AbstractSimpleNamedModelMixin
 from memoria.models.abstract import AbstractTimestampMixin
 from memoria.models.permissions import PermissionManager
 from memoria.models.permissions import PermissionMixin
 
 
-class Tag(AbstractTimestampMixin, PermissionMixin, TreeNodeModel):
+class Tag(AbstractTimestampMixin, TreeNodeModel):
     """
     Holds the information about a Tag, roughly a tag, in a tree structure,
     whose structure makes sense to the user
@@ -35,8 +35,6 @@ class Tag(AbstractTimestampMixin, PermissionMixin, TreeNodeModel):
         default=None,
         db_index=True,
     )
-
-    permissions_manager = PermissionManager()
 
     class Meta(TreeNodeModel.Meta):
         verbose_name = "Tag"
@@ -61,12 +59,13 @@ class TagOnImage(models.Model):  # noqa: DJ008
     applied = models.BooleanField(default=False, help_text="This tag is applied to this image")
 
 
-class Person(AbstractSimpleNamedModel, AbstractTimestampMixin, PermissionMixin, models.Model):
+class Person(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, PermissionMixin, models.Model):
     """
     Holds the information about a single person
     """
 
     permissions_manager = PermissionManager()
+    objects = models.Manager()
 
     def __str__(self) -> str:
         return f"Person {self.name}"
@@ -93,12 +92,13 @@ class PersonInImage(AbstractBoxInImage):
         return "Unknown"
 
 
-class Pet(AbstractSimpleNamedModel, AbstractTimestampMixin, PermissionMixin, models.Model):
+class Pet(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, PermissionMixin, models.Model):
     """
     Holds the information about a single person
     """
 
     permissions_manager = PermissionManager()
+    objects = models.Manager()
 
     class PetTypeChoices(models.TextChoices):
         CAT = "cat"
@@ -148,6 +148,7 @@ class ImageSource(AbstractTimestampMixin, PermissionMixin, models.Model):
     )
 
     permissions_manager = PermissionManager()
+    objects = models.Manager()
 
     def __str__(self) -> str:
         return f"Source {self.name}"
@@ -173,6 +174,7 @@ class RoughDate(AbstractTimestampMixin, PermissionMixin, models.Model):
     )
 
     permissions_manager = PermissionManager()
+    objects = models.Manager()
 
     class Meta:
         ordering: Sequence = ["date"]
@@ -232,6 +234,7 @@ class RoughLocation(AbstractTimestampMixin, PermissionMixin, models.Model):
     )
 
     permissions_manager = PermissionManager()
+    objects = models.Manager()
 
     class Meta:
         ordering: Sequence = [
@@ -284,3 +287,43 @@ class RoughLocation(AbstractTimestampMixin, PermissionMixin, models.Model):
             # The code is validated
             assert country is not None
         return country.get_subdivision_name(self.subdivision_code)  # type: ignore[arg-type]
+
+
+class ImageFolder(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, PermissionMixin, TreeNodeModel):
+    # Required TreeNodeModel attributes
+    treenode_display_field = "name"
+
+    permissions_manager = PermissionManager()
+    objects = models.Manager()
+
+    class Meta:
+        verbose_name = "Folder"
+        verbose_name_plural = "Folders"
+
+    @property
+    def depth_level(self) -> int:
+        """Return the depth level of this folder."""
+        return self.get_depth()
+
+    @property
+    def children_count(self) -> int:
+        """Return the count of immediate children folders."""
+        return self.get_children_count()
+
+    @property
+    def descendants_count(self) -> int:
+        """Return the count of all descendant folders."""
+        return self.get_descendants_count()
+
+    @property
+    def images_count(self):
+        """Return the count of images in this folder."""
+        return self.images.count()
+
+    def move_to(self, target_folder: ImageFolder | None = None):
+        """
+        Move this folder to become a child of the target folder.
+        If target_folder is None, this will become a root folder.
+        """
+        self.set_parent(target_folder)
+        self.save()

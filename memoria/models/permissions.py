@@ -273,6 +273,50 @@ class SQLitePermissionQuerySet(models.QuerySet):
             )
         return self.filter(Q(pk__in=user_perms_objects))
 
+    def accessible_by(self, user):
+        """Objects viewable OR editable by user."""
+        if not user.is_authenticated:
+            return self.none()
+
+        if user.is_superuser:
+            return self
+
+        content_type = ContentType.objects.get_for_model(self.model)
+
+        user_perms = Q(permissions__user=user)
+        group_perms = Q(permissions__group__in=user.groups.all()) if user.groups.exists() else Q()
+
+        permission_filter = Q(
+            permissions__content_type=content_type,
+            permissions__can_view=True,
+        ) | Q(
+            permissions__content_type=content_type,
+            permissions__can_edit=True,
+        )
+
+        return self.filter(permission_filter & (user_perms | group_perms)).distinct()
+
+    def editable_ids_by(self, user):
+        """List of IDs user can edit."""
+        if not user.is_authenticated:
+            return []
+
+        if user.is_superuser:
+            return list(self.values_list("id", flat=True))
+
+        content_type = ContentType.objects.get_for_model(self.model)
+
+        user_perms = Q(permissions__user=user)
+        group_perms = Q(permissions__group__in=user.groups.all()) if user.groups.exists() else Q()
+
+        return list(
+            self.filter(
+                Q(permissions__content_type=content_type),
+                Q(permissions__can_edit=True),
+                user_perms | group_perms,
+            ).values_list("id", flat=True),
+        )
+
 
 PermissionQuerySet = PostgreSQLPermissionQuerySet if settings.IS_POSTGRESQL else SQLitePermissionQuerySet
 
@@ -286,3 +330,9 @@ class PermissionManager(models.Manager):
 
     def editable_by(self, user):
         return self.get_queryset().editable_by(user)
+
+    def accessible_by(self, user):
+        return self.get_queryset().accessible_by(user)
+
+    def editable_ids_by(self, user):
+        return self.get_queryset().editable_ids_by(user)

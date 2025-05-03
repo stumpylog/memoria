@@ -20,7 +20,6 @@ def setup_database():
 
             # Other helpful SQLite optimizations
             cursor.execute("PRAGMA synchronous=NORMAL;")  # Boost performance a bit
-            cursor.execute("PRAGMA temp_store=MEMORY;")  # Store temp tables in memory
             cursor.execute("PRAGMA cache_size=-102400;")  # Use 100MB cache (in KiB)
 
         logger.info("SQLite optimizations applied")

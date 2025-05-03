@@ -13,14 +13,14 @@ class AbstractTimestampMixin(models.Model):
     Mixin class to provide created_at and updated_at columns in UTC
     """
 
-    created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True
 
 
-class AbstractSimpleNamedModel(models.Model):
+class AbstractSimpleNamedModelMixin(models.Model):
     """
     Basic model which provides a short name column and longer description column
     """
