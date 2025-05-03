@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 from blake3 import blake3
 from django.conf import settings
-from django.contrib.auth.models import Group
 from django.db import models
 from exifmwg.models import RotationEnum
 from imagehash import average_hash
@@ -21,12 +20,14 @@ from memoria.models.metadata import RoughDate
 from memoria.models.metadata import RoughLocation
 from memoria.models.metadata import Tag
 from memoria.models.metadata import TagOnImage
+from memoria.models.permissions import PermissionManager
+from memoria.models.permissions import PermissionMixin
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-class Image(AbstractTimestampMixin, models.Model):
+class Image(AbstractTimestampMixin, PermissionMixin, models.Model):
     """
     Holds the information about an Image.  Basically everything relates to an image somehow
     """
@@ -160,17 +161,7 @@ class Image(AbstractTimestampMixin, models.Model):
         help_text="These tags apply to the image",
     )
 
-    view_groups = models.ManyToManyField(
-        Group,
-        help_text="These groups may view the image",
-        related_name="viewable_images",
-    )
-
-    edit_groups = models.ManyToManyField(
-        Group,
-        help_text="These groups may edit (and view) the image",
-        related_name="editable_images",
-    )
+    permissions_manager = PermissionManager()
 
     class Meta:
         ordering: Sequence[str] = ["pk"]

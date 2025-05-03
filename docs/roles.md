@@ -42,9 +42,10 @@ class ObjectPermission(models.Model):
     """
     Defines view/edit permissions for any model instance
     """
+
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey("content_type", "object_id")
 
     # Who has permission
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -57,29 +58,28 @@ class ObjectPermission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        constraints = [
+        constraints = [  # noqa: RUF012
             models.CheckConstraint(
-                check=models.Q(user__isnull=False) | models.Q(group__isnull=False),
-                name='permission_has_user_or_group'
-            )
+                condition=models.Q(user__isnull=False) | models.Q(group__isnull=False),
+                name="permission_has_user_or_group",
+            ),
         ]
-        indexes = [
-            # Composite indexes specifically helpful for PostgreSQL permission lookups
-            models.Index(fields=['content_type', 'object_id']),
-            models.Index(fields=['content_type', 'object_id', 'user']),
-            models.Index(fields=['content_type', 'object_id', 'group']),
-            # Indexes for permission type lookups
-            models.Index(fields=['can_view']),
-            models.Index(fields=['can_edit']),
+        indexes = [  # noqa: RUF012
+            # Basic indexes that work on both SQLite and PostgreSQL
+            models.Index(fields=["content_type", "object_id"]),
+            models.Index(fields=["content_type", "object_id", "user"]),
+            models.Index(fields=["content_type", "object_id", "group"]),
+            models.Index(fields=["can_view"]),
+            models.Index(fields=["can_edit"]),
         ]
 
     def __str__(self):
         target = self.user.username if self.user else self.group.name
         perms = []
         if self.can_view:
-            perms.append('view')
+            perms.append("view")
         if self.can_edit:
-            perms.append('edit')
+            perms.append("edit")
         return f"{target} can {'+'.join(perms)} {self.content_type.model} #{self.object_id}"
 ```
 
@@ -95,6 +95,7 @@ class PermissionMixin(models.Model):
     """
     Mixin to add to models that need object-level permissions
     """
+
     permissions = GenericRelation(ObjectPermission)
 
     class Meta:
@@ -103,11 +104,11 @@ class PermissionMixin(models.Model):
     def get_permissions_for_user(self, user):
         """Get permissions for a specific user"""
         if user.is_superuser:
-            return {'can_view': True, 'can_edit': True}
+            return {"can_view": True, "can_edit": True}
 
         # Check for empty permissions - means open to all
         if self.permissions.count() == 0:
-            return {'can_view': True, 'can_edit': False}
+            return {"can_view": True, "can_edit": False}
 
         # Direct user permissions
         user_perms = self.permissions.filter(user=user)
@@ -119,7 +120,7 @@ class PermissionMixin(models.Model):
         can_view = user_perms.filter(can_view=True).exists() or group_perms.filter(can_view=True).exists()
         can_edit = user_perms.filter(can_edit=True).exists() or group_perms.filter(can_edit=True).exists()
 
-        return {'can_view': can_view, 'can_edit': can_edit}
+        return {"can_view": can_view, "can_edit": can_edit}
 
     def user_can_view(self, user):
         """Check if user can view this object"""
@@ -128,7 +129,7 @@ class PermissionMixin(models.Model):
         if self.permissions.count() == 0:
             return True
         perms = self.get_permissions_for_user(user)
-        return perms['can_view']
+        return perms["can_view"]
 
     def user_can_edit(self, user):
         """Check if user can edit this object"""
@@ -137,7 +138,7 @@ class PermissionMixin(models.Model):
         if self.permissions.count() == 0:
             return False
         perms = self.get_permissions_for_user(user)
-        return perms['can_edit']
+        return perms["can_edit"]
 ```
 
 ## Apply the Mixin to Your Models
@@ -163,23 +164,30 @@ class Pet(PermissionMixin, models.Model):
 # And so on for other models...
 ```
 
-## Custom QuerySet Manager (PostgreSQL-Optimized)
+## Custom QuerySet Manager
+
+### PostgreSQL-Optimized Queryset
 
 Let's create a custom QuerySet manager to automatically filter objects based on user permissions. This implementation is optimized specifically for PostgreSQL:
 
 ```python
-class PermissionQuerySet(models.QuerySet):
+from django.db import models
+from django.conf import settings
+from django.db.models import Exists, OuterRef, Subquery, Q
+from django.contrib.contenttypes.models import ContentType
+
+class PostgreSQLPermissionQuerySet(models.QuerySet):
+    """
+    Permission QuerySet optimized for PostgreSQL using Exists subqueries
+    """
     def viewable_by(self, user):
-        """Return only objects viewable by the user - optimized for PostgreSQL"""
+        """Return only objects viewable by the user - PostgreSQL optimized"""
         if user.is_superuser:
             return self
 
-        # Create a subquery to identify objects with no permissions
-        from django.db.models import Exists, OuterRef, Subquery
-
         content_type_id = ContentType.objects.get_for_model(self.model).id
 
-        # PostgreSQL performs well with EXISTS subqueries
+        # PostgreSQL optimized version using Exists subqueries
         no_perms = ~Exists(
             ObjectPermission.objects.filter(
                 content_type_id=content_type_id,
@@ -197,8 +205,8 @@ class PermissionQuerySet(models.QuerySet):
             )
         )
 
-        # Group view permissions - for PostgreSQL, we can use a more efficient subquery
-        if user.groups.exists():  # Only add this condition if user has groups
+        # Group view permissions
+        if user.groups.exists():
             group_ids = user.groups.values_list('id', flat=True)
             group_view_perms = Exists(
                 ObjectPermission.objects.filter(
@@ -208,14 +216,12 @@ class PermissionQuerySet(models.QuerySet):
                     can_view=True
                 )
             )
-            # Return objects with any type of permission
             return self.filter(no_perms | user_view_perms | group_view_perms)
         else:
-            # No need to check group permissions if user has no groups
             return self.filter(no_perms | user_view_perms)
 
     def editable_by(self, user):
-        """Return only objects editable by the user - optimized for PostgreSQL"""
+        """Return only objects editable by the user - PostgreSQL optimized"""
         if user.is_superuser:
             return self
 
@@ -232,7 +238,7 @@ class PermissionQuerySet(models.QuerySet):
         )
 
         # Group edit permissions
-        if user.groups.exists():  # Only add this condition if user has groups
+        if user.groups.exists():
             group_ids = user.groups.values_list('id', flat=True)
             group_edit_perms = Exists(
                 ObjectPermission.objects.filter(
@@ -242,11 +248,173 @@ class PermissionQuerySet(models.QuerySet):
                     can_edit=True
                 )
             )
-            # Return objects with explicit edit permissions
             return self.filter(user_edit_perms | group_edit_perms)
         else:
-            # No need to check group permissions if user has no groups
             return self.filter(user_edit_perms)
+
+
+class SQLitePermissionQuerySet(models.QuerySet):
+    """
+    Permission QuerySet compatible with SQLite using simpler query methods
+    """
+    def viewable_by(self, user):
+        """Return only objects viewable by the user - SQLite compatible"""
+        if user.is_superuser:
+            return self
+
+        content_type_id = ContentType.objects.get_for_model(self.model).id
+
+        # Objects with no permissions are viewable by all
+        objects_with_perms = ObjectPermission.objects.filter(
+            content_type_id=content_type_id
+        ).values_list('object_id', flat=True).distinct()
+
+        # Objects without permissions
+        no_perms_q = ~Q(pk__in=objects_with_perms)
+
+        # User permissions
+        user_perms_objects = ObjectPermission.objects.filter(
+            content_type_id=content_type_id,
+            user=user,
+            can_view=True
+        ).values_list('object_id', flat=True)
+
+        # Group permissions
+        if user.groups.exists():
+            group_perms_objects = ObjectPermission.objects.filter(
+                content_type_id=content_type_id,
+                group__in=user.groups.all(),
+                can_view=True
+            ).values_list('object_id', flat=True)
+
+            return self.filter(
+                no_perms_q |
+                Q(pk__in=user_perms_objects) |
+                Q(pk__in=group_perms_objects)
+            )
+        else:
+            return self.filter(
+                no_perms_q |
+                Q(pk__in=user_perms_objects)
+            )
+
+    def editable_by(self, user):
+        """Return only objects editable by the user - SQLite compatible"""
+        if user.is_superuser:
+            return self
+
+        content_type_id = ContentType.objects.get_for_model(self.model).id
+
+        # User permissions
+        user_perms_objects = ObjectPermission.objects.filter(
+            content_type_id=content_type_id,
+            user=user,
+            can_edit=True
+        ).values_list('object_id', flat=True)
+
+        # Group permissions
+        if user.groups.exists():
+            group_perms_objects = ObjectPermission.objects.filter(
+                content_type_id=content_type_id,
+                group__in=user.groups.all(),
+                can_edit=True
+            ).values_list('object_id', flat=True)
+
+            return self.filter(
+                Q(pk__in=user_perms_objects) |
+                Q(pk__in=group_perms_objects)
+            )
+        else:
+            return self.filter(Q(pk__in=user_perms_objects))
+
+```
+
+### SQLite Compatible Queryset
+
+```python
+class SQLitePermissionQuerySet(models.QuerySet):
+    """
+    Permission QuerySet compatible with SQLite using simpler query methods
+    """
+    def viewable_by(self, user):
+        """Return only objects viewable by the user - SQLite compatible"""
+        if user.is_superuser:
+            return self
+
+        content_type_id = ContentType.objects.get_for_model(self.model).id
+
+        # Objects with no permissions are viewable by all
+        objects_with_perms = ObjectPermission.objects.filter(
+            content_type_id=content_type_id
+        ).values_list('object_id', flat=True).distinct()
+
+        # Objects without permissions
+        no_perms_q = ~Q(pk__in=objects_with_perms)
+
+        # User permissions
+        user_perms_objects = ObjectPermission.objects.filter(
+            content_type_id=content_type_id,
+            user=user,
+            can_view=True
+        ).values_list('object_id', flat=True)
+
+        # Group permissions
+        if user.groups.exists():
+            group_perms_objects = ObjectPermission.objects.filter(
+                content_type_id=content_type_id,
+                group__in=user.groups.all(),
+                can_view=True
+            ).values_list('object_id', flat=True)
+
+            return self.filter(
+                no_perms_q |
+                Q(pk__in=user_perms_objects) |
+                Q(pk__in=group_perms_objects)
+            )
+        else:
+            return self.filter(
+                no_perms_q |
+                Q(pk__in=user_perms_objects)
+            )
+
+    def editable_by(self, user):
+        """Return only objects editable by the user - SQLite compatible"""
+        if user.is_superuser:
+            return self
+
+        content_type_id = ContentType.objects.get_for_model(self.model).id
+
+        # User permissions
+        user_perms_objects = ObjectPermission.objects.filter(
+            content_type_id=content_type_id,
+            user=user,
+            can_edit=True
+        ).values_list('object_id', flat=True)
+
+        # Group permissions
+        if user.groups.exists():
+            group_perms_objects = ObjectPermission.objects.filter(
+                content_type_id=content_type_id,
+                group__in=user.groups.all(),
+                can_edit=True
+            ).values_list('object_id', flat=True)
+
+            return self.filter(
+                Q(pk__in=user_perms_objects) |
+                Q(pk__in=group_perms_objects)
+            )
+        else:
+            return self.filter(Q(pk__in=user_perms_objects))
+```
+
+### Custom Manager
+
+```python
+
+if settings.IS_POSTGRESQL:
+    PermissionQuerySet = PostgreSQLPermissionQuerySet
+else:
+    PermissionQuerySet = SQLitePermissionQuerySet
 
 class PermissionManager(models.Manager):
     def get_queryset(self):

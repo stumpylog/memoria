@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 from django_jinja.builtins import DEFAULT_EXTENSIONS
@@ -116,13 +117,30 @@ WSGI_APPLICATION = "memoria.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    },
-}
+DATABASE_TYPE = os.environ.get("DATABASE_TYPE", "sqlite")
 
+if DATABASE_TYPE == "postgresql":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME", "your_db_name"),
+            "USER": os.environ.get("DB_USER", "your_db_user"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", "your_db_password"),
+            "HOST": os.environ.get("DB_HOST", "localhost"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+        },
+    }
+else:  # SQLite for development
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        },
+    }
+
+# Add a convenience flag to check database type in code
+IS_POSTGRESQL = DATABASE_TYPE == "postgresql"
+DB_SPECIFIC_MODULE = "memoria.db.postgresql" if IS_POSTGRESQL else "memoria.db.sqlite"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

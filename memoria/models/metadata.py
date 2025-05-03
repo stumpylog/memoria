@@ -14,9 +14,11 @@ from treenode.models import TreeNodeModel
 from memoria.models.abstract import AbstractBoxInImage
 from memoria.models.abstract import AbstractSimpleNamedModel
 from memoria.models.abstract import AbstractTimestampMixin
+from memoria.models.permissions import PermissionManager
+from memoria.models.permissions import PermissionMixin
 
 
-class Tag(AbstractTimestampMixin, TreeNodeModel):
+class Tag(AbstractTimestampMixin, PermissionMixin, TreeNodeModel):
     """
     Holds the information about a Tag, roughly a tag, in a tree structure,
     whose structure makes sense to the user
@@ -33,6 +35,8 @@ class Tag(AbstractTimestampMixin, TreeNodeModel):
         default=None,
         db_index=True,
     )
+
+    permissions_manager = PermissionManager()
 
     class Meta(TreeNodeModel.Meta):
         verbose_name = "Tag"
@@ -57,10 +61,12 @@ class TagOnImage(models.Model):  # noqa: DJ008
     applied = models.BooleanField(default=False, help_text="This tag is applied to this image")
 
 
-class Person(AbstractSimpleNamedModel, AbstractTimestampMixin, models.Model):
+class Person(AbstractSimpleNamedModel, AbstractTimestampMixin, PermissionMixin, models.Model):
     """
     Holds the information about a single person
     """
+
+    permissions_manager = PermissionManager()
 
     def __str__(self) -> str:
         return f"Person {self.name}"
@@ -87,10 +93,12 @@ class PersonInImage(AbstractBoxInImage):
         return "Unknown"
 
 
-class Pet(AbstractSimpleNamedModel, AbstractTimestampMixin, models.Model):
+class Pet(AbstractSimpleNamedModel, AbstractTimestampMixin, PermissionMixin, models.Model):
     """
     Holds the information about a single person
     """
+
+    permissions_manager = PermissionManager()
 
     class PetTypeChoices(models.TextChoices):
         CAT = "cat"
@@ -125,7 +133,7 @@ class PetInImage(AbstractBoxInImage):
         return "Unknown"
 
 
-class ImageSource(AbstractTimestampMixin, models.Model):
+class ImageSource(AbstractTimestampMixin, PermissionMixin, models.Model):
     """
     Holds multiple Images in an ordered form, with a name and optional description
     """
@@ -139,11 +147,13 @@ class ImageSource(AbstractTimestampMixin, models.Model):
         help_text="A description of this source, rendered as markdown",
     )
 
+    permissions_manager = PermissionManager()
+
     def __str__(self) -> str:
         return f"Source {self.name}"
 
 
-class RoughDate(AbstractTimestampMixin, models.Model):
+class RoughDate(AbstractTimestampMixin, PermissionMixin, models.Model):
     """
     The rough date of the image
     """
@@ -161,6 +171,8 @@ class RoughDate(AbstractTimestampMixin, models.Model):
         default=False,
         help_text="Is the day of this date valid?",
     )
+
+    permissions_manager = PermissionManager()
 
     class Meta:
         ordering: Sequence = ["date"]
@@ -185,7 +197,7 @@ class RoughDate(AbstractTimestampMixin, models.Model):
         return f"RoughDate: {self!s}"
 
 
-class RoughLocation(AbstractTimestampMixin, models.Model):
+class RoughLocation(AbstractTimestampMixin, PermissionMixin, models.Model):
     """
     Holds the information about a Location where an image was.
 
@@ -218,6 +230,8 @@ class RoughLocation(AbstractTimestampMixin, models.Model):
         blank=True,
         help_text="Detailed location within a city or Town",
     )
+
+    permissions_manager = PermissionManager()
 
     class Meta:
         ordering: Sequence = [

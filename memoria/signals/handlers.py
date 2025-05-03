@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 
 from memoria.models import Image
@@ -10,6 +12,30 @@ from memoria.models import RoughLocation
 from memoria.models import UserProfile
 
 User = get_user_model()
+
+_has_run_post_migrate_once = False
+
+
+@receiver(post_migrate)
+def handle_post_migrate(sender, **kwargs):
+    global _has_run_post_migrate_once
+    if _has_run_post_migrate_once:
+        return
+
+    _has_run_post_migrate_once = True
+
+    # Your setup logic here (safe to use database)
+    print("Running post-migrate startup logic once")
+
+    import importlib
+
+    try:
+        # This will import either db_postgresql or db_sqlite based on settings
+        db_module = importlib.import_module(settings.DB_SPECIFIC_MODULE)
+        db_module.setup_database()
+    except ImportError:
+        # Already logged
+        pass
 
 
 @receiver(models.signals.post_save, sender=User)
