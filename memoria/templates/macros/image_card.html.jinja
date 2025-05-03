@@ -1,0 +1,67 @@
+{% macro image_card(image) %}
+    {#
+Renders a Bootstrap card for an image thumbnail.
+
+Args:
+    image: An object with properties like thumbnail_url, description,
+           original_name, original, and id.
+#}
+    <div class="card h-100">
+        {# Add h-100 for consistent height in grid layouts #}
+        {# Container for the image thumbnail with fixed height and centering #}
+        {# Added background and border for placeholder when no image #}
+        <div style="height: 200px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    overflow: hidden;
+                    background-color: #f8f9fa;
+                    {# Light grey background #} border-bottom: 1px solid rgba(0,0,0,.125)">
+            {# Mimic card border #}
+            {% if image.thumbnail_url %}
+                <img src="{{ image.thumbnail_url }}"
+                    class="card-img-top" {# Apply Bootstrap card image styling #}
+                    alt="{{ image.description | default(image.original_name) | default('Image') }}" {# Descriptive alt text #}
+                    style="max-height: 100%; {# Ensure image doesn't exceed container height #}
+                    object-fit: contain;">
+                    {# Scale image to fit within container while maintaining aspect ratio #}
+                {% else %}
+                    {# Styled placeholder content when no thumbnail is available #}
+                    <div style="text-align: center;
+                                color: #6c757d;
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: center;
+                                align-items: center;
+                                font-size: 0.9em">
+                        {# A simple SVG icon representing an image #}
+                        <svg class="bi mb-1"
+                             width="2em"
+                             height="2em"
+                             fill="currentColor"
+                             viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.028 11.02a.5.5 0 0 0-.04.28.99.99 0 0 0 .841.839c.295.054.584.04.84-.028l1.898-2.093a.25.25 0 0 1 .372 0l1.898 2.093c.256.068.545.082.84.028a.99.99 0 0 0 .84-.84.5.5 0 0 0-.04-.28l-1.898-2.092a.25.25 0 0 1 0-.372L10.972 6.98a.5.5 0 0 0 .04-.28.99.99 0 0 0-.841-.839c-.295-.054-.584-.04-.84.028L8.376 8.908a.25.25 0 0 1-.372 0L6.106 6.815c-.256-.068-.545-.082-.84-.028a.99.99 0 0 0-.84.84.5.5 0 0 0 .04.28l1.898 2.092a.25.25 0 0 1 0 .372z" />
+                        </svg>
+                        No Thumbnail
+                        <br>
+                        Available
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-body d-flex flex-column">
+                {# Use flexbox for body content #}
+                {# Card title: Use description or original name #}
+                {% if image.description %}
+                    <h6 class="card-title">{{ image.description }}</h6>
+                {% else %}
+                    <h6 class="card-title">{{ image.original_name }}</h6>
+                {% endif %}
+                {# Link to view the full image details - use mt-auto to push button to bottom #}
+                {% if url %}
+                    {# Check if url function is available, good practice #}
+                    <a href="{{ url('image_detail', pk=image.id) }}"
+                       class="btn btn-primary btn-sm mt-auto">View</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endmacro %}

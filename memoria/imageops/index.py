@@ -40,18 +40,14 @@ def handle_existing_image(
         assert pkg.logger is not None
     pkg.logger.info("  Image already indexed")
     # Set the source if requested
-    if pkg.source is not None and (pkg.image.source is None or pkg.image.source != pkg.source):
-        pkg.logger.info(f"  Updating source to {pkg.source}")
-        pkg.image.source = pkg.source
-        pkg.image.save()
-    if pkg.view_groups is not None:
-        pkg.image.view_groups.set(pkg.view_groups)
-    if pkg.edit_groups is not None:
-        pkg.image.edit_groups.set(pkg.edit_groups)
+    # TODO: Set the permissions again??
     # Check for an updated location
     if pkg.image_path.resolve() != pkg.image.original_path:
         pkg.logger.info(f"  Updating path from {pkg.image.original_path.resolve()} to {pkg.image_path.resolve()}")
         pkg.image.original_path = pkg.image_path.resolve()
+        pkg.image.save()
+    if pkg.image_path.stem != pkg.image.original:
+        pkg.image.original = pkg.image_path.stem
         pkg.image.save()
     pkg.logger.info(f"  {pkg.image_path.name} indexing completed")
 
@@ -332,6 +328,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     new_img = ImageModel.objects.create(
         file_size=pkg.image_path.stat().st_size,
         original=str(pkg.image_path.resolve()),
+        original_name=pkg.image_path.stem,
         orientation=metadata.Orientation or ImageModel.OrientationChoices.HORIZONTAL,
         description=metadata.Description,
         height=metadata.ImageHeight,

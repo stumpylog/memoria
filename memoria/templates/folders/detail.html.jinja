@@ -1,0 +1,47 @@
+{% from "macros/image_gallery.html.jinja" import image_gallery %}
+{% extends "base.html.jinja" %}
+{% block title %}
+    {{ title }}
+{% endblock title %}
+{% block content %}
+    {% include "partials/navbar.html.jinja" %}
+    <div class="container mt-5">
+        <p>
+            <a href="{{ url('image_folder_list') }}">&larr; Back to Image Folders</a>
+        </p>
+        <h1 class="mb-4">{{ folder.name }}</h1>
+        {% if folder.description %}
+            <p class="lead">{{ folder.description|linebreaksbr }}</p>
+            <hr>
+            {# Add a separator after the description if it exists #}
+        {% endif %}
+        {# Section for Child Folders #}
+        {% if child_folders %}
+            <h2 class="mt-5 mb-3">Subfolders</h2>
+            <div class="row">
+                {% for child_folder in child_folders %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ child_folder.name }}</h5>
+                                {% if child_folder.description %}
+                                    <p class="card-text">{{ child_folder.description | linebreaksbr | truncate(100) }}</p>
+                                    {# Truncate description for brevity #}
+                                {% endif %}
+                                <p class="card-text">Contains {{ child_folder.get_children_count() }} folders(s)</p>
+                                <p class="card-text">Contains {{ child_folder.images.count() }} image(s)</p>
+                                {# Link to the detail view of the child folder #}
+                                <a href="{{ url('image_folder_detail', pk=child_folder.pk) }}"
+                                   class="btn btn-primary">View Folder</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="mt-5">No subfolders found.</p>
+        {% endif %}
+        {# Section for Images #}
+        {{ image_gallery(images, "Images") }}
+    </div>
+{% endblock content %}

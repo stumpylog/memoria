@@ -101,6 +101,11 @@ class Image(AbstractTimestampMixin, PermissionMixin, models.Model):
         verbose_name="Path to the original image",
     )
 
+    original_name = models.CharField(
+        max_length=256,
+        verbose_name="The stemmed filename of the original file",
+    )
+
     is_dirty = models.BooleanField(
         default=False,
         help_text="The metadata is dirty and needs to be synced to the file",

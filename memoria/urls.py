@@ -19,7 +19,8 @@ urlpatterns = [
     #
     path("images/", views.ImageListView.as_view(), name="image_list"),
     path("images/<int:pk>/", views.ImageDetailView.as_view(), name="image_detail"),
-    path("sources/", views.SourcesView.as_view(), name="sources"),
+    path("folders/", views.ImageFolderListView.as_view(), name="image_folder_list"),
+    path("folders/<int:pk>/", views.ImageFolderDetailView.as_view(), name="image_folder_detail"),
     path("albums/", views.AlbumsView.as_view(), name="albums"),
     #
     # Person related
