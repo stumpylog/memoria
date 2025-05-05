@@ -6,6 +6,7 @@ from typing import Final
 from typing import Optional
 
 from django.contrib.auth.models import Group
+from django.db.models import QuerySet
 from django.db.models.functions import Lower
 from django_typer.management import TyperCommand
 from rich.progress import Progress
@@ -33,7 +34,7 @@ class FoundImage:
 logger = logging.getLogger("memoria.index")
 
 
-def get_or_create_groups(group_names: list[str]):
+def get_or_create_groups(group_names: list[str]) -> QuerySet[Group]:
     # Convert all names to lowercase for case-insensitive comparison
     lowercase_names = [name.lower().strip() for name in group_names]
 

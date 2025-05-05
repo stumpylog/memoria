@@ -1,16 +1,18 @@
 from datetime import date
+from logging import Logger
 from typing import TYPE_CHECKING
+from typing import Final
+from typing import cast
 
-from django.contrib.contenttypes.models import ContentType
 from exifmwg import ExifTool
 from exifmwg.models import ImageMetadata
 from exifmwg.models import KeywordStruct
+from exifmwg.models import RegionStruct
 from PIL import Image
 from PIL import ImageOps
 
 from memoria.models import Image as ImageModel
 from memoria.models import ImageFolder
-from memoria.models import ObjectPermission
 from memoria.models import Person
 from memoria.models import PersonInImage
 from memoria.models import Pet
@@ -36,8 +38,8 @@ def handle_existing_image(
     """
     Handles an image that has already been indexed, either updating its source or changing the location
     """
-    if TYPE_CHECKING:
-        assert pkg.logger is not None
+    pkg.logger = cast("Logger", pkg.logger)
+
     pkg.logger.info("  Image already indexed")
     # Set the source if requested
     # TODO: Set the permissions again??
@@ -49,6 +51,18 @@ def handle_existing_image(
     if pkg.image_path.stem != pkg.image.original:
         pkg.image.original = pkg.image_path.stem
         pkg.image.save()
+
+    if pkg.view_groups:
+        if pkg.overwrite:
+            pkg.image.view_groups.set(pkg.view_groups.all())
+        else:
+            pkg.image.view_groups.add(*pkg.view_groups.all())
+    if pkg.edit_groups:
+        if pkg.overwrite:
+            pkg.image.edit_groups.set(pkg.edit_groups.all())
+        else:
+            pkg.image.edit_groups.add(*pkg.edit_groups.all())
+
     pkg.logger.info(f"  {pkg.image_path.name} indexing completed")
 
 
@@ -62,48 +76,85 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
 
     def parse_region_info(new_image: ImageModel, metadata: ImageMetadata):
         """
-        Parses the MWG regions into people and pets
-        """
+        Parses MWG regions into people and pets.
 
+        Processes each region in the metadata and creates corresponding database records
+        for people and pets identified in the image with their position information.
+        """
         if TYPE_CHECKING:
             assert pkg.logger is not None
 
-        pkg.logger.info("  Parsing regions")
-        if metadata.RegionInfo:
-            for region in metadata.RegionInfo.RegionList:
-                if region.Type == "Face" and region.Name:
-                    person, _ = Person.objects.get_or_create(name=region.Name)
-                    if region.Description:
-                        person.description = region.Description
-                        person.save()
-                    pkg.logger.info(f"  Found face for person {person.name}")
-                    _ = PersonInImage.objects.create(
-                        person=person,
-                        image=new_image,
-                        center_x=region.Area.X,
-                        center_y=region.Area.Y,
-                        height=region.Area.H,
-                        width=region.Area.W,
-                    )
-                elif region.Type == "Pet" and region.Name:
-                    pet, _ = Pet.objects.get_or_create(name=region.Name)
-                    if region.Description:
-                        pet.description = region.Description
-                        pet.save()
+        def _process_person_region(image: ImageModel, region: RegionStruct):
+            """
+            Helper function to process a person/face region
+            """
+            if TYPE_CHECKING:
+                assert pkg.logger is not None
+            person, created = Person.objects.get_or_create(name=region.Name)
 
-                    pkg.logger.info(f"  Found box for pet {pet.name}")
-                    _ = PetInImage.objects.create(
-                        pet=pet,
-                        image=new_image,
-                        center_x=region.Area.X,
-                        center_y=region.Area.Y,
-                        height=region.Area.H,
-                        width=region.Area.W,
-                    )
-                elif not region.Name:  # pragma: no cover
-                    pkg.logger.warning("  Skipping region with empty Name")
-                elif region.Type not in {"Face", "Pet"}:  # pragma: no cover
-                    pkg.logger.warning(f"  Skipping region of type {region.Type}")
+            if region.Description:
+                person.description = region.Description
+                person.save()
+
+            pkg.logger.info(f"Found face for person {person.name}")
+            if created:
+                pkg.logger.debug("Created new Person")
+
+            PersonInImage.objects.create(
+                person=person,
+                image=image,
+                center_x=region.Area.X,
+                center_y=region.Area.Y,
+                height=region.Area.H,
+                width=region.Area.W,
+            )
+
+        def _process_pet_region(image: ImageModel, region: RegionStruct):
+            """
+            Helper function to process a pet region
+            """
+            if TYPE_CHECKING:
+                assert pkg.logger is not None
+            pet, created = Pet.objects.get_or_create(name=region.Name)
+
+            if region.Description:
+                pet.description = region.Description
+                pet.save()
+
+            pkg.logger.info(f"Found box for pet {pet.name}")
+            if created:
+                pkg.logger.debug("Created new Pet")
+
+            PetInImage.objects.create(
+                pet=pet,
+                image=image,
+                center_x=region.Area.X,
+                center_y=region.Area.Y,
+                height=region.Area.H,
+                width=region.Area.W,
+            )
+
+        pkg.logger.info("Parsing regions")
+
+        if not metadata.RegionInfo or not metadata.RegionInfo.RegionList:
+            pkg.logger.debug("No regions found in metadata")
+            return
+
+        for region in metadata.RegionInfo.RegionList:
+            if not region.Name:
+                pkg.logger.warning("Skipping region with empty Name")
+                continue
+
+            try:
+                match region.Type:
+                    case "Face":
+                        _process_person_region(new_image, region)
+                    case "Pet":
+                        _process_pet_region(new_image, region)
+                    case _:
+                        pkg.logger.warning(f"Skipping region of type {region.Type}")
+            except Exception:
+                pkg.logger.exception(f"Error processing region '{region.Name}'")
 
     def parse_keywords(new_image: ImageModel, metadata: ImageMetadata):
         """
@@ -164,147 +215,233 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
 
     def parse_location(new_image: ImageModel, metadata: ImageMetadata):
         """
-        Creates a RoughLocation from a given ImageMetadata object and adds it to the given image.
+        Creates a RoughLocation from ImageMetadata and associates it with the image.
+
+        Processes country, subdivision (state), city, and sub-location data from metadata.
+        Attempts to resolve standard codes for countries and subdivisions.
         """
-        if TYPE_CHECKING:
-            assert pkg.logger is not None
-        if metadata.Country:
-            country_alpha_2 = get_country_code_from_name(metadata.Country)
-            if country_alpha_2:
-                pkg.logger.info(f"  Got country {country_alpha_2} from {metadata.Country}")
-                subdivision_code = None
-                if metadata.State:
-                    subdivision_code = get_subdivision_code_from_name(
-                        country_alpha_2,
-                        metadata.State,
-                    )
-                    if not subdivision_code:
-                        pkg.logger.warning(f"  No subdivision code found from {metadata.State}")
-                    else:
-                        pkg.logger.info(f"  Got subdivision code {subdivision_code} from {metadata.State}")
-                location, _ = RoughLocation.objects.get_or_create(
-                    country_code=country_alpha_2,
-                    subdivision_code=subdivision_code,
-                    city=metadata.City,
-                    sub_location=metadata.Location,
-                )
-                new_image.location = location
-                new_image.save()
-                pkg.logger.info(f"  Location is {location}")
-            else:
-                pkg.logger.warning(f"  No country code found from {metadata.Country}")
-        else:  # pragma: no cover
+
+        if not metadata.Country:
             pkg.logger.info("  No country set, will try keywords")
+            return
+
+        country_alpha_2 = get_country_code_from_name(metadata.Country)
+        if not country_alpha_2:
+            pkg.logger.warning(f"No country code found for: {metadata.Country}")
+            return
+
+        pkg.logger.info(f"Got country {country_alpha_2} from {metadata.Country}")
+
+        # Process subdivision (state) if available
+        subdivision_code = None
+        if metadata.State:
+            subdivision_code = get_subdivision_code_from_name(
+                country_alpha_2,
+                metadata.State,
+            )
+
+            if subdivision_code:
+                pkg.logger.info(f"Got subdivision code {subdivision_code} from {metadata.State}")
+            else:
+                pkg.logger.warning(f"No subdivision code found for: {metadata.State}")
+
+        try:
+            # Create or retrieve location record
+            location, created = RoughLocation.objects.get_or_create(
+                country_code=country_alpha_2,
+                subdivision_code=subdivision_code,
+                city=metadata.City,
+                sub_location=metadata.Location,
+            )
+
+            # Update image with location
+            new_image.location = location
+            new_image.save()
+
+            if created:
+                pkg.logger.debug(f"Created new RoughLocation: {location}")
+            else:
+                pkg.logger.debug(f"Using existing RoughLocation: {location}")
+            pkg.logger.info(f"Location is {location}")
+
+        except Exception:
+            pkg.logger.exception("Failed to set location")
 
     def parse_location_from_keywords(new_image: ImageModel, metadata: ImageMetadata):
         """
-        If the MWG location information is not set, attempts to parse from the keywords
+        Parses location information from metadata keywords when MWG location is not set.
 
-        Looks for a keyword structure like:
+        Expects keyword hierarchy:
         - Locations
             - Country Name
             - Subdivision Name
                 - City Name
                     - Sub-location Name
 
-        If the subdivison doesn't match anything within the country, it is assumed to be a city instead
-
+        If subdivision doesn't match a known region within the country, it's treated as a city.
         """
         if TYPE_CHECKING:
             assert pkg.logger is not None
-        if (
-            metadata.KeywordInfo
-            and (location_tree := metadata.KeywordInfo.get_root_by_name(LOCATION_KEYWORD))
-            and location_tree
-            and location_tree.Children
-        ):
-            country_node = location_tree.Children[0]
-            country_alpha2 = get_country_code_from_name(country_node.Keyword)
-            if country_alpha2:
-                subdivision_code = None
-                city = None
-                location = None
-                if len(country_node.Children) > 0:
-                    subdivision_node = country_node.Children[0]
-                    subdivision_code = get_subdivision_code_from_name(
-                        country_alpha2,
-                        subdivision_node.Keyword,
-                    )
-                    if not subdivision_code:
-                        # Assume this is a city instead
-                        city = subdivision_node.Keyword
-                    elif len(subdivision_node.Children) > 0:
-                        # If possible, use the first child as the city
-                        city_node = subdivision_node.Children[0]
-                        city = city_node.Keyword
-                        if len(city_node.Children) > 0:
-                            location = city_node.Children[0].Keyword
 
-                location, _ = RoughLocation.objects.get_or_create(
-                    country_code=country_alpha2,
-                    subdivision_code=subdivision_code,
-                    city=city,
-                    sub_location=location,
-                )
-                new_image.location = location
-                new_image.save()
-                pkg.logger.info(f"  RoughLocation is {location}")
+        if not metadata.KeywordInfo:
+            return
+
+        location_tree = metadata.KeywordInfo.get_root_by_name(LOCATION_KEYWORD)
+        if not location_tree or not location_tree.Children:
+            return
+
+        # Extract country information
+        country_node = location_tree.Children[0]
+        country_alpha2 = get_country_code_from_name(country_node.Keyword)
+        if not country_alpha2:
+            pkg.logger.debug(f"Could not find country code for: {country_node.Keyword}")
+            return
+
+        # Initialize location components
+        subdivision_code = None
+        city = None
+        sub_location = None
+
+        # Process subdivision/city information
+        if country_node.Children:
+            subdivision_node = country_node.Children[0]
+            subdivision_code = get_subdivision_code_from_name(
+                country_alpha2,
+                subdivision_node.Keyword,
+            )
+
+            if not subdivision_code:
+                # No matching subdivision - treat as city
+                city = subdivision_node.Keyword
+            elif subdivision_node.Children:
+                # Use first child as city
+                city_node = subdivision_node.Children[0]
+                city = city_node.Keyword
+
+                # Extract sub-location if present
+                if city_node.Children:
+                    sub_location = city_node.Children[0].Keyword
+
+        # Create or retrieve location record
+        try:
+            location, created = RoughLocation.objects.get_or_create(
+                country_code=country_alpha2,
+                subdivision_code=subdivision_code,
+                city=city,
+                sub_location=sub_location,
+            )
+
+            new_image.location = location
+            new_image.save()
+
+            if created:
+                pkg.logger.info(f"Created new RoughLocation: {location}")
+            else:
+                pkg.logger.debug(f"Using existing RoughLocation: {location}")
+
+        except Exception:
+            pkg.logger.exception("Failed to set location")
 
     def parse_dates_from_keywords(new_image: ImageModel, metadata: ImageMetadata):
         """
-        Looks for a keyword structure like:
+        Extracts date information from image metadata keywords with a hierarchical structure.
+
+        Structure format:
         - Dates and Times
-            - 1980
-            - 12 - December
-                - 25
-
-        Which will convert into a date like: 1980-12-25
-
-        If no month is found, no day will be looked for.  It is possible to have a rough date of just a year,
-        just a month and year or a year, month, day fully built
+            - 1980          # Year
+            - 12 - December # Month
+                - 25        # Day
+        Raises:
+            No exceptions raised - failures are logged
         """
         if TYPE_CHECKING:
             assert pkg.logger is not None
-        if (
-            metadata.KeywordInfo
-            and metadata.KeywordInfo
-            and (date_and_time_tree := metadata.KeywordInfo.get_root_by_name(DATE_KEYWORD))
-            and len(date_and_time_tree.Children) > 0
-        ):
-            year_node = date_and_time_tree.Children[0]
+
+        # Early return if no keyword info available
+        if not metadata.KeywordInfo:
+            return
+
+        # Get date and time tree
+        date_and_time_tree = metadata.KeywordInfo.get_root_by_name(DATE_KEYWORD)
+        if not date_and_time_tree or not date_and_time_tree.Children:
+            return
+
+        year_node = date_and_time_tree.Children[0]
+
+        # Default values
+        year = None
+        month = 1
+        month_valid = False
+        day = 1
+        day_valid = False
+
+        # Try to parse year
+        try:
+            year = int(year_node.Keyword)
+        except ValueError:
+            pkg.logger.warning(f"  Failed to parse year from keyword: {year_node.Keyword}")
+            return
+
+        # Try to parse month if available
+        if year_node.Children:
+            month_node = year_node.Children[0]
+            try:
+                # Extract first part before dash if present
+                month_parts = month_node.Keyword.split("-")
+                month = int(month_parts[0].strip())
+                month_valid = True
+            except (ValueError, IndexError):
+                pkg.logger.warning(f"Could not parse month from: {month_node.Keyword}")
+
+            # Try to parse day if month is valid and day node exists
+            if month_valid and month_node.Children:
+                day_node = month_node.Children[0]
+                try:
+                    day = int(day_node.Keyword)
+                    day_valid = True
+                except ValueError:
+                    pkg.logger.warning(f"  Could not parse day from: {day_node.Keyword}")
+
+        # Validate date ranges
+        if not (1 <= month <= 12):
+            pkg.logger.warning(f"  Invalid month value: {month}")
             month = 1
             month_valid = False
+
+        max_days: Final[dict[int, int]] = {
+            1: 31,
+            2: 29,
+            3: 31,
+            4: 30,
+            5: 31,
+            6: 30,
+            7: 31,
+            8: 31,
+            9: 30,
+            10: 31,
+            11: 30,
+            12: 31,
+        }
+        if not (1 <= day <= max_days.get(month, 31)):
+            pkg.logger.warning(f"Invalid day value: {day}")
             day = 1
             day_valid = False
-            if len(year_node.Children) > 0:
-                month_node = year_node.Children[0]
-                day = 1
-                day_valid = False
-                if len(month_node.Children) > 0:
-                    day_node = month_node.Children[0]
-                    try:
-                        day = int(day_node.Keyword)
-                        day_valid = True
-                    except ValueError:
-                        pass
-                try:
-                    month = int(month_node.Keyword.split("-")[0])
-                    month_valid = True
-                except ValueError:
-                    pass
-            try:
-                year = int(year_node.Keyword)
 
-                rough_date, _ = RoughDate.objects.get_or_create(
-                    date=date(year=year, month=month, day=day),
-                    month_valid=month_valid,
-                    day_valid=day_valid,
-                )
-                pkg.logger.info(f"  Set rough date of {rough_date}")
-                new_image.date = rough_date
-                new_image.save()
-            except ValueError:
-                pass
+        try:
+            rough_date, created = RoughDate.objects.get_or_create(
+                date=date(year=year, month=month, day=day),
+                month_valid=month_valid,
+                day_valid=day_valid,
+            )
+            if created:
+                pkg.logger.debug(f"Created new RoughDate: {rough_date}")
+            else:
+                pkg.logger.debug(f"Using existing RoughDate: {rough_date}")
+            pkg.logger.info(f"Set rough date of {rough_date}")
+            new_image.date = rough_date
+            new_image.save()
+        except Exception:
+            pkg.logger.exception("Failed to create rough date")
 
     metadata = tool.read_image_metadata(pkg.image_path)
 
@@ -313,12 +450,32 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     parent, created = ImageFolder.objects.get_or_create(name=path_from_parent.parts[0], tn_parent=None)
     if created:
         pkg.logger.info(f"  Created new parent folder: {parent.name}")
+        if pkg.view_groups:
+            if pkg.overwrite:
+                parent.view_groups.set(pkg.view_groups.all())
+            else:
+                parent.view_groups.add(*pkg.view_groups.all())
+        if pkg.edit_groups:
+            if pkg.overwrite:
+                parent.edit_groups.set(pkg.edit_groups.all())
+            else:
+                parent.edit_groups.add(*pkg.edit_groups.all())
     else:
         pkg.logger.info(f"  Using existing parent folder: {parent.name}")
     for depth, child_name in enumerate(path_from_parent.parts[1:]):
         child, created = ImageFolder.objects.get_or_create(name=child_name, tn_parent=parent)
         if created:
             pkg.logger.info(f"{' ' * (depth + 2)}Created new child folder: {child.name}")
+            if pkg.view_groups:
+                if pkg.overwrite:
+                    child.view_groups.set(pkg.view_groups.all())
+                else:
+                    child.view_groups.add(*pkg.view_groups.all())
+            if pkg.edit_groups:
+                if pkg.overwrite:
+                    child.edit_groups.set(pkg.edit_groups.all())
+                else:
+                    child.edit_groups.add(*pkg.edit_groups.all())
         else:
             pkg.logger.info(f"{' ' * (depth + 2)}Using existing child folder: {child.name}")
         parent = child
@@ -344,31 +501,11 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
         is_dirty=False,
     )
 
-    # Add view permissions
+    # Add view/edit permissions
     if pkg.view_groups:
-        for group in pkg.view_groups:
-            ObjectPermission.objects.create(
-                content_type=ContentType.objects.get_for_model(ImageModel),
-                object_id=new_img.pk,
-                group=group,
-                can_view=True,
-            )
-
-    # Add edit permissions
+        new_img.view_groups.set(pkg.view_groups.all())
     if pkg.edit_groups:
-        for group in pkg.edit_groups:
-            # Check if this group already has view permissions
-            perm, created = ObjectPermission.objects.get_or_create(
-                content_type=ContentType.objects.get_for_model(ImageModel),
-                object_id=new_img.pk,
-                group=group,
-                defaults={"can_view": True, "can_edit": True},
-            )
-
-            # If permission existed and only had view access, add edit access
-            if not created and not perm.can_edit:
-                perm.can_edit = True
-                perm.save()
+        new_img.edit_groups.set(pkg.edit_groups.all())
 
     pkg.logger.info("Processing image")
 

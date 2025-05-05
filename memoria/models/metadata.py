@@ -14,27 +14,16 @@ from treenode.models import TreeNodeModel
 from memoria.models.abstract import AbstractBoxInImage
 from memoria.models.abstract import AbstractSimpleNamedModelMixin
 from memoria.models.abstract import AbstractTimestampMixin
-from memoria.models.permissions import PermissionManager
-from memoria.models.permissions import PermissionMixin
+from memoria.models.abstract import AccessModelMixin
 
 
-class Tag(AbstractTimestampMixin, TreeNodeModel):
+class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, TreeNodeModel):
     """
     Holds the information about a Tag, roughly a tag, in a tree structure,
     whose structure makes sense to the user
     """
 
     treenode_display_field = "name"
-
-    name = models.CharField(max_length=100, db_index=True)
-
-    description = models.CharField(  # noqa: DJ001
-        max_length=1024,
-        null=True,
-        blank=True,
-        default=None,
-        db_index=True,
-    )
 
     class Meta(TreeNodeModel.Meta):
         verbose_name = "Tag"
@@ -59,13 +48,10 @@ class TagOnImage(models.Model):  # noqa: DJ008
     applied = models.BooleanField(default=False, help_text="This tag is applied to this image")
 
 
-class Person(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, PermissionMixin, models.Model):
+class Person(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, AccessModelMixin, models.Model):
     """
     Holds the information about a single person
     """
-
-    permissions_manager = PermissionManager()
-    objects = models.Manager()
 
     def __str__(self) -> str:
         return f"Person {self.name}"
@@ -92,13 +78,10 @@ class PersonInImage(AbstractBoxInImage):
         return "Unknown"
 
 
-class Pet(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, PermissionMixin, models.Model):
+class Pet(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, AccessModelMixin, models.Model):
     """
     Holds the information about a single person
     """
-
-    permissions_manager = PermissionManager()
-    objects = models.Manager()
 
     class PetTypeChoices(models.TextChoices):
         CAT = "cat"
@@ -133,28 +116,14 @@ class PetInImage(AbstractBoxInImage):
         return "Unknown"
 
 
-class ImageSource(AbstractTimestampMixin, PermissionMixin, models.Model):
-    """
-    Holds multiple Images in an ordered form, with a name and optional description
-    """
-
-    name = models.CharField(max_length=100, unique=True, db_index=True)
-
-    description = models.TextField(  # noqa: DJ001
-        null=True,
-        blank=True,
-        default=None,
-        help_text="A description of this source, rendered as markdown",
-    )
-
-    permissions_manager = PermissionManager()
-    objects = models.Manager()
+class ImageSource(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, AccessModelMixin, models.Model):
+    """ """
 
     def __str__(self) -> str:
         return f"Source {self.name}"
 
 
-class RoughDate(AbstractTimestampMixin, PermissionMixin, models.Model):
+class RoughDate(AbstractTimestampMixin, AccessModelMixin, models.Model):
     """
     The rough date of the image
     """
@@ -172,9 +141,6 @@ class RoughDate(AbstractTimestampMixin, PermissionMixin, models.Model):
         default=False,
         help_text="Is the day of this date valid?",
     )
-
-    permissions_manager = PermissionManager()
-    objects = models.Manager()
 
     class Meta:
         ordering: Sequence = ["date"]
@@ -199,7 +165,7 @@ class RoughDate(AbstractTimestampMixin, PermissionMixin, models.Model):
         return f"RoughDate: {self!s}"
 
 
-class RoughLocation(AbstractTimestampMixin, PermissionMixin, models.Model):
+class RoughLocation(AbstractTimestampMixin, AccessModelMixin, models.Model):
     """
     Holds the information about a Location where an image was.
 
@@ -232,9 +198,6 @@ class RoughLocation(AbstractTimestampMixin, PermissionMixin, models.Model):
         blank=True,
         help_text="Detailed location within a city or Town",
     )
-
-    permissions_manager = PermissionManager()
-    objects = models.Manager()
 
     class Meta:
         ordering: Sequence = [
@@ -289,12 +252,9 @@ class RoughLocation(AbstractTimestampMixin, PermissionMixin, models.Model):
         return country.get_subdivision_name(self.subdivision_code)  # type: ignore[arg-type]
 
 
-class ImageFolder(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, PermissionMixin, TreeNodeModel):
+class ImageFolder(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, AccessModelMixin, TreeNodeModel):
     # Required TreeNodeModel attributes
     treenode_display_field = "name"
-
-    permissions_manager = PermissionManager()
-    objects = models.Manager()
 
     class Meta:
         verbose_name = "Folder"

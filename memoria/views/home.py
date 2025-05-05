@@ -17,9 +17,14 @@ class HomePageView(LoginRequiredMixin, TemplateView):
             images = Image.objects.all().order_by("-created_at")[:20]
             context["all_editable"] = True
         else:
-            images = Image.permissions_manager.accessible_by(user).order_by("-created_at")[:20]
-            editable_ids = Image.permissions_manager.editable_ids_by(user)
-            context["editable_image_ids"] = set(editable_ids)
+            images = Image.get_accessible_objects(self.request.user, ImagePermission.VIEW).order_by("-created_at")[:20]
+            editable_ids = (
+                Image.get_accessible_objects(self.request.user, ImagePermission.CHANGE)
+                .only("pk")
+                .distinct()
+                .values_list("pk", flat=True)
+            )
+            context["editable_image_ids"] = editable_ids
 
         context["title"] = "Home"
         context["message"] = "Check out your recent images below."

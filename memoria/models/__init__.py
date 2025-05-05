@@ -11,7 +11,6 @@ from memoria.models.metadata import RoughDate
 from memoria.models.metadata import RoughLocation
 from memoria.models.metadata import Tag
 from memoria.models.metadata import TagOnImage
-from memoria.models.permissions import ObjectPermission
 from memoria.models.user import UserProfile
 
 __all__ = [
@@ -20,7 +19,6 @@ __all__ = [
     "ImageFolder",
     "ImageInAlbum",
     "ImageSource",
-    "ObjectPermission",
     "Person",
     "PersonInImage",
     "Pet",

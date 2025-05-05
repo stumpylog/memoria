@@ -48,7 +48,7 @@ class PeopleListView(LoginRequiredMixin, ListView):
             # that links to your Profile model, and Profile has a field
             # 'items_per_page'. Adjust attribute names as needed.
             profile: UserProfile = user.profile
-            user_preference: int = profile.images_per_page
+            user_preference: int = profile.items_per_page
 
             # Basic validation: ensure the preference is a positive integer
             if isinstance(user_preference, int) and user_preference > 0:

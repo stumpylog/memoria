@@ -15,6 +15,7 @@ class ImageIndexTaskModel:
     original_hash: str
 
     logger: Logger | None = None
+    overwrite: bool = False
     view_groups: QuerySet | None = None
     edit_groups: QuerySet | None = None
 
@@ -26,5 +27,6 @@ class ImageUpdateTaskModel:
     image: Image
 
     logger: Logger | None = None
+    overwrite: bool = False
     view_groups: QuerySet | None = None
     edit_groups: QuerySet | None = None

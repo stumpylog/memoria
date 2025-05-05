@@ -12,11 +12,10 @@ from django.db import models
 
 from memoria.models.abstract import AbstractSimpleNamedModelMixin
 from memoria.models.abstract import AbstractTimestampMixin
-from memoria.models.permissions import PermissionManager
-from memoria.models.permissions import PermissionMixin
+from memoria.models.abstract import AccessModelMixin
 
 
-class Album(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, PermissionMixin, models.Model):
+class Album(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, AccessModelMixin, models.Model):
     """
     Holds multiple Images in an ordered form, with a name and optional description
     """
@@ -26,8 +25,6 @@ class Album(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, PermissionMix
         through="ImageInAlbum",
         related_name="albums",
     )
-
-    permissions_manager = PermissionManager()
 
     def __str__(self) -> str:
         return f"Album: {self.name}"

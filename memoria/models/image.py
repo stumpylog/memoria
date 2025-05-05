@@ -11,6 +11,7 @@ from imagehash import average_hash
 from PIL import Image as PILImage
 
 from memoria.models.abstract import AbstractTimestampMixin
+from memoria.models.abstract import AccessModelMixin
 from memoria.models.metadata import ImageFolder
 from memoria.models.metadata import ImageSource
 from memoria.models.metadata import Person
@@ -21,14 +22,12 @@ from memoria.models.metadata import RoughDate
 from memoria.models.metadata import RoughLocation
 from memoria.models.metadata import Tag
 from memoria.models.metadata import TagOnImage
-from memoria.models.permissions import PermissionManager
-from memoria.models.permissions import PermissionMixin
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-class Image(AbstractTimestampMixin, PermissionMixin, models.Model):
+class Image(AbstractTimestampMixin, AccessModelMixin, models.Model):
     """
     Holds the information about an Image.  Basically everything relates to an image somehow
     """
@@ -90,8 +89,8 @@ class Image(AbstractTimestampMixin, PermissionMixin, models.Model):
     )
 
     description = models.TextField(  # noqa: DJ001
-        null=True,
         blank=True,
+        null=True,
         help_text="MWG Description tag",
     )
 
@@ -173,9 +172,6 @@ class Image(AbstractTimestampMixin, PermissionMixin, models.Model):
         on_delete=models.CASCADE,
         help_text="The folder this image belongs to",
     )
-
-    permissions_manager = PermissionManager()
-    objects = models.Manager()
 
     class Meta:
         ordering: Sequence[str] = ["pk"]

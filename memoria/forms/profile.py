@@ -20,7 +20,7 @@ class UserProfileUpdateForm(forms.ModelForm):
 
     class Meta:
         model = UserProfile
-        fields = ("bio", "images_per_page", "timezone")
+        fields = ("bio", "items_per_page", "timezone")
 
 
 class GroupMembershipForm(forms.Form):

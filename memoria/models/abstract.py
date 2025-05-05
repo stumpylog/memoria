@@ -1,11 +1,16 @@
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
 
 if TYPE_CHECKING:
     from memoria.models.image import Image  # noqa: F401
+
+TUser = get_user_model()
 
 
 class AbstractTimestampMixin(models.Model):
@@ -27,11 +32,9 @@ class AbstractSimpleNamedModelMixin(models.Model):
 
     name = models.CharField(max_length=100, unique=True, db_index=True)
 
-    description = models.CharField(  # noqa: DJ001
-        max_length=1024,
-        null=True,
+    description = models.TextField(  # noqa: DJ001
         blank=True,
-        default=None,
+        null=True,
         db_index=True,
     )
 
@@ -74,3 +77,37 @@ class AbstractBoxInImage(AbstractTimestampMixin, models.Model):
 
     class Meta:
         abstract = True
+
+
+class AccessModelMixin(models.Model):
+    view_groups: models.ManyToManyField = models.ManyToManyField(
+        Group,
+        related_name="%(class)s_viewers",
+    )
+    edit_groups: models.ManyToManyField = models.ManyToManyField(
+        Group,
+        related_name="%(class)s_editors",
+    )
+
+    # TODO: Investigate using GeneratedField for the sounds
+
+    class Meta:
+        abstract = True
+        indexes: Sequence = [models.Index(fields=["view_group_count", "edit_group_count"])]
+
+    def is_viewable_by(self, user: TUser) -> bool:
+        if not user.is_active:
+            return False
+        if user.is_superuser:
+            return True
+        if self.view_groups.count() == 0 and self.edit_groups.count() == 0:
+            return True
+        groups = user.groups.all()
+        return self.view_groups.filter(id__in=groups).exists() or self.edit_groups.filter(id__in=groups).exists()
+
+    def is_editable_by(self, user: TUser) -> bool:
+        if not user.is_active:
+            return False
+        if user.is_superuser:
+            return True
+        return self.edit_groups.filter(id__in=user.groups.all()).exists()

@@ -23,7 +23,7 @@ class UserProfile(AbstractTimestampMixin, models.Model):
 
     bio = models.TextField(blank=True)
 
-    images_per_page = models.PositiveSmallIntegerField(
+    items_per_page = models.PositiveSmallIntegerField(
         default=ImagesPerPageChoices.THIRTY,
         choices=ImagesPerPageChoices.choices,
     )
