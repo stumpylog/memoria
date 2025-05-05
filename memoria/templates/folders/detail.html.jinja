@@ -28,8 +28,8 @@
                                     <p class="card-text">{{ child_folder.description | linebreaksbr | truncate(100) }}</p>
                                     {# Truncate description for brevity #}
                                 {% endif %}
-                                <p class="card-text">Contains {{ child_folder.get_children_count() }} folders(s)</p>
-                                <p class="card-text">Contains {{ folder_images.count() }} image(s)</p>
+                                <p class="card-text">Contains {{ child_folder.child_folder_count }} folders(s)</p>
+                                <p class="card-text">Contains {{ child_folder.image_count }} image(s)</p>
                                 {# Link to the detail view of the child folder #}
                                 <a href="{{ url('image_folder_detail', pk=child_folder.pk) }}"
                                    class="btn btn-primary">View Folder</a>

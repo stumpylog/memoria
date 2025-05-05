@@ -12,10 +12,10 @@ from django.db import models
 
 from memoria.models.abstract import AbstractSimpleNamedModelMixin
 from memoria.models.abstract import AbstractTimestampMixin
-from memoria.models.abstract import AccessModelMixin
+from memoria.models.abstract import ObjectPermissionModelMixin
 
 
-class Album(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, AccessModelMixin, models.Model):
+class Album(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     """
     Holds multiple Images in an ordered form, with a name and optional description
     """

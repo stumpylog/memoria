@@ -74,6 +74,8 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     if TYPE_CHECKING:
         assert pkg.logger is not None
 
+    pkg.logger.info("Processing new image")
+
     def parse_region_info(new_image: ImageModel, metadata: ImageMetadata):
         """
         Parses MWG regions into people and pets.
@@ -83,6 +85,8 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
         """
         if TYPE_CHECKING:
             assert pkg.logger is not None
+
+        pkg.logger.info("  Parsing regions")
 
         def _process_person_region(image: ImageModel, region: RegionStruct):
             """
@@ -96,9 +100,9 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
                 person.description = region.Description
                 person.save()
 
-            pkg.logger.info(f"Found face for person {person.name}")
+            pkg.logger.info(f"      Found face for person {person.name}")
             if created:
-                pkg.logger.debug("Created new Person")
+                pkg.logger.debug("      Created new Person")
 
             PersonInImage.objects.create(
                 person=person,
@@ -121,9 +125,9 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
                 pet.description = region.Description
                 pet.save()
 
-            pkg.logger.info(f"Found box for pet {pet.name}")
+            pkg.logger.info(f"      Found box for pet {pet.name}")
             if created:
-                pkg.logger.debug("Created new Pet")
+                pkg.logger.debug("      Created new Pet")
 
             PetInImage.objects.create(
                 pet=pet,
@@ -134,15 +138,13 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
                 width=region.Area.W,
             )
 
-        pkg.logger.info("Parsing regions")
-
         if not metadata.RegionInfo or not metadata.RegionInfo.RegionList:
-            pkg.logger.debug("No regions found in metadata")
+            pkg.logger.debug("    No regions found in metadata")
             return
 
         for region in metadata.RegionInfo.RegionList:
             if not region.Name:
-                pkg.logger.warning("Skipping region with empty Name")
+                pkg.logger.warning("    Skipping region with empty Name")
                 continue
 
             try:
@@ -152,9 +154,9 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
                     case "Pet":
                         _process_pet_region(new_image, region)
                     case _:
-                        pkg.logger.warning(f"Skipping region of type {region.Type}")
+                        pkg.logger.warning(f"    Skipping region of type {region.Type}")
             except Exception:
-                pkg.logger.exception(f"Error processing region '{region.Name}'")
+                pkg.logger.exception(f"    Error processing region '{region.Name}'")
 
     def parse_keywords(new_image: ImageModel, metadata: ImageMetadata):
         """
@@ -162,6 +164,8 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
         """
         if TYPE_CHECKING:
             assert pkg.logger is not None
+
+        pkg.logger.info("  Parsing keywords")
 
         def maybe_create_tag_tree(
             image_instance: ImageModel,
@@ -187,7 +191,6 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
             for node_child in tree_node.Children:
                 maybe_create_tag_tree(image_instance, existing_node, node_child)
 
-        pkg.logger.info("  Parsing keywords")
         if metadata.KeywordInfo:
             for keyword in metadata.KeywordInfo.Hierarchy:
                 # Skip keywords with dedicated processing
@@ -211,7 +214,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
                 for child in keyword.Children:
                     maybe_create_tag_tree(new_image, existing_root_tag, child)
         else:  # pragma: no cover
-            pkg.logger.info("  No keywords")
+            pkg.logger.info("    No keywords")
 
     def parse_location(new_image: ImageModel, metadata: ImageMetadata):
         """
@@ -221,16 +224,19 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
         Attempts to resolve standard codes for countries and subdivisions.
         """
 
+        if TYPE_CHECKING:
+            assert pkg.logger is not None
+
         if not metadata.Country:
-            pkg.logger.info("  No country set, will try keywords")
+            pkg.logger.info("    No country set, will try keywords")
             return
 
         country_alpha_2 = get_country_code_from_name(metadata.Country)
         if not country_alpha_2:
-            pkg.logger.warning(f"No country code found for: {metadata.Country}")
+            pkg.logger.warning(f"    No country code found for: {metadata.Country}")
             return
 
-        pkg.logger.info(f"Got country {country_alpha_2} from {metadata.Country}")
+        pkg.logger.info(f"    Got country {country_alpha_2} from {metadata.Country}")
 
         # Process subdivision (state) if available
         subdivision_code = None
@@ -241,9 +247,9 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
             )
 
             if subdivision_code:
-                pkg.logger.info(f"Got subdivision code {subdivision_code} from {metadata.State}")
+                pkg.logger.info(f"    Got subdivision code {subdivision_code} from {metadata.State}")
             else:
-                pkg.logger.warning(f"No subdivision code found for: {metadata.State}")
+                pkg.logger.warning(f"    No subdivision code found for: {metadata.State}")
 
         try:
             # Create or retrieve location record
@@ -259,13 +265,13 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
             new_image.save()
 
             if created:
-                pkg.logger.debug(f"Created new RoughLocation: {location}")
+                pkg.logger.debug(f"    Created new RoughLocation: {location}")
             else:
-                pkg.logger.debug(f"Using existing RoughLocation: {location}")
-            pkg.logger.info(f"Location is {location}")
+                pkg.logger.debug(f"    Using existing RoughLocation: {location}")
+            pkg.logger.info(f"    Location is {location}")
 
         except Exception:
-            pkg.logger.exception("Failed to set location")
+            pkg.logger.exception("    Failed to set location")
 
     def parse_location_from_keywords(new_image: ImageModel, metadata: ImageMetadata):
         """
@@ -294,7 +300,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
         country_node = location_tree.Children[0]
         country_alpha2 = get_country_code_from_name(country_node.Keyword)
         if not country_alpha2:
-            pkg.logger.debug(f"Could not find country code for: {country_node.Keyword}")
+            pkg.logger.debug(f"    Could not find country code for: {country_node.Keyword}")
             return
 
         # Initialize location components
@@ -335,12 +341,12 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
             new_image.save()
 
             if created:
-                pkg.logger.info(f"Created new RoughLocation: {location}")
+                pkg.logger.info(f"    Created new RoughLocation: {location}")
             else:
-                pkg.logger.debug(f"Using existing RoughLocation: {location}")
+                pkg.logger.debug(f"    Using existing RoughLocation: {location}")
 
         except Exception:
-            pkg.logger.exception("Failed to set location")
+            pkg.logger.exception("    Failed to set location")
 
     def parse_dates_from_keywords(new_image: ImageModel, metadata: ImageMetadata):
         """
@@ -379,7 +385,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
         try:
             year = int(year_node.Keyword)
         except ValueError:
-            pkg.logger.warning(f"  Failed to parse year from keyword: {year_node.Keyword}")
+            pkg.logger.warning(f"    Failed to parse year from keyword: {year_node.Keyword}")
             return
 
         # Try to parse month if available
@@ -391,7 +397,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
                 month = int(month_parts[0].strip())
                 month_valid = True
             except (ValueError, IndexError):
-                pkg.logger.warning(f"Could not parse month from: {month_node.Keyword}")
+                pkg.logger.warning(f"    Could not parse month from: {month_node.Keyword}")
 
             # Try to parse day if month is valid and day node exists
             if month_valid and month_node.Children:
@@ -400,11 +406,11 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
                     day = int(day_node.Keyword)
                     day_valid = True
                 except ValueError:
-                    pkg.logger.warning(f"  Could not parse day from: {day_node.Keyword}")
+                    pkg.logger.warning(f"    Could not parse day from: {day_node.Keyword}")
 
         # Validate date ranges
         if not (1 <= month <= 12):
-            pkg.logger.warning(f"  Invalid month value: {month}")
+            pkg.logger.warning(f"    Invalid month value: {month}")
             month = 1
             month_valid = False
 
@@ -423,7 +429,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
             12: 31,
         }
         if not (1 <= day <= max_days.get(month, 31)):
-            pkg.logger.warning(f"Invalid day value: {day}")
+            pkg.logger.warning(f"    Invalid day value: {day}")
             day = 1
             day_valid = False
 
@@ -434,14 +440,14 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
                 day_valid=day_valid,
             )
             if created:
-                pkg.logger.debug(f"Created new RoughDate: {rough_date}")
+                pkg.logger.debug(f"    Created new RoughDate: {rough_date}")
             else:
-                pkg.logger.debug(f"Using existing RoughDate: {rough_date}")
-            pkg.logger.info(f"Set rough date of {rough_date}")
+                pkg.logger.debug(f"    Using existing RoughDate: {rough_date}")
+            pkg.logger.info(f"    Set rough date of {rough_date}")
             new_image.date = rough_date
             new_image.save()
         except Exception:
-            pkg.logger.exception("Failed to create rough date")
+            pkg.logger.exception("    Failed to create rough date")
 
     metadata = tool.read_image_metadata(pkg.image_path)
 
@@ -465,7 +471,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     for depth, child_name in enumerate(path_from_parent.parts[1:]):
         child, created = ImageFolder.objects.get_or_create(name=child_name, tn_parent=parent)
         if created:
-            pkg.logger.info(f"{' ' * (depth + 2)}Created new child folder: {child.name}")
+            pkg.logger.info(f"  {' ' * (depth + 2)}Created new child folder: {child.name}")
             if pkg.view_groups:
                 if pkg.overwrite:
                     child.view_groups.set(pkg.view_groups.all())
@@ -477,7 +483,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
                 else:
                     child.edit_groups.add(*pkg.edit_groups.all())
         else:
-            pkg.logger.info(f"{' ' * (depth + 2)}Using existing child folder: {child.name}")
+            pkg.logger.info(f"  {' ' * (depth + 2)}Using existing child folder: {child.name}")
         parent = child
 
     containing_folder = parent
@@ -507,23 +513,24 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     if pkg.edit_groups:
         new_img.edit_groups.set(pkg.edit_groups.all())
 
-    pkg.logger.info("Processing image")
+    pkg.logger.info("  Processing image file")
 
     with Image.open(pkg.image_path) as im_file:
         img_copy = ImageOps.exif_transpose(im_file)
         if TYPE_CHECKING:
             assert img_copy is not None
 
-        pkg.logger.info("  Creating thumbnail")
+        pkg.logger.info("    Creating thumbnail")
         thumbnail = img_copy.copy()
         thumbnail.thumbnail((500, 500))
         thumbnail.save(new_img.thumbnail_path)
 
-        pkg.logger.info("  Creating WebP version")
-        img_copy.save(new_img.full_size_path, quality=80)
+        pkg.logger.info("    Creating WebP version")
+        # TODO: Make this quality configurable
+        img_copy.save(new_img.full_size_path, quality=50)
 
     # Update the file hashes, now that the files exist
-    pkg.logger.info("  Hashing created files")
+    pkg.logger.info("    Hashing created files")
     new_img.thumbnail_checksum = calculate_blake3_hash(new_img.thumbnail_path, hash_threads=pkg.hash_threads)
     new_img.full_size_checksum = calculate_blake3_hash(new_img.full_size_path, hash_threads=pkg.hash_threads)
     new_img.save()
@@ -544,4 +551,4 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
 
     # And done.  Image cannot be dirty, use update to avoid getting marked as such
     new_img.mark_as_clean()
-    pkg.logger.info("  indexing completed")
+    pkg.logger.info("  Indexing completed")

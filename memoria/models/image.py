@@ -11,7 +11,7 @@ from imagehash import average_hash
 from PIL import Image as PILImage
 
 from memoria.models.abstract import AbstractTimestampMixin
-from memoria.models.abstract import AccessModelMixin
+from memoria.models.abstract import ObjectPermissionModelMixin
 from memoria.models.metadata import ImageFolder
 from memoria.models.metadata import ImageSource
 from memoria.models.metadata import Person
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-class Image(AbstractTimestampMixin, AccessModelMixin, models.Model):
+class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     """
     Holds the information about an Image.  Basically everything relates to an image somehow
     """

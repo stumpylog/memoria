@@ -23,6 +23,7 @@ dependencies = [
   "huey>=2.5.1",
   "imagehash>=4.3.1",
   "pillow~=11.2.1",
+  "pyvips[binary]",
   "redis[hiredis]>=5.0.8",
   "simpleiso3166[search]>=0.1",
 ]

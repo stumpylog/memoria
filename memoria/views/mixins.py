@@ -1,17 +1,15 @@
 import logging
 from typing import TYPE_CHECKING
+from typing import Any
 from typing import TypeVar
 from typing import cast
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.db.models import Exists
-from django.db.models import OuterRef
 from django.db.models import Q
 from django.http import HttpRequest
 
 from memoria.models import UserProfile
-from memoria.models.abstract import AccessModelMixin
 
 User = get_user_model()
 
@@ -124,48 +122,60 @@ class DefaultPaginationMixin:
         return self.default_paginate_by
 
 
-class AccessQuerysetMixin:
-    """Mixin to filter any AccessMixin-derived model by user permissions."""
+class ObjectPermissionViewMixin:
+    """
+    CBV mixin to enforce object-level view/edit permissions.
+    Set `permission_type` to 'view' or 'edit' in subclasses.
+    Editors (edit permission) also implicitly have view permission.
+    """
 
-    request: HttpRequest
+    permission_type: str  # 'view' or 'edit'
 
     def get_queryset(self):
-        qs = super().get_queryset()
-
-        user = cast("AbstractUser", self.request.user)
-
+        user = self.request.user
+        base_qs = super().get_queryset()
         if not user.is_active:
-            return qs.none()
+            return base_qs.none()
         if user.is_superuser:
-            return qs
+            return base_qs
 
-        if TYPE_CHECKING:
-            self.model = cast("AccessModelMixin", self.model)
+        groups = user.groups.all()
+        if self.permission_type == "view":
+            # include objects open to all, viewers, or editors
+            return base_qs.filter(
+                Q(view_groups__isnull=True) | Q(view_groups__in=groups) | Q(edit_groups__in=groups),
+            ).distinct()
 
-        group_ids = list(user.groups.only("pk").values_list("pk", flat=True))
-        view_through = self.model.view_groups.through
-        edit_through = self.model.edit_groups.through
+        # edit permission: open to all editors or specific editors
+        return base_qs.filter(
+            Q(edit_groups__isnull=True) | Q(edit_groups__in=groups),
+        ).distinct()
 
-        # Subqueries to check membership
-        can_view = Exists(
-            view_through.objects.filter(
-                **{f"{self.model._meta.model_name}_id": OuterRef("pk")},
-                group_id__in=group_ids,
-            ),
-        )
-        can_edit = Exists(
-            edit_through.objects.filter(
-                **{f"{self.model._meta.model_name}_id": OuterRef("pk")},
-                group_id__in=group_ids,
-            ),
-        )
+    def has_object_permission(self, obj: Any) -> bool:
+        user = self.request.user
+        if not user.is_active:
+            return False
+        if user.is_superuser:
+            return True
 
-        # Open if no groups assigned
-        open_q = Q(view_group_count=0, edit_group_count=0)
+        # view permission: include open objects, view groups, or edit groups
+        if self.permission_type == "view":
+            # open to all if no groups set
+            if not obj.view_groups.exists() and not obj.edit_groups.exists():
+                return True
+            # check group membership in DB
+            return (
+                obj.view_groups.filter(
+                    pk__in=user.groups.values_list("pk", flat=True),
+                ).exists()
+                or obj.edit_groups.filter(
+                    pk__in=user.groups.values_list("pk", flat=True),
+                ).exists()
+            )
 
-        # Annotate and filter
-        return (
-            qs.annotate(can_view=can_view | open_q, can_edit=can_edit)
-            .filter(Q(can_view=True) | Q(can_edit=True))
-            .distinct()
-        )
+        # edit permission: open to all if no edit groups set
+        if not obj.edit_groups.exists():
+            return True
+        return obj.edit_groups.filter(
+            pk__in=user.groups.values_list("pk", flat=True),
+        ).exists()

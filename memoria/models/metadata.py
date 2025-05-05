@@ -14,7 +14,7 @@ from treenode.models import TreeNodeModel
 from memoria.models.abstract import AbstractBoxInImage
 from memoria.models.abstract import AbstractSimpleNamedModelMixin
 from memoria.models.abstract import AbstractTimestampMixin
-from memoria.models.abstract import AccessModelMixin
+from memoria.models.abstract import ObjectPermissionModelMixin
 
 
 class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, TreeNodeModel):
@@ -24,6 +24,14 @@ class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, TreeNodeModel):
     """
 
     treenode_display_field = "name"
+
+    name = models.CharField(max_length=100, db_index=True)
+
+    description = models.TextField(  # noqa: DJ001
+        blank=True,
+        null=True,
+        db_index=True,
+    )
 
     class Meta(TreeNodeModel.Meta):
         verbose_name = "Tag"
@@ -48,7 +56,7 @@ class TagOnImage(models.Model):  # noqa: DJ008
     applied = models.BooleanField(default=False, help_text="This tag is applied to this image")
 
 
-class Person(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, AccessModelMixin, models.Model):
+class Person(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     """
     Holds the information about a single person
     """
@@ -78,7 +86,7 @@ class PersonInImage(AbstractBoxInImage):
         return "Unknown"
 
 
-class Pet(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, AccessModelMixin, models.Model):
+class Pet(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     """
     Holds the information about a single person
     """
@@ -116,14 +124,14 @@ class PetInImage(AbstractBoxInImage):
         return "Unknown"
 
 
-class ImageSource(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, AccessModelMixin, models.Model):
+class ImageSource(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, ObjectPermissionModelMixin, models.Model):
     """ """
 
     def __str__(self) -> str:
         return f"Source {self.name}"
 
 
-class RoughDate(AbstractTimestampMixin, AccessModelMixin, models.Model):
+class RoughDate(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     """
     The rough date of the image
     """
@@ -165,7 +173,7 @@ class RoughDate(AbstractTimestampMixin, AccessModelMixin, models.Model):
         return f"RoughDate: {self!s}"
 
 
-class RoughLocation(AbstractTimestampMixin, AccessModelMixin, models.Model):
+class RoughLocation(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     """
     Holds the information about a Location where an image was.
 
@@ -252,33 +260,13 @@ class RoughLocation(AbstractTimestampMixin, AccessModelMixin, models.Model):
         return country.get_subdivision_name(self.subdivision_code)  # type: ignore[arg-type]
 
 
-class ImageFolder(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, AccessModelMixin, TreeNodeModel):
+class ImageFolder(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, ObjectPermissionModelMixin, TreeNodeModel):
     # Required TreeNodeModel attributes
     treenode_display_field = "name"
 
     class Meta:
         verbose_name = "Folder"
         verbose_name_plural = "Folders"
-
-    @property
-    def depth_level(self) -> int:
-        """Return the depth level of this folder."""
-        return self.get_depth()
-
-    @property
-    def children_count(self) -> int:
-        """Return the count of immediate children folders."""
-        return self.get_children_count()
-
-    @property
-    def descendants_count(self) -> int:
-        """Return the count of all descendant folders."""
-        return self.get_descendants_count()
-
-    @property
-    def images_count(self):
-        """Return the count of images in this folder."""
-        return self.images.count()
 
     def move_to(self, target_folder: ImageFolder | None = None):
         """

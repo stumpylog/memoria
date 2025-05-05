@@ -1,0 +1,18 @@
+{% macro folder_gallery(folders) %}
+    {#
+    Renders a gallery of folder cards using Bootstrap grid.
+
+    Args:
+        folders: An iterable (e.g., list or queryset) of folder objects
+                 to be displayed. Each object should be compatible with
+                 the 'folder_card' macro.
+    #}
+    {% if folders %}
+        <h2 class="mt-5 mb-3">Subfolders</h2>
+        <div class="row">
+            {% for folder in folders %}<div class="col-md-4 mb-4">{{ folder_card(folder) }}</div>{% endfor %}
+        </div>
+    {% else %}
+        <p class="mt-5">No subfolders found.</p>
+    {% endif %}
+{% endmacro %}

@@ -7,7 +7,9 @@ repo_name: stumpylog/memoria
 repo_url: https://github.com/stumpylog/memoria
 
 nav:
-  - "roles.md"
+  - "architecture.md"
+  - "roles_chatgpt.md"
+  - "roles_gemini.md"
   - "roadmap.md"
 
 markdown_extensions:
