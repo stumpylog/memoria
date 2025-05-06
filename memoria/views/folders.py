@@ -7,6 +7,7 @@ from django.db.models import OuterRef
 from django.db.models import Q
 from django.db.models import Subquery
 from django.db.models.functions import Coalesce
+from django.urls import reverse
 from django.views.generic import DetailView
 from django.views.generic import ListView
 
@@ -137,12 +138,21 @@ class ImageFolderDetailView(LoginRequiredMixin, ObjectPermissionViewMixin, Detai
                 Q(view_groups__isnull=True) | Q(view_groups__in=groups) | Q(edit_groups__in=groups),
             ).distinct()
 
+        ancestors = list(folder.get_ancestors_queryset())
+        breadcrumb_objects = [*ancestors, folder]
+        breadcrumbs = [{"name": "Top", "url": reverse("image_folder_list")}]
+        for obj in breadcrumb_objects:
+            # Use reverse to generate the URL
+            folder_url = reverse("image_folder_detail", kwargs={"pk": obj.pk})
+            breadcrumbs.append({"name": obj.name, "url": folder_url})
+
         context.update(
             {
-                "child_folders": child_folders,  # This queryset is now annotated
+                "child_folders": child_folders,
                 "folder_images": image_queryset,
                 "has_children": child_folders.exists(),
-                "image_count": image_queryset.count(),  # This is the count of images in the current folder
+                "image_count": image_queryset.count(),
+                "breadcrumbs": breadcrumbs,
             },
         )
 
