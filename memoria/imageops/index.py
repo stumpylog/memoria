@@ -28,6 +28,7 @@ from memoria.utils import get_subdivision_code_from_name
 from memoria.utils.constants import DATE_KEYWORD
 from memoria.utils.constants import LOCATION_KEYWORD
 from memoria.utils.constants import PEOPLE_KEYWORD
+from memoria.utils.constants import PET_KEYWORD
 from memoria.utils.photos import generate_image_versions_pyvips
 
 
@@ -197,6 +198,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
                     PEOPLE_KEYWORD.lower(),
                     DATE_KEYWORD.lower(),
                     LOCATION_KEYWORD.lower(),
+                    PET_KEYWORD.lower(),
                 }:
                     continue
                 existing_root_tag, _ = Tag.objects.get_or_create(name=keyword.Keyword, tn_parent=None)

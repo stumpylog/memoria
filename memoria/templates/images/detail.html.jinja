@@ -119,9 +119,10 @@
                         <strong>Location:</strong>
                         {% if image.location %}
                             <span class="text-muted">
+                                {% if image.location.sub_location %}{{ image.location.sub_location }},{% endif %}
                                 {% if image.location.city %}{{ image.location.city }},{% endif %}
                                 {% if image.location.subdivision_name %}{{ image.location.subdivision_name }},{% endif %}
-                                {{ image.location.country_name }}
+                                {% if image.location.country_name %}{{ image.location.country_name }}{% endif %}
                             </span>
                         {% else %}
                             <span class="text-muted fst-italic">Not available</span>
@@ -146,11 +147,11 @@
                     <hr>
                     <p class="small mb-1">
                         <strong>Created:</strong>
-                        <span class="text-muted">{{ image.created_at|date("N j, Y, P") }}</span>
+                        <span class="text-muted">{{ image.created_at.astimezone(user.profile.timezone) |date("N j, Y, P") }}</span>
                     </p>
                     <p class="small mb-1">
                         <strong>Updated:</strong>
-                        <span class="text-muted">{{ image.updated_at|date("N j, Y, P") }}</span>
+                        <span class="text-muted">{{ image.updated_at.astimezone(user.profile.timezone) |date("N j, Y, P") }}</span>
                     </p>
                 </div>
             </div>
@@ -207,7 +208,7 @@
     {# Technical Details and Tags (remain full width below) #}
     <div class="row">
         <div class="col-md-12 mb-4">
-            {% if image.tags.all()|length > 0 %}
+            {% if image.tags.count() > 0 %}
                 <div class="card">
                     <div class="card-header">
                         <h5 class="mb-0">Tags</h5>
@@ -248,7 +249,7 @@
                             </p>
                             <p class="small mb-1">
                                 <strong>Dimensions:</strong>
-                                <span class="text-muted">{{ image.width }}×{{ image.height }} pixels</span>
+                                <span class="text-muted">{{ image.width }}x{{ image.height }} pixels</span>
                             </p>
                             <p class="small mb-1">
                                 <strong>ID:</strong>

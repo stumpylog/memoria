@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
 DATE_KEYWORD: Final[str] = "Dates"
 PEOPLE_KEYWORD: Final[str] = "People"
+PET_KEYWORD: Final[str] = "Pets"
 LOCATION_KEYWORD: Final[str] = "Locations"
 
 MIN_IMAGES_PER_PAGE = 1
