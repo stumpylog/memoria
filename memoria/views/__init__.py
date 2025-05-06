@@ -5,6 +5,7 @@ from memoria.views.folders import ImageFolderListView
 from memoria.views.home import HomePageView
 from memoria.views.images import ImageDetailView
 from memoria.views.images import ImageListView
+from memoria.views.images import ImageUpdateView
 from memoria.views.locations import LocationsView
 from memoria.views.people import PeopleListView
 from memoria.views.people import PersonDetailView
@@ -31,6 +32,7 @@ __all__ = [
     "ImageFolderDetailView",
     "ImageFolderListView",
     "ImageListView",
+    "ImageUpdateView",
     "LocationsView",
     "ManageGroupsView",
     "ManageUserGroupsView",

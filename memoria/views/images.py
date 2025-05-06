@@ -34,8 +34,24 @@ class ImageListView(LoginRequiredMixin, ObjectPermissionViewMixin, DefaultPagina
 
 class ImageDetailView(LoginRequiredMixin, ObjectPermissionViewMixin, DetailView):
     model = Image
+    permission_type = "view"
     template_name = "images/detail.html.jinja"
     context_object_name = "image"
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.select_related(
+            "folder",
+            "source",
+            "location",
+            "date",
+        ).prefetch_related(
+            "people",
+            "pets",
+            "tags",
+            "personinimage_set__person",
+            "petinimage_set__pet",
+        )
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """
@@ -43,12 +59,7 @@ class ImageDetailView(LoginRequiredMixin, ObjectPermissionViewMixin, DetailView)
         """
         context = super().get_context_data(**kwargs)
 
-        user = self.request.user
-        obj = self.object
-
-        # Check if user can edit this object using the filter_editable method.
-        # This is the efficient and recommended way using your AccessQuerySet.
-        context["can_edit"] = Image.objects.filter_editable(user).filter(pk=obj.pk).exists()
+        context["can_edit"] = self.has_object_permission(self.object)["can_edit"]
 
         return context
 

@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import TypeVar
+from typing import Literal
 from typing import cast
 
 from django.contrib.auth import get_user_model
@@ -18,9 +18,6 @@ logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import AbstractUser
-
-# Create a type variable for the view
-ViewT = TypeVar("ViewT")
 
 
 class BaseUserAuthMixin(UserPassesTestMixin):
@@ -140,42 +137,48 @@ class ObjectPermissionViewMixin:
             return base_qs
 
         groups = user.groups.all()
+
+        # No groups set, anyone can access
+        open_to_all_filter = Q(edit_groups__isnull=True) & Q(view_groups__isnull=True)
+        # User is in the one or more view groups
+        can_view_filter = Q(view_groups__in=groups)
+        # User is in one or more edit groups
+        can_edit_filter = Q(edit_groups__in=groups)
+
         if self.permission_type == "view":
             # include objects open to all, viewers, or editors
-            return base_qs.filter(
-                Q(view_groups__isnull=True) | Q(view_groups__in=groups) | Q(edit_groups__in=groups),
-            ).distinct()
+            return base_qs.filter(open_to_all_filter | can_view_filter | can_edit_filter).distinct()
 
         # edit permission: open to all editors or specific editors
-        return base_qs.filter(
-            Q(edit_groups__isnull=True) | Q(edit_groups__in=groups),
-        ).distinct()
+        return base_qs.filter(open_to_all_filter | can_edit_filter).distinct()
 
-    def has_object_permission(self, obj: Any) -> bool:
+    def has_object_permission(self, obj: Any) -> dict[Literal["can_view", "can_edit"], bool]:
         user = self.request.user
         if not user.is_active:
-            return False
+            return {"can_view": False, "can_edit": False}
         if user.is_superuser:
-            return True
+            return {"can_view": True, "can_edit": True}
 
-        # view permission: include open objects, view groups, or edit groups
-        if self.permission_type == "view":
-            # open to all if no groups set
-            if not obj.view_groups.exists() and not obj.edit_groups.exists():
-                return True
-            # check group membership in DB
-            return (
-                obj.view_groups.filter(
-                    pk__in=user.groups.values_list("pk", flat=True),
-                ).exists()
-                or obj.edit_groups.filter(
-                    pk__in=user.groups.values_list("pk", flat=True),
-                ).exists()
-            )
+        user_groups = user.groups.all().only("pk")
 
-        # edit permission: open to all if no edit groups set
-        if not obj.edit_groups.exists():
-            return True
-        return obj.edit_groups.filter(
-            pk__in=user.groups.values_list("pk", flat=True),
-        ).exists()
+        user_in_edit_groups: bool = obj.edit_groups.filter(pk__in=user_groups).exists()
+        user_in_view_groups: bool = obj.view_groups.filter(pk__in=user_groups).exists()
+
+        obj_requires_edit_group: bool = obj.edit_groups.exists()
+        obj_requires_view_group: bool = obj.view_groups.exists()
+
+        # User can edit if:
+        # 1. The object has no edit groups specified (meaning anyone can edit by default)
+        # OR
+        # 2. The object *does* have edit groups, AND the user is in one of them
+        can_edit = (not obj_requires_edit_group) or user_in_edit_groups
+
+        # User can view if:
+        # 1. They can edit (edit permission implies view permission)
+        # OR
+        # 2. The object has no view groups specified (meaning anyone can view by default)
+        # OR
+        # 3. The object *does* have view groups, AND the user is in one of the view groups
+        can_view = can_edit or (not obj_requires_view_group) or user_in_view_groups
+
+        return {"can_view": can_view, "can_edit": can_edit}

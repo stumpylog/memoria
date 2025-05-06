@@ -4,31 +4,200 @@
 {% endblock title %}
 {% block content %}
     {% include "partials/navbar.html.jinja" %}
-    <div class="container mt-4">
-        <h1>Image Details</h1>
-        <div class="row">
-            <div class="col-md-8">
-                {# Display the main image #}
-                {% if image.full_size_url %}
-                    {# Assuming your Image model has a 'url' attribute for the full image #}
-                    <div class="text-center mb-4">
+    <div class="row mb-4">
+        {# Image Section (Left Column) #}
+        <div class="col-md-8">
+            {% if image.full_size_url %}
+                <div class="card">
+                    <div class="card-body p-1 text-center">
+                        {# Center image within card-body #}
+                        {# Apply max-height to limit image size in full screen #}
                         <img src="{{ image.full_size_url }}"
-                             class="img-fluid"
-                             alt="{{ image.image_fs_id }}"
-                             height="{{ image.height }}"
-                             width="{{ image.width }}">
+                             class="img-fluid rounded"
+                             alt="{{ image.original_name }}"
+                             style="max-height: 70vh;
+                                    width: auto">
+                        {# Limit height and maintain aspect ratio #}
                     </div>
-                {% else %}
-                    <div class="alert alert-warning" role="alert">Full image not available.</div>
-                {% endif %}
+                    <div class="card-footer d-flex justify-content-between">
+                        <span>{{ image.width }}×{{ image.height }} px</span>
+                        <span>{{ image.file_size|filesizeformat }}</span>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-warning" role="alert">Full image not available.</div>
+            {% endif %}
+        </div>
+        {# Info, People, Pets, Edit Section (Right Column) #}
+        <div class="col-md-4">
+            {# Image Info Card #}
+            <div class="card mb-4">
+                {# Added mb-4 for spacing below #}
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Image Info</h5>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ image.original_path.stem }}</h5>
+                    {% if image.description %}
+                        <p class="card-text">{{ image.description }}</p>
+                    {% else %}
+                        <p class="text-muted small">No description available.</p>
+                    {% endif %}
+                    <p class="mb-1">
+                        <strong>Date:</strong>
+                        {% if image.date %}
+                            <span class="text-muted">{{ image.date }}</span>
+                        {% else %}
+                            <span class="text-muted fst-italic">Not available</span>
+                        {% endif %}
+                    </p>
+                    <p class="mb-1">
+                        <strong>Location:</strong>
+                        {% if image.location %}
+                            <span class="text-muted">
+                                {% if image.location.city %}{{ image.location.city }},{% endif %}
+                                {% if image.location.subdivision_name %}{{ image.location.subdivision_name }},{% endif %}
+                                {{ image.location.country_name }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted fst-italic">Not available</span>
+                        {% endif %}
+                    </p>
+                    <p class="mb-1">
+                        <strong>Folder:</strong>
+                        {% if image.folder %}
+                            <span class="text-muted">{{ image.folder.name }}</span>
+                        {% else %}
+                            <span class="text-muted fst-italic">Not available</span>
+                        {% endif %}
+                    </p>
+                    <p class="mb-1">
+                        <strong>Source:</strong>
+                        {% if image.source %}
+                            <span class="text-muted">{{ image.source.name }}</span>
+                        {% else %}
+                            <span class="text-muted fst-italic">Not available</span>
+                        {% endif %}
+                    </p>
+                    <hr>
+                    <p class="small mb-1">
+                        <strong>Created:</strong>
+                        <span class="text-muted">{{ image.created_at|date("N j, Y, P") }}</span>
+                    </p>
+                    <p class="small mb-1">
+                        <strong>Updated:</strong>
+                        <span class="text-muted">{{ image.updated_at|date("N j, Y, P") }}</span>
+                    </p>
+                </div>
             </div>
-            <div class="col-md-4">
-                <h2>{{ image.original_path.stem }}</h2>
-                {% if image.description %}
-                    <p>{{ image.description }}</p>
-                {% else %}
-                    <p class="text-muted small">No description available.</p>
-                {% endif %}
+            {# People Card #}
+            {% if image.people.all()|length > 0 %}
+                <div class="card mb-4">
+                    {# Added mb-4 for spacing below #}
+                    <div class="card-header">
+                        <h5 class="mb-0">People</h5>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for person_in_image in image.personinimage_set.all() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ person_in_image.person.name }}
+                                {% if person_in_image.description %}
+                                    <span class="badge bg-secondary">{{ person_in_image.description }}</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            {# Pets Card #}
+            {% if image.pets.all()|length > 0 %}
+                <div class="card mb-4">
+                    {# Added mb-4 for spacing below #}
+                    <div class="card-header">
+                        <h5 class="mb-0">Pets</h5>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for pet_in_image in image.petinimage_set.all() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ pet_in_image.pet.name }}
+                                {% if pet_in_image.pet.pet_type %}
+                                    <span class="badge bg-info text-dark">{{ pet_in_image.pet.pet_type }}</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            {# Edit Button #}
+            {% if can_edit %}
+                {# Use d-flex and justify-content-end to align the button to the right within this column #}
+                <div class="d-flex justify-content-end mb-4">
+                    <a href=" {{ url('image_update', pk=image.pk) }}"
+                       class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {# Technical Details and Tags (remain full width below) #}
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            {% if image.tags.all()|length > 0 %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Tags</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for tag in image.tags.all() %}<span class="badge bg-primary me-1 mb-1">{{ tag.name }}</span>{% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Technical Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="small mb-1">
+                                <strong>Original Checksum:</strong>
+                                <span class="text-monospace text-muted">{{ image.original_checksum[:16] }}...</span>
+                            </p>
+                            <p class="small mb-1">
+                                <strong>Perceptual Hash:</strong>
+                                <span class="text-monospace text-muted">{{ image.phash }}</span>
+                            </p>
+                            <p class="small mb-1">
+                                <strong>Orientation:</strong>
+                                <span class="text-muted">{{ image.get_orientation_display() }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="small mb-1">
+                                <strong>File Size:</strong>
+                                <span class="text-muted">{{ image.file_size|filesizeformat }}</span>
+                            </p>
+                            <p class="small mb-1">
+                                <strong>Dimensions:</strong>
+                                <span class="text-muted">{{ image.width }}×{{ image.height }} pixels</span>
+                            </p>
+                            <p class="small mb-1">
+                                <strong>ID:</strong>
+                                <span class="text-monospace text-muted">{{ image.image_fs_id }}</span>
+                            </p>
+                            <p class="small mb-1">
+                                <strong>Original File:</strong>
+                                <span class="text-monospace text-muted text-truncate d-inline-block"
+                                      style="max-width: 100%">{{ image.original_path }}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
