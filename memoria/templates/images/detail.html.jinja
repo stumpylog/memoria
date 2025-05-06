@@ -4,6 +4,12 @@
 {% endblock title %}
 {% block extra_head %}
     <link href="{{ static('css/boundingbox.css') }}" rel="stylesheet">
+    {# Add CSS here or to boundingbox.css to initially hide bounding boxes #}
+    <style>
+        .bounding-box {
+            display: none; /* Bounding boxes are hidden by default */
+        }
+    </style>
 {% endblock extra_head %}
 {% block content %}
     {% include "partials/navbar.html.jinja" %}
@@ -19,6 +25,8 @@
                             {# Apply max-height to limit image size in full screen #}
                             <img id="mainImage"
                                  src="{{ image.full_size_url }}"
+                                 height="{{ image.height }}"
+                                 width="{{ image.height }}"
                                  class="img-fluid rounded"
                                  alt="{{ image.original_name }}"
                                  style="max-height: 70vh;
@@ -27,40 +35,54 @@
                             {# Bounding Boxes for People #}
                             {% for person_in_image in image.personinimage_set.all() %}
                                 <div class="bounding-box person"
-                                     style="top: {{ (person_in_image.center_y - person_in_image.height / 2) * 100 }}%;
-                                            left: {{ (person_in_image.center_x - person_in_image.width / 2) * 100 }}%;
-                                            width: {{ person_in_image.width * 100 }}%;
-                                            height: {{ person_in_image.height * 100 }}%">
+                                     style="{{ person_in_image.bounding_box_style }}">
                                     <span>{{ person_in_image.person.name }}</span>
                                 </div>
                             {% endfor %}
                             {# Bounding Boxes for Pets #}
                             {% for pet_in_image in image.petinimage_set.all() %}
                                 <div class="bounding-box pet"
-                                     style="top: {{ (pet_in_image.center_y - pet_in_image.height / 2) * 100 }}%;
-                                            left: {{ (pet_in_image.center_x - pet_in_image.width / 2) * 100 }}%;
-                                            width: {{ pet_in_image.width * 100 }}%;
-                                            height: {{ pet_in_image.height * 100 }}%">
+                                     style="{{ pet_in_image.bounding_box_style }}">
                                     <span>{{ pet_in_image.pet.name }}</span>
                                 </div>
                             {% endfor %}
                         </div>
                     </div>
-                    <div class="card-footer d-flex justify-content-between">
-                        <span>{{ image.width }}×{{ image.height }} px</span>
+                    <div class="card-footer d-flex justify-content-between flex-wrap">
+                        {# Use flex-wrap for better layout on smaller screens #}
+                        <span>{{ image.width }}x{{ image.height }} px</span>
                         <span>{{ image.file_size|filesizeformat }}</span>
-                        {% if image.personinimage_set.all()|length > 0 or image.petinimage_set.all()|length > 0 %}
-                            {# Toggle for bounding boxes #}
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="boundingBoxToggle">
-                                <label class="form-check-label" for="boundingBoxToggle">Show Bounding Boxes</label>
-                            </div>
-                        {% endif %}
+                        <div class="d-flex">
+                            {# Container for the toggles #}
+                            {% if image.personinimage_set.count() > 0 %}
+                                {# Toggle for People bounding boxes #}
+                                <div class="form-check form-switch ms-3">
+                                    {# Add margin-left for spacing #}
+                                    <input class="form-check-input" type="checkbox" id="personBoundingBoxToggle">
+                                    <label class="form-check-label" for="personBoundingBoxToggle">Show People</label>
+                                </div>
+                            {% endif %}
+                            {% if image.petinimage_set.count() > 0 %}
+                                {# Toggle for Pets bounding boxes #}
+                                <div class="form-check form-switch ms-3">
+                                    {# Add margin-left for spacing #}
+                                    <input class="form-check-input" type="checkbox" id="petBoundingBoxToggle">
+                                    <label class="form-check-label" for="petBoundingBoxToggle">Show Pets</label>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                     <script>
-                        document.getElementById('boundingBoxToggle').addEventListener('change', function() {
-                            var boundingBoxes = document.querySelectorAll('.bounding-box');
-                            boundingBoxes.forEach(function(box) {
+                        document.getElementById('personBoundingBoxToggle').addEventListener('change', function() {
+                            var personBoxes = document.querySelectorAll('.bounding-box.person');
+                            personBoxes.forEach(function(box) {
+                                box.style.display = this.checked ? 'block' : 'none';
+                            }, this);
+                        });
+
+                        document.getElementById('petBoundingBoxToggle').addEventListener('change', function() {
+                            var petBoxes = document.querySelectorAll('.bounding-box.pet');
+                            petBoxes.forEach(function(box) {
                                 box.style.display = this.checked ? 'block' : 'none';
                             }, this);
                         });
