@@ -35,7 +35,7 @@ class ImageFolderListView(LoginRequiredMixin, DefaultPaginationMixin, ObjectPerm
 
         # Filter only root folders
         roots = ImageFolder.get_roots_queryset().values_list("pk", flat=True)
-        base_qs = super().get_queryset().filter(pk__in=roots)
+        base_qs = super().get_queryset().filter(pk__in=roots).order_by("name")
 
         # Permission filter for both subqueries
         if user.is_superuser:
@@ -99,7 +99,7 @@ class ImageFolderDetailView(LoginRequiredMixin, ObjectPermissionViewMixin, Detai
 
         # Get child folders of the current folder with permission checks
         # And annotate each child folder with the count of its own children and images.
-        child_folders = ImageFolder.objects.filter(tn_parent=folder)
+        child_folders = ImageFolder.objects.filter(tn_parent=folder).order_by("name")
 
         # Apply permission filter to the child folders queryset itself
         if not user.is_superuser:

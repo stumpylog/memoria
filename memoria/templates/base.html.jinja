@@ -7,11 +7,43 @@
             {% block title %}
             {% endblock title %}
         </title>
+        {# Bootstrap 5 CSS #}
         <link href="{{ static('bootstrap/css/bootstrap.min.css') }}"
               rel="stylesheet">
+        {#
+            Script to set the data-bs-theme attribute on the html
+            element based on system preference or local storage.
+            This must be in the head before other CSS to prevent a flash of
+            the wrong theme.
+        #}
+        <script>
+            (function() {
+                const storedTheme = localStorage.getItem('theme');
+
+                const getPreferredTheme = () => {
+                    if (storedTheme) {
+                        return storedTheme;
+                    }
+                    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+
+                const theme = getPreferredTheme();
+                if (theme === 'system') { // 'system' stored value needs to translate to 'light' or 'dark' for the attribute
+                     document.documentElement.setAttribute('data-bs-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                } else {
+                    document.documentElement.setAttribute('data-bs-theme', theme);
+                }
+
+            })();
+        </script>
+        {# Bootstrap Icons CSS #}
+        <link href="{{ static('bootstrap-icons/bootstrap-icons.min.css') }}"
+              rel="stylesheet">
+        {# Favicon #}
         <link rel="shortcut icon"
               type="image/svg"
               href="{{ static('images/favicon.svg') }}">
+        {# Extra head elements from child templates #}
         {% block extra_head %}
         {% endblock extra_head %}
     </head>
@@ -20,6 +52,106 @@
         {% endblock content %}
         {# Bootstrap 5 JavaScript Bundle from local static files #}
         <script src="{{ static('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+        {#
+           Script for the theme switcher UI logic.
+           Placed at the end of the body to ensure DOM elements are loaded.
+        #}
+        <script>
+            (function() {
+                'use strict';
+
+                // Function to set the theme attribute on the html element based on the selected value
+                const setThemeAttribute = themeValue => {
+                    if (themeValue === 'system') {
+                         document.documentElement.setAttribute('data-bs-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                    } else {
+                        document.documentElement.setAttribute('data-bs-theme', themeValue);
+                    }
+                };
+
+                // Function to show the active theme in the UI
+                const showActiveTheme = (storedValue, iconElement, textElement) => {
+                    const activeMenuItem = document.querySelector(`[data-bs-theme-value="${storedValue}"]`);
+                    const menuItems = document.querySelectorAll('[data-bs-theme-value]');
+
+                    // Remove checkmarks from all items
+                    menuItems.forEach(item => {
+                         const checkIcon = item.querySelector('.bi-check-lg');
+                         if (checkIcon) checkIcon.classList.add('d-none');
+                    });
+
+                    // Add checkmark to the active item based on stored value
+                    if (activeMenuItem) {
+                         const checkIcon = activeMenuItem.querySelector('.bi-check-lg');
+                         if (checkIcon) checkIcon.classList.remove('d-none');
+                    }
+
+                    // Determine the currently *applied* theme to select the correct icon for the button
+                    const currentAppliedTheme = document.documentElement.getAttribute('data-bs-theme'); // This will be 'light' or 'dark'
+
+                    const iconClass = (theme) => {
+                        if (theme === 'light') return 'bi-sun-fill';
+                        if (theme === 'dark') return 'bi-moon-stars-fill';
+                        return 'bi-circle-half'; // Fallback for 'system' on the button
+                    }
+
+                    // Update the button icon
+                    // Remove all potential theme icon classes first
+                    iconElement.classList.remove('bi-sun-fill', 'bi-moon-stars-fill', 'bi-circle-half');
+                    // Add the class based on the currently applied theme
+                    iconElement.classList.add(iconClass(currentAppliedTheme));
+
+                    // Update the button text (show what is currently active, or indicate 'System')
+                     let displayText;
+                     if (storedValue === 'system') {
+                         displayText = 'System';
+                     } else {
+                         displayText = storedValue.charAt(0).toUpperCase() + storedValue.slice(1);
+                     }
+                     textElement.textContent = displayText;
+                };
+
+                // Get necessary DOM elements
+                const themeSwitchBtn = document.getElementById('bd-theme');
+                const themeIcon = document.getElementById('bd-theme-icon');
+                const themeText = document.getElementById('bd-theme-text');
+
+                // Ensure elements exist before proceeding
+                if (!themeSwitchBtn || !themeIcon || !themeText) {
+                   // console.warn('Theme switcher UI elements not found. Skipping theme switcher script.');
+                    return; // Exit if UI elements aren't present (e.g., if navbar is not included)
+                }
+
+                // Function to get the currently stored theme value ('light', 'dark', or 'system')
+                const getStoredTheme = () => localStorage.getItem('theme');
+
+                // Show the initially active theme in the UI when the DOM is ready
+                 const initialStoredValue = getStoredTheme() || 'system'; // Default UI state is 'System' if no preference is saved
+                 showActiveTheme(initialStoredValue, themeIcon, themeText);
+
+
+                // Add click listeners to theme selection dropdown items
+                document.querySelectorAll('[data-bs-theme-value]').forEach(toggle => {
+                    toggle.addEventListener('click', () => {
+                        const themeValue = toggle.getAttribute('data-bs-theme-value');
+                        localStorage.setItem('theme', themeValue); // Save preference
+                        setThemeAttribute(themeValue); // Apply the theme attribute
+                        showActiveTheme(themeValue, themeIcon, themeText); // Update UI using the selected value
+                    });
+                });
+
+                // Listen for system theme changes. If 'system' is the current *stored* preference,
+                // re-apply the theme and update the UI icon/text to reflect the new system theme.
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                    if (getStoredTheme() === 'system') {
+                         setThemeAttribute('system'); // Re-apply theme based on new system preference
+                         // Update UI to show the applied theme icon/text, checkmark stays on 'System'
+                         showActiveTheme('system', themeIcon, themeText);
+                    }
+                });
+
+            })(); // Use an IIFE to avoid polluting the global namespace
+        </script>
         {% block extra_js %}
         {% endblock extra_js %}
     </body>

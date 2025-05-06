@@ -1,12 +1,15 @@
 {% from "macros/navlink.html.jinja" import nav_link %}
+{# The extra_head block is likely in your base template now, including bootstrap-icons #}
+{#
 {% block extra_head %}
-    <link href="{{ static('bootstrap-icons/bootstrap-icons.min.css') }}"
-          rel="stylesheet">
+    <link href="{{ static('bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
 {% endblock extra_head %}
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+#}
+<nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center me-3"
            href="{{ url('home') }}">
+            {# Your SVG logo #}
             <svg xmlns="http://www.w3.org/2000/svg"
                  width="32"
                  height="32"
@@ -39,6 +42,51 @@
                 {{ nav_link('dates', 'Dates', 'calendar3', request) }}
             </ul>
             <ul class="navbar-nav ms-auto">
+                {# Theme Switcher Dropdown #}
+                <li class="nav-item dropdown">
+                    <button class="btn nav-link dropdown-toggle d-flex align-items-center"
+                        id="bd-theme"
+                        type="button"
+                        aria-expanded="false"
+                        data-bs-toggle="dropdown"
+                        data-bs-display="static" {# Use static positioning if needed to avoid overflow in small containers #}>
+                        {# Icon and text will be updated by the JS script in base template #}
+                        {# Placeholder icon class - JS will replace this #}
+                        <i class="bi me-2" id="bd-theme-icon"></i>
+                        {# Placeholder text - JS will replace this #}
+                        <span id="bd-theme-text"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme">
+                        <li>
+                            <button type="button"
+                                    class="dropdown-item d-flex align-items-center"
+                                    data-bs-theme-value="light">
+                                <i class="bi bi-sun-fill me-2 opacity-50"></i>
+                                Light
+                                <i class="bi bi-check-lg ms-auto d-none"></i> {# Checkmark for active item #}
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button"
+                                    class="dropdown-item d-flex align-items-center"
+                                    data-bs-theme-value="dark">
+                                <i class="bi bi-moon-stars-fill me-2 opacity-50"></i>
+                                Dark
+                                <i class="bi bi-check-lg ms-auto d-none"></i> {# Checkmark for active item #}
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button"
+                                    class="dropdown-item d-flex align-items-center"
+                                    data-bs-theme-value="system">
+                                <i class="bi bi-circle-half me-2 opacity-50"></i>
+                                System
+                                <i class="bi bi-check-lg ms-auto d-none"></i> {# Checkmark for active item #}
+                            </button>
+                        </li>
+                    </ul>
+                </li>
+                {# Existing User Dropdown #}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle"
                        href="#"
