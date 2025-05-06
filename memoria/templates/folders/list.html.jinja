@@ -1,4 +1,6 @@
 {% extends "base.html.jinja" %}
+{# Import the new folder macros #}
+{% from "macros/folder_gallery.html.jinja" import folder_gallery %}
 {% block title %}
     {{ title }}
 {% endblock title %}
@@ -7,26 +9,7 @@
     <div class="container mt-5">
         <h1 class="mb-4">Image Folders</h1>
         <p class="lead">View and manage your photo folders.</p>
-        <div class="row">
-            {% for folder in folders %}
-                <div class="col-md-4 mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ folder.name }}</h5>
-                            {# Display the description if it exists, using linebreaksbr filter #}
-                            {% if folder.description %}<p class="card-text">{{ folder.description|linebreaksbr }}</p>{% endif %}
-                            <p class="card-text">Contains {{ folder.child_count }} folders(s)</p>
-                            <p class="card-text">Contains {{ folder.image_count }} image(s)</p>
-                            <a href="{{ url('image_folder_detail', pk=folder.pk) }}"
-                               class="btn btn-primary">View Folders</a>
-                        </div>
-                    </div>
-                </div>
-            {% else %}
-                <div class="col-12">
-                    <p>No image folders found.</p>
-                </div>
-            {% endfor %}
-        </div>
+        {# Use the folder_gallery macro to display the main list of folders #}
+        {{ folder_gallery(folders, empty_message="No image folders found.", child_count_attr="child_count", image_count_attr="image_count", button_text="View Folders") }}
     </div>
 {% endblock content %}

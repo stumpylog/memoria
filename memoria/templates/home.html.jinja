@@ -1,3 +1,4 @@
+{% from "macros/image_gallery.html.jinja" import image_gallery %}
 {% extends "base.html.jinja" %}
 {% block title %}
     {{ title }}
@@ -7,34 +8,10 @@
     <div class="container mt-5">
         <h1 class="mb-4">Welcome back, {{ user.username }}!</h1>
         <p class="lead">{{ message }}</p>
-        {% if recent_images %}
-            <h2 class="mt-4 mb-3">Your Recent Images</h2>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
-                {% for image in recent_images %}
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="{{ image.thumbnail_url }}"
-                                 class="card-img-top"
-                                 alt="{{ image.description | default('No Description') }}">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ image.description | default("No Description") }}</h5>
-                                <p class="card-text">
-                                    <small class="text-muted">Added {{ image.created_at.astimezone(user.profile.timezone).date() | naturalday }}</small>
-                                </p>
-                                <div class="d-flex justify-content-between">
-                                    <a href="{{ url('image_detail', pk=image.id) }}"
-                                       class="btn btn-primary btn-sm">View</a>
-                                    {% if all_editable or image.id in editable_image_ids %}
-                                        {# TODO: Once we support editing #}
-                                        <a href="#" class="btn btn-outline-secondary btn-sm">Edit</a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
+        {# Use the image_gallery macro to display recent images #}
+        {{ image_gallery(images=recent_images,
+                title="Your Recent Images") }}
+        {% if not recent_images %}
             <div class="alert alert-info mt-4">
                 <p class="mb-0">You don't have any images yet. Upload your first image to get started!</p>
             </div>

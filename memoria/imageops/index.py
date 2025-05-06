@@ -8,8 +8,6 @@ from exifmwg import ExifTool
 from exifmwg.models import ImageMetadata
 from exifmwg.models import KeywordStruct
 from exifmwg.models import RegionStruct
-from PIL import Image
-from PIL import ImageOps
 
 from memoria.models import Image as ImageModel
 from memoria.models import ImageFolder
@@ -30,6 +28,7 @@ from memoria.utils import get_subdivision_code_from_name
 from memoria.utils.constants import DATE_KEYWORD
 from memoria.utils.constants import LOCATION_KEYWORD
 from memoria.utils.constants import PEOPLE_KEYWORD
+from memoria.utils.photos import generate_image_versions_pyvips
 
 
 def handle_existing_image(
@@ -515,19 +514,14 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
 
     pkg.logger.info("  Processing image file")
 
-    with Image.open(pkg.image_path) as im_file:
-        img_copy = ImageOps.exif_transpose(im_file)
-        if TYPE_CHECKING:
-            assert img_copy is not None
-
-        pkg.logger.info("    Creating thumbnail")
-        thumbnail = img_copy.copy()
-        thumbnail.thumbnail((500, 500))
-        thumbnail.save(new_img.thumbnail_path)
-
-        pkg.logger.info("    Creating WebP version")
-        # TODO: Make this quality configurable
-        img_copy.save(new_img.full_size_path, quality=50)
+    generate_image_versions_pyvips(
+        pkg.image_path,
+        new_img.thumbnail_path,
+        new_img.full_size_path,
+        pkg.logger,
+        thumbnail_size=500,
+        webp_quality=90,
+    )
 
     # Update the file hashes, now that the files exist
     pkg.logger.info("    Hashing created files")

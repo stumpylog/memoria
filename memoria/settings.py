@@ -163,7 +163,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",  # Django's default auth backend
-    "guardian.backends.ObjectPermissionBackend",  # Guardian's backend
 )
 
 
