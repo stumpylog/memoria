@@ -2,6 +2,9 @@
 {% block title %}
     Image Detail for {{ image.original_path.stem }}
 {% endblock title %}
+{% block extra_head %}
+    <link href="{{ static('css/boundingbox.css') }}" rel="stylesheet">
+{% endblock extra_head %}
 {% block content %}
     {% include "partials/navbar.html.jinja" %}
     <div class="row mb-4">
@@ -11,20 +14,57 @@
                 <div class="card">
                     <div class="card-body p-1 text-center">
                         {# Center image within card-body #}
-                        {# Apply max-height to limit image size in full screen #}
-                        <img src="{{ image.full_size_url }}"
-                             class="img-fluid rounded"
-                             alt="{{ image.original_name }}"
-                             width="{{ image.width }}"
-                             height="{{ image.height }}"
-                             style="max-height: 70vh;
-                                    width: auto">
-                        {# Limit height and maintain aspect ratio #}
+                        {# Container for image and bounding boxes #}
+                        <div style="position: relative; display: inline-block;">
+                            {# Apply max-height to limit image size in full screen #}
+                            <img id="mainImage"
+                                 src="{{ image.full_size_url }}"
+                                 class="img-fluid rounded"
+                                 alt="{{ image.original_name }}"
+                                 style="max-height: 70vh;
+                                        width: auto">
+                            {# Limit height and maintain aspect ratio #}
+                            {# Bounding Boxes for People #}
+                            {% for person_in_image in image.personinimage_set.all() %}
+                                <div class="bounding-box person"
+                                     style="top: {{ (person_in_image.center_y - person_in_image.height / 2) * 100 }}%;
+                                            left: {{ (person_in_image.center_x - person_in_image.width / 2) * 100 }}%;
+                                            width: {{ person_in_image.width * 100 }}%;
+                                            height: {{ person_in_image.height * 100 }}%">
+                                    <span>{{ person_in_image.person.name }}</span>
+                                </div>
+                            {% endfor %}
+                            {# Bounding Boxes for Pets #}
+                            {% for pet_in_image in image.petinimage_set.all() %}
+                                <div class="bounding-box pet"
+                                     style="top: {{ (pet_in_image.center_y - pet_in_image.height / 2) * 100 }}%;
+                                            left: {{ (pet_in_image.center_x - pet_in_image.width / 2) * 100 }}%;
+                                            width: {{ pet_in_image.width * 100 }}%;
+                                            height: {{ pet_in_image.height * 100 }}%">
+                                    <span>{{ pet_in_image.pet.name }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
                     <div class="card-footer d-flex justify-content-between">
                         <span>{{ image.width }}×{{ image.height }} px</span>
                         <span>{{ image.file_size|filesizeformat }}</span>
+                        {% if image.personinimage_set.all()|length > 0 or image.petinimage_set.all()|length > 0 %}
+                            {# Toggle for bounding boxes #}
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="boundingBoxToggle">
+                                <label class="form-check-label" for="boundingBoxToggle">Show Bounding Boxes</label>
+                            </div>
+                        {% endif %}
                     </div>
+                    <script>
+                        document.getElementById('boundingBoxToggle').addEventListener('change', function() {
+                            var boundingBoxes = document.querySelectorAll('.bounding-box');
+                            boundingBoxes.forEach(function(box) {
+                                box.style.display = this.checked ? 'block' : 'none';
+                            }, this);
+                        });
+                    </script>
                 </div>
             {% else %}
                 <div class="alert alert-warning" role="alert">Full image not available.</div>

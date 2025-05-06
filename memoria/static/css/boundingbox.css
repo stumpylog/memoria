@@ -1,0 +1,39 @@
+.bounding-box {
+    position: absolute;
+    box-sizing: border-box;
+    display: none; /* Hidden by default */
+    z-index: 10; /* Ensure boxes are above the image */
+}
+
+.bounding-box.person {
+    border: 2px solid blue;
+    background-color: rgba(0, 0, 255, 0.1); /* Slightly less transparent background */
+}
+
+.bounding-box.pet {
+    border: 2px solid green;
+    background-color: rgba(0, 128, 0, 0.1); /* Slightly less transparent background */
+}
+
+.bounding-box span {
+    position: absolute; /* Position relative to the bounding-box div */
+    top: 100%; /* Position below the box */
+    left: 50%; /* Start from the horizontal center of the parent box */
+    transform: translateX(-50%); /* Shift back by half of the element's width to truly center it */
+    text-align: center;
+    color: white; /* White text color */
+    font-size: 12px; /* Adjust font size as needed */
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background for readability */
+    padding: 2px 4px; /* Add horizontal padding */
+    /* Allow text to wrap */
+    white-space: normal;
+    word-wrap: break-word; /* Break long words if necessary */
+    max-width: 200px; /* Set a maximum width for the name span - adjust as needed */
+    display: none; /* Initially hidden */
+    pointer-events: none; /* Ensure mouse events pass through the text */
+    z-index: 11; /* Ensure name is above the bounding box */
+}
+
+.bounding-box:hover span {
+    display: block; /* Show the name span on hover */
+}
