@@ -132,8 +132,6 @@ class ManageUserGroupsView(LoginRequiredMixin, StaffOrSuperuserRequiredMixin, Te
         Implements PRG pattern for form submission.
         """
         user = get_object_or_404(User, pk=pk)
-        logger.info(f"Pk is: {pk}")
-        logger.info(user)
         manage_groups_form = ManageUserGroupsForm(request.POST, instance=user)
 
         if manage_groups_form.is_valid():

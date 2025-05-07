@@ -4,7 +4,6 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models.functions import ExtractYear
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
@@ -15,7 +14,6 @@ from django.views.generic import UpdateView
 
 from memoria.forms import ImageUpdateForm
 from memoria.models import Image
-from memoria.models import RoughDate
 from memoria.utils.geo import get_country_list_for_autocomplete
 from memoria.utils.geo import get_subdivisions_for_country_for_autocomplete
 from memoria.views.mixins import DefaultPaginationMixin
@@ -80,11 +78,6 @@ class ImageUpdateView(LoginRequiredMixin, ObjectPermissionViewMixin, UpdateView)
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Data for RoughDate year autocomplete (existing years from DB)
-        # Providing a list of all unique years found in RoughDate objects
-        context["available_years_for_choicesjs"] = list(
-            RoughDate.objects.annotate(year_val=ExtractYear("date")).distinct().values_list("year_val", flat=True),
-        )
         # Data for RoughLocation country autocomplete
         context["available_countries_for_choicesjs"] = get_country_list_for_autocomplete()
 
