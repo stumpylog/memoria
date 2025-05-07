@@ -38,21 +38,19 @@
                     {% for error in form.description.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
                 </div>
             </fieldset>
-            {# Date Section #}
+            {# Date Section - Simplified to basic number inputs #}
             <fieldset class="border p-3 mb-4 rounded">
                 <legend class="w-auto px-2 h5">Date Taken (Approximate)</legend>
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label for="{{ form.date_year.id_for_label }}" class="form-label">{{ form.date_year.label }}</label>
-                        {# This input will be enhanced by Choices.js #}
-                        <select name="{{ form.date_year.html_name }}"
-                                id="{{ form.date_year.id_for_label }}"
-                                class="form-control {% if form.date_year.errors %}is-invalid{% endif %}"
-                                placeholder="{{ form.date_year.field.widget.attrs.placeholder|default('YYYY') }}">
-                            {% if form.date_year.value() %}
-                                <option value="{{ form.date_year.value() }}" selected>{{ form.date_year.value() }}</option>
-                            {% endif %}
-                        </select>
+                        <input type="number"
+                               name="{{ form.date_year.html_name }}"
+                               id="{{ form.date_year.id_for_label }}"
+                               class="form-control {% if form.date_year.errors %}is-invalid{% endif %}"
+                               value="{{ form.date_year.value() |default('', true) }}"
+                               placeholder="{{ form.date_year.field.widget.attrs.placeholder|default('YYYY') }}"
+                               min="0">
                         {% if form.date_year.help_text %}<div class="form-text">{{ form.date_year.help_text }}</div>{% endif %}
                         {% for error in form.date_year.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
                     </div>
@@ -65,8 +63,7 @@
                                value="{{ form.date_month.value() |default('', true) }}"
                                placeholder="{{ form.date_month.field.widget.attrs.placeholder|default('MM') }}"
                                min="1"
-                               max="12"
-                               disabled>
+                               max="12">
                         {% if form.date_month.help_text %}<div class="form-text">{{ form.date_month.help_text }}</div>{% endif %}
                         {% for error in form.date_month.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
                     </div>
@@ -79,8 +76,7 @@
                                value="{{ form.date_day.value() |default('', true) }}"
                                placeholder="{{ form.date_day.field.widget.attrs.placeholder|default('DD') }}"
                                min="1"
-                               max="31"
-                               disabled>
+                               max="31">
                         {% if form.date_day.help_text %}<div class="form-text">{{ form.date_day.help_text }}</div>{% endif %}
                         {% for error in form.date_day.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
                     </div>
@@ -178,59 +174,18 @@
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
     <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const yearInputEl = document.getElementById('{{ form.date_year.id_for_label }}');
+    // Date inputs
+    const yearInput = document.getElementById('{{ form.date_year.id_for_label }}');
     const monthInput = document.getElementById('{{ form.date_month.id_for_label }}');
     const dayInput = document.getElementById('{{ form.date_day.id_for_label }}');
 
+    // Location inputs
     const countryInputEl = document.getElementById('{{ form.location_country_input.id_for_label }}');
     const subdivisionInputEl = document.getElementById('{{ form.location_subdivision_input.id_for_label }}');
     const cityInput = document.getElementById('{{ form.location_city.id_for_label }}');
     const subLocationInput = document.getElementById('{{ form.location_sub_location.id_for_label }}');
 
-    let yearChoices, countryChoices, subdivisionChoices;
-
-    // Initialize Year Choices
-    if (yearInputEl) {
-        let finalYearChoicesData = [];
-        try {
-            // Use default([]) filter for robustness if context variable might be entirely missing
-            const rawYearData = {{ available_years_for_choicesjs|default([])|tojson|safe }};
-            console.log('[Debug] Raw year data from template:', rawYearData, typeof rawYearData);
-            if (Array.isArray(rawYearData)) {
-                finalYearChoicesData = rawYearData.map(String).map(y => ({ value: y, label: y }));
-            } else {
-                console.warn('[Debug] Raw year data was not an array. Defaulting to empty.');
-            }
-        } catch (e) {
-            console.error("[Debug] Error processing year data:", e);
-        }
-        console.log('[Debug] Data for Year Choices instance:', finalYearChoicesData);
-
-        yearChoices = new Choices(yearInputEl, {
-            removeItemButton: true,
-            placeholderValue: 'Select or type year',
-            choices: finalYearChoicesData,
-            addItemText: (value) => `Press Enter to add year <b>"${value}"</b>`,
-            searchEnabled: true,
-            shouldSort: false,
-            allowHTML: true,
-            duplicateItemsAllowed: false,
-            paste: true,
-            addItems: true,
-            createItemFunction: function(value) {
-                const year = parseInt(value.trim());
-                if (!isNaN(year) && year > 0 && year < 10000) {
-                    return {
-                        value: String(year),
-                        label: String(year)
-                    };
-                }
-                return null; // Return null to indicate invalid input
-            }
-        });
-    } else {
-        console.warn('[Debug] yearInputEl element not found.');
-    }
+    let countryChoices, subdivisionChoices;
 
     // Initialize Country Choices
     if (countryInputEl) {
@@ -325,30 +280,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Date validation functions
     function getDaysInMonth(year, month) { // month is 1-indexed (January is 1)
         if (!year || !month || isNaN(parseInt(year)) || isNaN(parseInt(month))) return 31; // Default
         return new Date(parseInt(year), parseInt(month), 0).getDate();
     }
 
-    function updateDateDependencies() {
-        const yearVal = yearChoices ? yearChoices.getValue(true) : (yearInputEl ? yearInputEl.value.trim() : null);
-        const monthVal = monthInput ? monthInput.value.trim() : null;
-
-        // Enable/disable month based on year selection
-        if (monthInput) {
-            monthInput.disabled = !yearVal;
-            if (!yearVal) monthInput.value = '';
-        }
-
-        // Enable/disable day based on month selection
-        if (dayInput) {
-            dayInput.disabled = !(yearVal && monthVal);
-            if (!(yearVal && monthVal)) dayInput.value = '';
-        }
-
-        // Update day input max value based on month/year
-        if (yearVal && monthVal && dayInput) {
-            const maxDays = getDaysInMonth(yearVal, monthVal);
+    function updateDayMaxValue() {
+        if (yearInput && monthInput && dayInput &&
+            yearInput.value.trim() && monthInput.value.trim()) {
+            const maxDays = getDaysInMonth(yearInput.value.trim(), monthInput.value.trim());
             dayInput.max = maxDays;
 
             // Validate current day value
@@ -379,41 +320,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Attach event listeners
-    if (yearChoices) {
-        yearInputEl.addEventListener('change', function() {
-            updateDateDependencies();
-        });
+    // Attach event listeners for date fields
+    if (yearInput) {
+        yearInput.addEventListener('input', updateDayMaxValue);
     }
 
+    if (monthInput) {
+        monthInput.addEventListener('input', updateDayMaxValue);
+    }
+
+    if (dayInput) {
+        dayInput.addEventListener('input', updateDayMaxValue);
+    }
+
+    // Attach event listeners for location fields
     if (countryChoices) {
         countryInputEl.addEventListener('change', function() {
             const selectedCountryCode = countryChoices.getValue(true);
             console.log('[Debug] Country changed to:', selectedCountryCode);
             updateSubdivisionChoices(selectedCountryCode);
             updateLocationDependencies();
-        });
-    }
-
-    if (monthInput) {
-        monthInput.addEventListener('input', updateDateDependencies);
-    }
-
-    if (dayInput) {
-        dayInput.addEventListener('input', function() {
-            if (yearInputEl && monthInput && yearInputEl.value && monthInput.value) {
-                const maxDays = getDaysInMonth(
-                    yearChoices ? yearChoices.getValue(true) : yearInputEl.value.trim(),
-                    monthInput.value.trim()
-                );
-                const dayVal = parseInt(dayInput.value);
-
-                if (dayVal > maxDays || dayVal < 1) {
-                    dayInput.classList.add('is-invalid');
-                } else {
-                    dayInput.classList.remove('is-invalid');
-                }
-            }
         });
     }
 
@@ -426,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initial state setup on page load
-    updateDateDependencies();
+    updateDayMaxValue();
     updateLocationDependencies();
 
     // Initialize subdivisions if country is pre-selected
