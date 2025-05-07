@@ -8,6 +8,7 @@ from exifmwg import ExifTool
 from exifmwg.models import ImageMetadata
 from exifmwg.models import KeywordStruct
 from exifmwg.models import RegionStruct
+from PIL import Image
 
 from memoria.models import Image as ImageModel
 from memoria.models import ImageFolder
@@ -504,6 +505,8 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
         # These are placeholders, the files do not exist yet
         thumbnail_checksum="A",
         full_size_checksum="B",
+        thumbnail_height=0,
+        thumbnail_width=0,
         # This time cannot be dirty
         is_dirty=False,
     )
@@ -529,6 +532,8 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     pkg.logger.info("    Hashing created files")
     new_img.thumbnail_checksum = calculate_blake3_hash(new_img.thumbnail_path, hash_threads=pkg.hash_threads)
     new_img.full_size_checksum = calculate_blake3_hash(new_img.full_size_path, hash_threads=pkg.hash_threads)
+    with Image.open(new_img.thumbnail_path) as img:
+        new_img.thumbnail_width, new_img.thumbnail_height = img.size
     new_img.save()
 
     # Parse Faces/pets/regions

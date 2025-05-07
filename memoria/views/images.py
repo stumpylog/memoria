@@ -1,15 +1,23 @@
 import logging
 from typing import Any
 
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import QuerySet
+from django.db.models.functions import ExtractYear
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import DetailView
 from django.views.generic import ListView
 from django.views.generic import UpdateView
 
+from memoria.forms import ImageUpdateForm
 from memoria.models import Image
+from memoria.models import RoughDate
+from memoria.utils.geo import get_country_list_for_autocomplete
+from memoria.utils.geo import get_subdivisions_for_country_for_autocomplete
 from memoria.views.mixins import DefaultPaginationMixin
 from memoria.views.mixins import ObjectPermissionViewMixin
 
@@ -64,21 +72,55 @@ class ImageDetailView(LoginRequiredMixin, ObjectPermissionViewMixin, DetailView)
         return context
 
 
-class ImageUpdateView(LoginRequiredMixin, UpdateView):
+class ImageUpdateView(LoginRequiredMixin, ObjectPermissionViewMixin, UpdateView):
     model = Image
+    form_class = ImageUpdateForm
     template_name = "images/update.html.jinja"
 
-    def get_success_url(self):
-        """
-        Return the URL to redirect to after a successful update.
-        """
-        return reverse("image-detail", kwargs={"pk": self.object.pk})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-    def get_queryset(self) -> QuerySet[Image]:
-        """
-        Override to return only objects the user has explicit edit access to.
-        This leverages the AccessQuerySet's filter_editable method.
-        """
-        # Use the filter_editable method to efficiently filter for editable objects.
-        # This automatically handles superusers and group-based edit permissions.
-        return Image.objects.filter_editable(self.request.user)
+        # Data for RoughDate year autocomplete (existing years from DB)
+        # Providing a list of all unique years found in RoughDate objects
+        context["available_years_for_choicesjs"] = list(
+            RoughDate.objects.annotate(year_val=ExtractYear("date")).distinct().values_list("year_val", flat=True),
+        )
+        # Data for RoughLocation country autocomplete
+        context["available_countries_for_choicesjs"] = get_country_list_for_autocomplete()
+
+        image_update_form_data = self.request.session.pop("image_update_form_data", None)
+
+        if image_update_form_data:
+            # Instantiate form with data and errors from session and the user instance
+            image_update_form = ImageUpdateForm(image_update_form_data, instance=self.object)
+        else:
+            # No data in session, provide a new unbound form for the user instance
+            image_update_form = ImageUpdateForm(instance=self.object)
+
+        context["form"] = image_update_form
+
+        # Subdivisions will be loaded via AJAX, so no initial list here.
+        return context
+
+    def post(self, request, pk: int, *args, **kwargs):
+        image = get_object_or_404(Image, pk=pk)
+        form = ImageUpdateForm(request.POST, instance=image)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Image updated successfully.")
+            return redirect(reverse("image_detail", kwargs={"pk": image.pk}))
+
+        # invalid: stash the POST data and show generic error
+        request.session["image_update_form_data"] = request.POST
+        messages.error(request, "There were errors in your submission; please correct them below.")
+        return redirect(reverse("image_update", kwargs={"pk": image.pk}))
+
+
+def get_subdivisions_ajax(request):
+    country_code = request.GET.get("country_code", None)
+    if not country_code:
+        return JsonResponse([], safe=False)  # Return empty list if no country code
+
+    subdivisions_list = get_subdivisions_for_country_for_autocomplete(country_code)
+    return JsonResponse(subdivisions_list, safe=False)

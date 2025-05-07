@@ -6,6 +6,7 @@ from memoria.views.home import HomePageView
 from memoria.views.images import ImageDetailView
 from memoria.views.images import ImageListView
 from memoria.views.images import ImageUpdateView
+from memoria.views.images import get_subdivisions_ajax
 from memoria.views.locations import LocationsView
 from memoria.views.people import PeopleListView
 from memoria.views.people import PersonDetailView
@@ -44,4 +45,5 @@ __all__ = [
     "ToggleUserActiveView",
     "UpdateEmailView",
     "UpdateProfileView",
+    "get_subdivisions_ajax",
 ]

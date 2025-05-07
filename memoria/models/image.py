@@ -79,13 +79,22 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         help_text="Size of the original file in bytes",
     )
 
-    height = models.PositiveIntegerField(verbose_name="height in pixels")
-    width = models.PositiveIntegerField(verbose_name="width in pixels")
+    height = models.PositiveIntegerField(verbose_name="original image height in pixels")
+    width = models.PositiveIntegerField(verbose_name="original image width in pixels")
+
+    thumbnail_height = models.PositiveSmallIntegerField(verbose_name="Thumbnail image height in pixels")
+    thumbnail_width = models.PositiveSmallIntegerField(verbose_name="Thumbnail image width in pixels")
 
     orientation = models.PositiveSmallIntegerField(
         choices=OrientationChoices.choices,
         default=OrientationChoices.HORIZONTAL,
         help_text="MWG Orientation flag",
+    )
+
+    title = models.TextField(  # noqa: DJ001
+        blank=True,
+        null=True,
+        help_text="Title of the image (used for display only currently)",
     )
 
     description = models.TextField(  # noqa: DJ001

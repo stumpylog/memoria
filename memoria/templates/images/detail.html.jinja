@@ -1,6 +1,6 @@
 {% extends "base.html.jinja" %}
 {% block title %}
-    Image Detail for {{ image.original_path.stem }}
+    Image Detail for {{ image.title }}
 {% endblock title %}
 {% block extra_head %}
     <link href="{{ static('css/boundingbox.css') }}" rel="stylesheet">
@@ -28,7 +28,7 @@
                                  height="{{ image.height }}"
                                  width="{{ image.height }}"
                                  class="img-fluid rounded"
-                                 alt="{{ image.original_name }}"
+                                 alt="{{ image.title }}"
                                  style="max-height: 70vh;
                                         width: auto">
                             {# Limit height and maintain aspect ratio #}
@@ -101,7 +101,12 @@
                     <h5 class="mb-0">Image Info</h5>
                 </div>
                 <div class="card-body">
-                    <h5 class="card-title">{{ image.original_path.stem }}</h5>
+                    <h5 class="card-title">{{ image.title }}</h5>
+                    {% if image.title %}
+                        <p class="card-text">{{ image.title }}</p>
+                    {% else %}
+                        <p class="text-muted small">No title available.</p>
+                    {% endif %}
                     {% if image.description %}
                         <p class="card-text">{{ image.description }}</p>
                     {% else %}

@@ -20,6 +20,7 @@ urlpatterns = [
     path("images/", views.ImageListView.as_view(), name="image_list"),
     path("images/<int:pk>/", views.ImageDetailView.as_view(), name="image_detail"),
     path("images/<int:pk>/edit/", views.ImageUpdateView.as_view(), name="image_update"),
+    path("ajax/get-subdivisions/", views.get_subdivisions_ajax, name="ajax_get_subdivisions"),
     path("folders/", views.ImageFolderListView.as_view(), name="image_folder_list"),
     path("folders/<int:pk>/", views.ImageFolderDetailView.as_view(), name="image_folder_detail"),
     path("albums/", views.AlbumsView.as_view(), name="albums"),

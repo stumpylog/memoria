@@ -1,3 +1,4 @@
+from memoria.forms.images import ImageUpdateForm
 from memoria.forms.people import PersonForm
 from memoria.forms.profile import GroupMembershipForm
 from memoria.forms.profile import UserEmailForm
@@ -10,6 +11,7 @@ __all__ = [
     "AddGroupForm",
     "AddUserForm",
     "GroupMembershipForm",
+    "ImageUpdateForm",
     "ManageUserGroupsForm",
     "PersonForm",
     "UserEmailForm",

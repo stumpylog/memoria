@@ -1,0 +1,442 @@
+{% extends "base.html.jinja" %} {# Assumes a base template with Bootstrap 5 CSS/JS included #}
+{% block title %}
+    Edit Image: {{ object.title|default('Untitled', true) }}
+{% endblock title %}
+{% block content %}
+    <div class="container mt-4 mb-5">
+        <h2 class="mb-3">Edit Image: {{ object.title|default('Untitled', true) }}</h2>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {# Display non-field errors (form-level errors) #}
+            {% if form.non_field_errors() %}
+                <div class="alert alert-danger" role="alert">
+                    {% for error in form.non_field_errors() %}<p class="mb-0">{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+            {# General Information Section #}
+            <fieldset class="border p-3 mb-4 rounded">
+                <legend class="w-auto px-2 h5">Basic Information</legend>
+                <div class="mb-3">
+                    <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+                    <input type="text"
+                           name="{{ form.title.html_name }}"
+                           id="{{ form.title.id_for_label }}"
+                           class="form-control {% if form.title.errors %}is-invalid{% endif %}"
+                           value="{{ form.title.value() |default('', true) }}">
+                    {% if form.title.help_text %}<div class="form-text">{{ form.title.help_text }}</div>{% endif %}
+                    {% for error in form.title.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                    <textarea name="{{ form.description.html_name }}"
+                              id="{{ form.description.id_for_label }}"
+                              class="form-control {% if form.description.errors %}is-invalid{% endif %}"
+                              rows="4">{{ form.description.value()|default('', true) }}</textarea>
+                    {% if form.description.help_text %}
+                        <div class="form-text">{{ form.description.help_text }}</div>
+                    {% endif %}
+                    {% for error in form.description.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+            </fieldset>
+            {# Date Section #}
+            <fieldset class="border p-3 mb-4 rounded">
+                <legend class="w-auto px-2 h5">Date Taken (Approximate)</legend>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.date_year.id_for_label }}" class="form-label">{{ form.date_year.label }}</label>
+                        {# This input will be enhanced by Choices.js #}
+                        <select name="{{ form.date_year.html_name }}"
+                                id="{{ form.date_year.id_for_label }}"
+                                class="form-control {% if form.date_year.errors %}is-invalid{% endif %}"
+                                placeholder="{{ form.date_year.field.widget.attrs.placeholder|default('YYYY') }}">
+                            {% if form.date_year.value() %}
+                                <option value="{{ form.date_year.value() }}" selected>{{ form.date_year.value() }}</option>
+                            {% endif %}
+                        </select>
+                        {% if form.date_year.help_text %}<div class="form-text">{{ form.date_year.help_text }}</div>{% endif %}
+                        {% for error in form.date_year.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.date_month.id_for_label }}" class="form-label">{{ form.date_month.label }}</label>
+                        <input type="number"
+                               name="{{ form.date_month.html_name }}"
+                               id="{{ form.date_month.id_for_label }}"
+                               class="form-control {% if form.date_month.errors %}is-invalid{% endif %}"
+                               value="{{ form.date_month.value() |default('', true) }}"
+                               placeholder="{{ form.date_month.field.widget.attrs.placeholder|default('MM') }}"
+                               min="1"
+                               max="12"
+                               disabled>
+                        {% if form.date_month.help_text %}<div class="form-text">{{ form.date_month.help_text }}</div>{% endif %}
+                        {% for error in form.date_month.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.date_day.id_for_label }}" class="form-label">{{ form.date_day.label }}</label>
+                        <input type="number"
+                               name="{{ form.date_day.html_name }}"
+                               id="{{ form.date_day.id_for_label }}"
+                               class="form-control {% if form.date_day.errors %}is-invalid{% endif %}"
+                               value="{{ form.date_day.value() |default('', true) }}"
+                               placeholder="{{ form.date_day.field.widget.attrs.placeholder|default('DD') }}"
+                               min="1"
+                               max="31"
+                               disabled>
+                        {% if form.date_day.help_text %}<div class="form-text">{{ form.date_day.help_text }}</div>{% endif %}
+                        {% for error in form.date_day.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+            </fieldset>
+            {# Location Section #}
+            <fieldset class="border p-3 mb-4 rounded">
+                <legend class="w-auto px-2 h5">Location</legend>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.location_country_input.id_for_label }}"
+                               class="form-label">{{ form.location_country_input.label }}</label>
+                        {# This input will be enhanced by Choices.js #}
+                        <select name="{{ form.location_country_input.html_name }}"
+                                id="{{ form.location_country_input.id_for_label }}"
+                                class="form-control {% if form.location_country_input.errors %}is-invalid{% endif %}"
+                                placeholder="{{ form.location_country_input.field.widget.attrs.placeholder|default('e.g., United States or US') }}">
+                            {% if form.location_country_input.value() %}
+                                <option value="{{ form.location_country_input.value() }}" selected>{{ form.location_country_input.value() }}</option>
+                            {% endif %}
+                        </select>
+                        {% if form.location_country_input.help_text %}
+                            <div class="form-text">{{ form.location_country_input.help_text }}</div>
+                        {% endif %}
+                        {% for error in form.location_country_input.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.location_subdivision_input.id_for_label }}"
+                               class="form-label">{{ form.location_subdivision_input.label }}</label>
+                        {# This input will be enhanced by Choices.js #}
+                        <select name="{{ form.location_subdivision_input.html_name }}"
+                                id="{{ form.location_subdivision_input.id_for_label }}"
+                                class="form-control {% if form.location_subdivision_input.errors %}is-invalid{% endif %}"
+                                placeholder="{{ form.location_subdivision_input.field.widget.attrs.placeholder|default('e.g., California or CA') }}"
+                                disabled>
+                            {% if form.location_subdivision_input.value() %}
+                                <option value="{{ form.location_subdivision_input.value() }}" selected>
+                                    {{ form.location_subdivision_input.value() }}
+                                </option>
+                            {% endif %}
+                        </select>
+                        {% if form.location_subdivision_input.help_text %}
+                            <div class="form-text">{{ form.location_subdivision_input.help_text }}</div>
+                        {% endif %}
+                        {% for error in form.location_subdivision_input.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.location_city.id_for_label }}" class="form-label">{{ form.location_city.label }}</label>
+                        <input type="text"
+                               name="{{ form.location_city.html_name }}"
+                               id="{{ form.location_city.id_for_label }}"
+                               class="form-control {% if form.location_city.errors %}is-invalid{% endif %}"
+                               value="{{ form.location_city.value() |default('', true) }}"
+                               placeholder="{{ form.location_city.field.widget.attrs.placeholder|default('e.g., San Francisco') }}"
+                               disabled>
+                        {% if form.location_city.help_text %}<div class="form-text">{{ form.location_city.help_text }}</div>{% endif %}
+                        {% for error in form.location_city.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.location_sub_location.id_for_label }}"
+                               class="form-label">{{ form.location_sub_location.label }}</label>
+                        <input type="text"
+                               name="{{ form.location_sub_location.html_name }}"
+                               id="{{ form.location_sub_location.id_for_label }}"
+                               class="form-control {% if form.location_sub_location.errors %}is-invalid{% endif %}"
+                               value="{{ form.location_sub_location.value() |default('', true) }}"
+                               placeholder="{{ form.location_sub_location.field.widget.attrs.placeholder|default('e.g., Golden Gate Bridge') }}"
+                               disabled>
+                        {% if form.location_sub_location.help_text %}
+                            <div class="form-text">{{ form.location_sub_location.help_text }}</div>
+                        {% endif %}
+                        {% for error in form.location_sub_location.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </fieldset>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="{{ url('image_detail', pk=image.pk) }}"
+                   class="btn btn-outline-secondary ms-2">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock content %}
+{% block extra_js %}
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const yearInputEl = document.getElementById('{{ form.date_year.id_for_label }}');
+    const monthInput = document.getElementById('{{ form.date_month.id_for_label }}');
+    const dayInput = document.getElementById('{{ form.date_day.id_for_label }}');
+
+    const countryInputEl = document.getElementById('{{ form.location_country_input.id_for_label }}');
+    const subdivisionInputEl = document.getElementById('{{ form.location_subdivision_input.id_for_label }}');
+    const cityInput = document.getElementById('{{ form.location_city.id_for_label }}');
+    const subLocationInput = document.getElementById('{{ form.location_sub_location.id_for_label }}');
+
+    let yearChoices, countryChoices, subdivisionChoices;
+
+    // Initialize Year Choices
+    if (yearInputEl) {
+        let finalYearChoicesData = [];
+        try {
+            // Use default([]) filter for robustness if context variable might be entirely missing
+            const rawYearData = {{ available_years_for_choicesjs|default([])|tojson|safe }};
+            console.log('[Debug] Raw year data from template:', rawYearData, typeof rawYearData);
+            if (Array.isArray(rawYearData)) {
+                finalYearChoicesData = rawYearData.map(String).map(y => ({ value: y, label: y }));
+            } else {
+                console.warn('[Debug] Raw year data was not an array. Defaulting to empty.');
+            }
+        } catch (e) {
+            console.error("[Debug] Error processing year data:", e);
+        }
+        console.log('[Debug] Data for Year Choices instance:', finalYearChoicesData);
+
+        yearChoices = new Choices(yearInputEl, {
+            removeItemButton: true,
+            placeholderValue: 'Select or type year',
+            choices: finalYearChoicesData,
+            addItemText: (value) => `Press Enter to add year <b>"${value}"</b>`,
+            searchEnabled: true,
+            shouldSort: false,
+            allowHTML: true,
+            duplicateItemsAllowed: false,
+            paste: true,
+            addItems: true,
+            createItemFunction: function(value) {
+                const year = parseInt(value.trim());
+                if (!isNaN(year) && year > 0 && year < 10000) {
+                    return {
+                        value: String(year),
+                        label: String(year)
+                    };
+                }
+                return null; // Return null to indicate invalid input
+            }
+        });
+    } else {
+        console.warn('[Debug] yearInputEl element not found.');
+    }
+
+    // Initialize Country Choices
+    if (countryInputEl) {
+        let finalCountryChoicesData = [];
+        try {
+            const rawCountryData = {{ available_countries_for_choicesjs|default([])|tojson|safe }};
+            console.log('[Debug] Raw country data from template:', rawCountryData, typeof rawCountryData);
+            if (Array.isArray(rawCountryData)) {
+                finalCountryChoicesData = rawCountryData.filter(
+                    item => typeof item === 'object' && item !== null && 'value' in item && 'label' in item
+                );
+                if (finalCountryChoicesData.length !== rawCountryData.length && rawCountryData.length > 0) {
+                    console.warn('[Debug] Some country data items were filtered due to incorrect format.');
+                }
+            } else {
+                console.warn('[Debug] Raw country data was not an array. Defaulting to empty.');
+            }
+        } catch (e) {
+            console.error("[Debug] Error processing country data:", e);
+        }
+        console.log('[Debug] Data for Country Choices instance:', finalCountryChoicesData);
+
+        countryChoices = new Choices(countryInputEl, {
+            removeItemButton: true,
+            placeholderValue: 'Select or type country',
+            choices: finalCountryChoicesData,
+            addItemText: (value) => `Press Enter to add country <b>"${value}"</b>`,
+            searchResultLimit: 10,
+            searchEnabled: true,
+            allowHTML: true
+        });
+    } else {
+        console.warn('[Debug] countryInputEl element not found.');
+    }
+
+    // Initialize Subdivision Choices
+    if (subdivisionInputEl) {
+        console.log('[Debug] Initializing empty Subdivision Choices.');
+        subdivisionChoices = new Choices(subdivisionInputEl, {
+            removeItemButton: true,
+            placeholderValue: 'Select or type state/province',
+            choices: [], // Always initialize with an empty array
+            addItemText: (value) => `Press Enter to add subdivision <b>"${value}"</b>`,
+            searchResultLimit: 10,
+            searchEnabled: true,
+            allowHTML: true
+        });
+        subdivisionChoices.disable();
+    } else {
+        console.warn('[Debug] subdivisionInputEl element not found.');
+    }
+
+    async function updateSubdivisionChoices(countryCode) {
+        if (!subdivisionChoices) {
+            console.warn("[Debug] Subdivision Choices instance not available for update.");
+            return;
+        }
+
+        subdivisionChoices.clearStore();
+
+        if (!countryCode) {
+            subdivisionChoices.setChoices([{ value: '', label: 'Select a country first', disabled: true, placeholder: true }], 'value', 'label', true);
+            subdivisionChoices.disable();
+            return;
+        }
+
+        subdivisionChoices.enable();
+        subdivisionChoices.setChoices([{ value: '', label: 'Loading subdivisions...', disabled: true, placeholder: true }], 'value', 'label', true);
+
+        try {
+            const response = await fetch(`{{ url('ajax_get_subdivisions') }}?country_code=${encodeURIComponent(countryCode)}`);
+            if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+
+            let newSubdivisionData = await response.json();
+            console.log('[Debug] Data for Subdivision setChoices (from AJAX):', newSubdivisionData);
+
+            if (!Array.isArray(newSubdivisionData)) {
+                console.error('[Debug] newSubdivisionData from AJAX was not an array!');
+                newSubdivisionData = [];
+            }
+
+            subdivisionChoices.clearStore(); // Clear loading message
+            if (newSubdivisionData.length > 0) {
+                subdivisionChoices.setChoices(newSubdivisionData, 'value', 'label', true);
+            } else {
+                subdivisionChoices.setChoices([{ value: '', label: 'No subdivisions available', disabled: true, placeholder: true }], 'value', 'label', true);
+            }
+        } catch (error) {
+            console.error('Failed to load subdivisions:', error);
+            subdivisionChoices.clearStore(); // Clear loading message
+            subdivisionChoices.setChoices([{ value: '', label: 'Error loading subdivisions', disabled: true, placeholder: true }], 'value', 'label', true);
+        }
+    }
+
+    function getDaysInMonth(year, month) { // month is 1-indexed (January is 1)
+        if (!year || !month || isNaN(parseInt(year)) || isNaN(parseInt(month))) return 31; // Default
+        return new Date(parseInt(year), parseInt(month), 0).getDate();
+    }
+
+    function updateDateDependencies() {
+        const yearVal = yearChoices ? yearChoices.getValue(true) : (yearInputEl ? yearInputEl.value.trim() : null);
+        const monthVal = monthInput ? monthInput.value.trim() : null;
+
+        // Enable/disable month based on year selection
+        if (monthInput) {
+            monthInput.disabled = !yearVal;
+            if (!yearVal) monthInput.value = '';
+        }
+
+        // Enable/disable day based on month selection
+        if (dayInput) {
+            dayInput.disabled = !(yearVal && monthVal);
+            if (!(yearVal && monthVal)) dayInput.value = '';
+        }
+
+        // Update day input max value based on month/year
+        if (yearVal && monthVal && dayInput) {
+            const maxDays = getDaysInMonth(yearVal, monthVal);
+            dayInput.max = maxDays;
+
+            // Validate current day value
+            const dayVal = parseInt(dayInput.value);
+            if (dayInput.value && (dayVal > maxDays || dayVal < 1)) {
+                dayInput.classList.add('is-invalid');
+            } else if (dayInput.value) {
+                dayInput.classList.remove('is-invalid');
+            }
+        }
+    }
+
+    function updateLocationDependencies() {
+        const countryVal = countryChoices ? countryChoices.getValue(true) : (countryInputEl ? countryInputEl.value.trim() : null);
+        const subdivisionVal = subdivisionChoices ? subdivisionChoices.getValue(true) : (subdivisionInputEl ? subdivisionInputEl.value.trim() : null);
+
+        // Enable/disable city field based on country selection
+        if (cityInput) {
+            cityInput.disabled = !countryVal;
+            if (!countryVal) cityInput.value = '';
+        }
+
+        // Enable/disable sub-location field based on city selection
+        if (subLocationInput) {
+            const cityVal = cityInput ? cityInput.value.trim() : null;
+            subLocationInput.disabled = !(countryVal && cityVal);
+            if (!(countryVal && cityVal)) subLocationInput.value = '';
+        }
+    }
+
+    // Attach event listeners
+    if (yearChoices) {
+        yearInputEl.addEventListener('change', function() {
+            updateDateDependencies();
+        });
+    }
+
+    if (countryChoices) {
+        countryInputEl.addEventListener('change', function() {
+            const selectedCountryCode = countryChoices.getValue(true);
+            console.log('[Debug] Country changed to:', selectedCountryCode);
+            updateSubdivisionChoices(selectedCountryCode);
+            updateLocationDependencies();
+        });
+    }
+
+    if (monthInput) {
+        monthInput.addEventListener('input', updateDateDependencies);
+    }
+
+    if (dayInput) {
+        dayInput.addEventListener('input', function() {
+            if (yearInputEl && monthInput && yearInputEl.value && monthInput.value) {
+                const maxDays = getDaysInMonth(
+                    yearChoices ? yearChoices.getValue(true) : yearInputEl.value.trim(),
+                    monthInput.value.trim()
+                );
+                const dayVal = parseInt(dayInput.value);
+
+                if (dayVal > maxDays || dayVal < 1) {
+                    dayInput.classList.add('is-invalid');
+                } else {
+                    dayInput.classList.remove('is-invalid');
+                }
+            }
+        });
+    }
+
+    if (cityInput) {
+        cityInput.addEventListener('input', updateLocationDependencies);
+    }
+
+    if (subdivisionChoices && subdivisionInputEl) {
+        subdivisionInputEl.addEventListener('change', updateLocationDependencies);
+    }
+
+    // Initial state setup on page load
+    updateDateDependencies();
+    updateLocationDependencies();
+
+    // Initialize subdivisions if country is pre-selected
+    const initialCountryValue = countryChoices ? countryChoices.getValue(true) : (countryInputEl ? countryInputEl.value : null);
+    console.log('[Debug] Initial country value for subdivision load:', initialCountryValue);
+    if (initialCountryValue) {
+        updateSubdivisionChoices(initialCountryValue);
+    } else if (subdivisionChoices) {
+        updateSubdivisionChoices(null);
+    }
+});
+    </script>
+{% endblock extra_js %}
