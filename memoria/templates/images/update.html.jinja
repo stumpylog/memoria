@@ -125,24 +125,24 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="{{ form.location_city.id_for_label }}" class="form-label">{{ form.location_city.label }}</label>
-                        <input type="text"
-                               name="{{ form.location_city.html_name }}"
-                               id="{{ form.location_city.id_for_label }}"
-                               class="form-control {% if form.location_city.errors %}is-invalid{% endif %}"
-                               placeholder="{{ form.location_city.field.widget.attrs.placeholder|default('e.g., San Francisco') }}"
-                               {% if form.location_city.value() %} value="{{ form.location_city.value() }}" {% else %} disabled {% endif %}>
+                        <select name="{{ form.location_city.html_name }}"
+                                id="{{ form.location_city.id_for_label }}"
+                                class="form-control {% if form.location_city.errors %}is-invalid{% endif %}"
+                                data-placeholder="{{ form.location_city.field.widget.attrs.placeholder|default('e.g., San Francisco') }}">
+                            {# Options will be populated by Choices.js #}
+                        </select>
                         {% if form.location_city.help_text %}<div class="form-text">{{ form.location_city.help_text }}</div>{% endif %}
                         {% for error in form.location_city.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="{{ form.location_sub_location.id_for_label }}"
                                class="form-label">{{ form.location_sub_location.label }}</label>
-                        <input type="text"
-                               name="{{ form.location_sub_location.html_name }}"
-                               id="{{ form.location_sub_location.id_for_label }}"
-                               class="form-control {% if form.location_sub_location.errors %}is-invalid{% endif %}"
-                               placeholder="{{ form.location_sub_location.field.widget.attrs.placeholder|default('e.g., Golden Gate Bridge') }}"
-                               {% if form.location_city.value() %} value="{{ form.location_sub_location.value() }}" {% else %} disabled {% endif %}>
+                        <select name="{{ form.location_sub_location.html_name }}"
+                                id="{{ form.location_sub_location.id_for_label }}"
+                                class="form-control {% if form.location_sub_location.errors %}is-invalid{% endif %}"
+                                data-placeholder="{{ form.location_sub_location.field.widget.attrs.placeholder|default('e.g., Golden Gate Bridge') }}">
+                            {# Options will be populated by Choices.js #}
+                        </select>
                         {% if form.location_sub_location.help_text %}
                             <div class="form-text">{{ form.location_sub_location.help_text }}</div>
                         {% endif %}
@@ -243,10 +243,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             searchResultLimit: 10,
             searchEnabled: true,
             allowHTML: false,
-            addItems: true,
+            addChoices: true,
             duplicateItemsAllowed: false,
             shouldSort: true,
-            maxItemCount: 1,
         });
         cityChoices.disable();
     } else {
@@ -266,10 +265,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             searchResultLimit: 10,
             searchEnabled: true,
             allowHTML: false,
-            addItems: true,
+            addChoices: true,
             duplicateItemsAllowed: false,
             shouldSort: true,
-            maxItemCount: 1,
         });
         subLocationChoices.disable();
     } else {
@@ -324,16 +322,22 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
 
-        cityChoices.clearStore();
+        cityChoices.clearStore(); // Clear previous choices, selections, and listeners
 
         if (!countryCode) {
-            cityChoices.setValue([{ value: '', label: 'Select a country first', disabled: true, placeholder: true }], 'value', 'label', true);
+            cityChoices.setChoices(
+                [{ value: '', label: 'Select a country first', disabled: true, placeholder: true, selected: false }],
+                'value', 'label', true
+            );
             cityChoices.disable();
             return;
         }
 
         cityChoices.enable();
-        cityChoices.setValue([{ value: '', label: 'Loading cities...', disabled: true, placeholder: true }], 'value', 'label', true);
+        cityChoices.setChoices(
+            [{ value: '', label: 'Loading cities...', disabled: true, placeholder: true, selected: false }],
+            'value', 'label', true
+        );
 
         try {
             const url = new URL(`{{ url('ajax_get_cities') }}`, window.location.origin);
@@ -353,16 +357,23 @@ document.addEventListener('DOMContentLoaded', async function() {
                 cityData = [];
             }
 
-            cityChoices.clearStore(); // Clear loading message
+            // Clear the "Loading..." message. The true flag replaces all existing choices.
             if (cityData.length > 0) {
-                cityChoices.setValue(cityData, 'value', 'label', true);
+                cityChoices.setChoices(cityData, 'value', 'label', true);
             } else {
-                cityChoices.setValue([{ value: '', label: 'Type to add a new city', disabled: false, placeholder: true }], 'value', 'label', true);
+                // No cities from backend. Set empty choices.
+                // The `placeholderValue` (from Choices init) will show.
+                // `addItems: true` and `addItemText` will allow adding new ones.
+                cityChoices.setChoices([], 'value', 'label', true);
             }
         } catch (error) {
             console.error('Failed to load cities:', error);
-            cityChoices.clearStore(); // Clear loading message
-            cityChoices.setValue([{ value: '', label: 'Error loading cities', disabled: true, placeholder: true }], 'value', 'label', true);
+            cityChoices.setChoices(
+                [{ value: '', label: 'Error loading cities', disabled: true, placeholder: true, selected: false }],
+                'value', 'label', true
+            );
+            // Consider re-disabling if appropriate after an error
+            // cityChoices.disable();
         }
     }
 
@@ -375,13 +386,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         subLocationChoices.clearStore();
 
         if (!countryCode || !city) {
-            subLocationChoices.setValue([{ value: '', label: 'Select country and city first', disabled: true, placeholder: true }], 'value', 'label', true);
+            subLocationChoices.setChoices(
+                [{ value: '', label: 'Select country and city first', disabled: true, placeholder: true, selected: false }],
+                'value', 'label', true
+            );
             subLocationChoices.disable();
             return;
         }
 
         subLocationChoices.enable();
-        subLocationChoices.setValue([{ value: '', label: 'Loading locations...', disabled: true, placeholder: true }], 'value', 'label', true);
+        subLocationChoices.setChoices(
+            [{ value: '', label: 'Loading locations...', disabled: true, placeholder: true, selected: false }],
+            'value', 'label', true
+        );
 
         try {
             const url = new URL(`{{ url('ajax_get_sub_locations') }}`, window.location.origin);
@@ -395,23 +412,26 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
 
             let subLocationData = await response.json();
-            console.log('[Debug] Data for Sub-location setValue (from AJAX):', subLocationData);
+            console.log('[Debug] Data for Sub-location setChoices (from AJAX):', subLocationData);
 
             if (!Array.isArray(subLocationData)) {
                 console.error('[Debug] subLocationData from AJAX was not an array!');
                 subLocationData = [];
             }
 
-            subLocationChoices.clearStore(); // Clear loading message
             if (subLocationData.length > 0) {
-                subLocationChoices.setValue(subLocationData, 'value', 'label', true);
+                subLocationChoices.setChoices(subLocationData, 'value', 'label', true);
             } else {
-                subLocationChoices.setValue([{ value: '', label: 'Type to add a new location', disabled: true, placeholder: true }], 'value', 'label', true);
+                subLocationChoices.setChoices([], 'value', 'label', true);
             }
         } catch (error) {
             console.error('Failed to load sub-locations:', error);
-            subLocationChoices.clearStore(); // Clear loading message
-            subLocationChoices.setValue([{ value: '', label: 'Error loading locations', disabled: true, placeholder: true }], 'value', 'label', true);
+            subLocationChoices.setChoices(
+                [{ value: '', label: 'Error loading locations', disabled: true, placeholder: true, selected: false }],
+                'value', 'label', true
+            );
+            // Consider re-disabling if appropriate
+            // subLocationChoices.disable();
         }
     }
 
@@ -532,9 +552,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         {% if form.location_city.value() %}
             const initialCityValue = "{{ form.location_city.value() }}"
-            cityChoices.clearStore();
-            cityChoices.setValue(["{{ form.location_city.value() }}"]);
-            cityChoices.enable();
+            cityChoices.setChoiceByValue("{{ form.location_city.value() }}");
             console.log(initialCityValue);
         {% else %}
             const initialCityValue = null;
@@ -544,8 +562,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (initialCityValue) {
             await updateSubLocationChoices(initialCountryValue, initialSubdivisionValue, initialCityValue);
             {% if form.location_sub_location.value() %}
-            subLocationChoices.clearStore();
-            subLocationChoices.setValue(["{{ form.location_sub_location.value() }}"])
+            subLocationChoices.setChoiceByValue("{{ form.location_sub_location.value() }}")
+            console.log("{{ form.location_sub_location.value() }}");
             {% endif %}
         }
     } else {
