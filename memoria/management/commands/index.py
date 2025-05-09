@@ -21,7 +21,7 @@ from memoria.tasks.images import index_image_batch
 from memoria.tasks.images import index_update_existing_images
 from memoria.tasks.models import ImageIndexTaskModel
 from memoria.tasks.models import ImageUpdateTaskModel
-from memoria.utils import calculate_blake3_hash
+from memoria.utils.hashing import calculate_blake3_hash
 
 
 @dataclasses.dataclass(slots=True, frozen=True, order=True)

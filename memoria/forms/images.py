@@ -3,18 +3,18 @@
 
 import datetime
 from typing import Any
+from typing import cast
 
 from django import forms
-from simpleiso3166.countries.data import ALPHA2_CODE_TO_COUNTRIES
-from simpleiso3166.countries.types import CountryCodeAlpha2Type
-from simpleiso3166.subdivisions.types import SubdivisionCodeType
+from simpleiso3166 import ALPHA2_CODE_TO_COUNTRIES
+from simpleiso3166 import CountryCodeAlpha2Type
 
 from memoria.models import Image
 from memoria.models import RoughDate
 from memoria.models import RoughLocation
-from memoria.utils import get_country_code_from_name
-from memoria.utils import get_subdivision_code_from_name
-from memoria.utils import subdivision_in_country
+from memoria.utils.geo import get_country_code_from_name
+from memoria.utils.geo import get_subdivision_code_from_name
+from memoria.utils.geo import subdivision_in_country
 
 
 class ImageUpdateForm(forms.ModelForm):
@@ -120,12 +120,8 @@ class ImageUpdateForm(forms.ModelForm):
             if code_from_name:
                 final_country_code = code_from_name
             elif len(country_input) == 2 and country_input.isalpha():  # Basic check for code format
-                # A real app should validate against a list of actual ISO 3166-1 alpha-2 codes.
-                # Assuming `get_country_code_from_name` also handles codes if this check is too simple.
-                # For now, let's be optimistic if it looks like a code and name lookup failed.
-                # This could be: if pycountry.countries.get(alpha_2=country_input.upper()): ...
-                if country_input.upper() in ALPHA2_CODE_TO_COUNTRIES:  # Using mock for validation
-                    final_country_code = country_input.upper()
+                if country_input.upper() in ALPHA2_CODE_TO_COUNTRIES:
+                    final_country_code = cast("CountryCodeAlpha2Type", country_input.upper())
                 else:
                     self.add_error(
                         "location_country_input",
@@ -138,7 +134,7 @@ class ImageUpdateForm(forms.ModelForm):
                 )
         cleaned_data["final_country_code"] = final_country_code
 
-        final_subdivision_code: SubdivisionCodeType | None = None
+        final_subdivision_code: str | None = None
         if final_country_code and subdivision_input:
             code_from_name = get_subdivision_code_from_name(final_country_code, subdivision_input)
             if code_from_name:
@@ -148,12 +144,12 @@ class ImageUpdateForm(forms.ModelForm):
                 final_subdivision_code = subdivision_input.upper()
             # Check if input was a full ISO 3166-2 code like "US-CA"
             elif "-" in subdivision_input and len(subdivision_input.split("-")) == 2:
-                country_part, sub_part = subdivision_input.split("-", 1)
+                country_part, _ = subdivision_input.split("-", 1)
                 if country_part.upper() == final_country_code and subdivision_in_country(
                     final_country_code,
-                    sub_part.upper(),
+                    subdivision_input.upper(),
                 ):
-                    final_subdivision_code = sub_part.upper()
+                    final_subdivision_code = subdivision_input.upper()
                 else:
                     self.add_error(
                         "location_subdivision_input",

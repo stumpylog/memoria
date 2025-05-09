@@ -22,14 +22,14 @@ from memoria.models import Tag
 from memoria.models import TagOnImage
 from memoria.tasks.models import ImageIndexTaskModel
 from memoria.tasks.models import ImageUpdateTaskModel
-from memoria.utils import calculate_blake3_hash
-from memoria.utils import calculate_image_phash
-from memoria.utils import get_country_code_from_name
-from memoria.utils import get_subdivision_code_from_name
 from memoria.utils.constants import DATE_KEYWORD
 from memoria.utils.constants import LOCATION_KEYWORD
 from memoria.utils.constants import PEOPLE_KEYWORD
 from memoria.utils.constants import PET_KEYWORD
+from memoria.utils.geo import get_country_code_from_name
+from memoria.utils.geo import get_subdivision_code_from_name
+from memoria.utils.hashing import calculate_blake3_hash
+from memoria.utils.hashing import calculate_image_phash
 from memoria.utils.photos import generate_image_versions_pyvips
 
 
@@ -343,9 +343,10 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
             new_image.save()
 
             if created:
-                pkg.logger.info(f"    Created new RoughLocation: {location}")
+                pkg.logger.debug(f"    Created new RoughLocation: {location}")
             else:
                 pkg.logger.debug(f"    Using existing RoughLocation: {location}")
+            pkg.logger.info(f"    Set location as {location}")
 
         except Exception:
             pkg.logger.exception("    Failed to set location")

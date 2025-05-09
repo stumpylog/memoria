@@ -1,4 +1,7 @@
-{% extends "base.html.jinja" %} {# Assumes a base template with Bootstrap 5 CSS/JS included #}
+{% extends "base.html.jinja" %}
+{% block extra_head %}
+    <link rel="stylesheet" href="{{ static('choicesjs/css/choices.min.css') }}" />
+{% endblock extra_head %}
 {% block title %}
     Edit Image: {{ object.title|default('Untitled', true) }}
 {% endblock title %}
@@ -94,9 +97,6 @@
                                 id="{{ form.location_country_input.id_for_label }}"
                                 class="form-control {% if form.location_country_input.errors %}is-invalid{% endif %}"
                                 placeholder="{{ form.location_country_input.field.widget.attrs.placeholder|default('e.g., United States or US') }}">
-                            {% if form.location_country_input.value() %}
-                                <option value="{{ form.location_country_input.value() }}" selected>{{ form.location_country_input.value() }}</option>
-                            {% endif %}
                         </select>
                         {% if form.location_country_input.help_text %}
                             <div class="form-text">{{ form.location_country_input.help_text }}</div>
@@ -112,13 +112,7 @@
                         <select name="{{ form.location_subdivision_input.html_name }}"
                                 id="{{ form.location_subdivision_input.id_for_label }}"
                                 class="form-control {% if form.location_subdivision_input.errors %}is-invalid{% endif %}"
-                                placeholder="{{ form.location_subdivision_input.field.widget.attrs.placeholder|default('e.g., California or CA') }}"
-                                disabled>
-                            {% if form.location_subdivision_input.value() %}
-                                <option value="{{ form.location_subdivision_input.value() }}" selected>
-                                    {{ form.location_subdivision_input.value() }}
-                                </option>
-                            {% endif %}
+                                placeholder="{{ form.location_subdivision_input.field.widget.attrs.placeholder|default('e.g., California or CA') }}">
                         </select>
                         {% if form.location_subdivision_input.help_text %}
                             <div class="form-text">{{ form.location_subdivision_input.help_text }}</div>
@@ -135,9 +129,8 @@
                                name="{{ form.location_city.html_name }}"
                                id="{{ form.location_city.id_for_label }}"
                                class="form-control {% if form.location_city.errors %}is-invalid{% endif %}"
-                               value="{{ form.location_city.value() |default('', true) }}"
                                placeholder="{{ form.location_city.field.widget.attrs.placeholder|default('e.g., San Francisco') }}"
-                               disabled>
+                               {% if form.location_city.value() %} value="{{ form.location_city.value() }}" {% else %} disabled {% endif %}>
                         {% if form.location_city.help_text %}<div class="form-text">{{ form.location_city.help_text }}</div>{% endif %}
                         {% for error in form.location_city.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
                     </div>
@@ -148,9 +141,8 @@
                                name="{{ form.location_sub_location.html_name }}"
                                id="{{ form.location_sub_location.id_for_label }}"
                                class="form-control {% if form.location_sub_location.errors %}is-invalid{% endif %}"
-                               value="{{ form.location_sub_location.value() |default('', true) }}"
                                placeholder="{{ form.location_sub_location.field.widget.attrs.placeholder|default('e.g., Golden Gate Bridge') }}"
-                               disabled>
+                               {% if form.location_city.value() %} value="{{ form.location_sub_location.value() }}" {% else %} disabled {% endif %}>
                         {% if form.location_sub_location.help_text %}
                             <div class="form-text">{{ form.location_sub_location.help_text }}</div>
                         {% endif %}
@@ -169,11 +161,9 @@
     </div>
 {% endblock content %}
 {% block extra_js %}
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <script src="{{static('choicesjs\js\choices.min.js')}}"></script>
     <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Date inputs
     const yearInput = document.getElementById('{{ form.date_year.id_for_label }}');
     const monthInput = document.getElementById('{{ form.date_month.id_for_label }}');
@@ -182,10 +172,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Location inputs
     const countryInputEl = document.getElementById('{{ form.location_country_input.id_for_label }}');
     const subdivisionInputEl = document.getElementById('{{ form.location_subdivision_input.id_for_label }}');
-    const cityInput = document.getElementById('{{ form.location_city.id_for_label }}');
-    const subLocationInput = document.getElementById('{{ form.location_sub_location.id_for_label }}');
+    const cityInputEl = document.getElementById('{{ form.location_city.id_for_label }}');
+    const subLocationInputEl = document.getElementById('{{ form.location_sub_location.id_for_label }}');
 
-    let countryChoices, subdivisionChoices;
+    let countryChoices, subdivisionChoices, cityChoices, subLocationChoices;
 
     // Initialize Country Choices
     if (countryInputEl) {
@@ -212,10 +202,11 @@ document.addEventListener('DOMContentLoaded', function() {
             removeItemButton: true,
             placeholderValue: 'Select or type country',
             choices: finalCountryChoicesData,
-            addItemText: (value) => `Press Enter to add country <b>"${value}"</b>`,
             searchResultLimit: 10,
             searchEnabled: true,
-            allowHTML: true
+            allowHTML: false,
+            addItems: false,
+            removeItems: false
         });
     } else {
         console.warn('[Debug] countryInputEl element not found.');
@@ -227,15 +218,62 @@ document.addEventListener('DOMContentLoaded', function() {
         subdivisionChoices = new Choices(subdivisionInputEl, {
             removeItemButton: true,
             placeholderValue: 'Select or type state/province',
-            choices: [], // Always initialize with an empty array
-            addItemText: (value) => `Press Enter to add subdivision <b>"${value}"</b>`,
+            choices: [],
             searchResultLimit: 10,
             searchEnabled: true,
-            allowHTML: true
+            allowHTML: false,
+            addItems: false,
+            removeItems: false,
+            shouldSort: true,
         });
-        subdivisionChoices.disable();
     } else {
         console.warn('[Debug] subdivisionInputEl element not found.');
+    }
+
+    // Initialize City Choices
+    if (cityInputEl) {
+        console.log('[Debug] Initializing empty City Choices.');
+        cityChoices = new Choices(cityInputEl, {
+            removeItemButton: true,
+            placeholderValue: 'Select or type city',
+            choices: [], // Always initialize with an empty array
+            addItemText: (value, rawValue) => {
+      return `Press Enter to city <b>"${value}"</b>`;
+    },
+            searchResultLimit: 10,
+            searchEnabled: true,
+            allowHTML: false,
+            addItems: true,
+            duplicateItemsAllowed: false,
+            shouldSort: true,
+            maxItemCount: 1,
+        });
+        cityChoices.disable();
+    } else {
+        console.warn('[Debug] cityInputEl element not found.');
+    }
+
+    // Initialize Sub-location Choices
+    if (subLocationInputEl) {
+        console.log('[Debug] Initializing empty Sub-location Choices.');
+        subLocationChoices = new Choices(subLocationInputEl, {
+            removeItemButton: true,
+            placeholderValue: 'Select or type specific location',
+            choices: [], // Always initialize with an empty array
+            addItemText: (value, rawValue) => {
+      return `Press Enter to add location <b>"${value}"</b>`;
+    },
+            searchResultLimit: 10,
+            searchEnabled: true,
+            allowHTML: false,
+            addItems: true,
+            duplicateItemsAllowed: false,
+            shouldSort: true,
+            maxItemCount: 1,
+        });
+        subLocationChoices.disable();
+    } else {
+        console.warn('[Debug] subLocationInputEl element not found.');
     }
 
     async function updateSubdivisionChoices(countryCode) {
@@ -280,6 +318,103 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    async function updateCityChoices(countryCode, subdivisionCode) {
+        if (!cityChoices) {
+            console.warn("[Debug] City Choices instance not available for update.");
+            return;
+        }
+
+        cityChoices.clearStore();
+
+        if (!countryCode) {
+            cityChoices.setValue([{ value: '', label: 'Select a country first', disabled: true, placeholder: true }], 'value', 'label', true);
+            cityChoices.disable();
+            return;
+        }
+
+        cityChoices.enable();
+        cityChoices.setValue([{ value: '', label: 'Loading cities...', disabled: true, placeholder: true }], 'value', 'label', true);
+
+        try {
+            const url = new URL(`{{ url('ajax_get_cities') }}`, window.location.origin);
+            url.searchParams.append('country_code', countryCode);
+            if (subdivisionCode) {
+                url.searchParams.append('subdivision_code', subdivisionCode);
+            }
+
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+
+            let cityData = await response.json();
+            console.log('[Debug] Data for City setChoices (from AJAX):', cityData);
+
+            if (!Array.isArray(cityData)) {
+                console.error('[Debug] cityData from AJAX was not an array!');
+                cityData = [];
+            }
+
+            cityChoices.clearStore(); // Clear loading message
+            if (cityData.length > 0) {
+                cityChoices.setValue(cityData, 'value', 'label', true);
+            } else {
+                cityChoices.setValue([{ value: '', label: 'Type to add a new city', disabled: false, placeholder: true }], 'value', 'label', true);
+            }
+        } catch (error) {
+            console.error('Failed to load cities:', error);
+            cityChoices.clearStore(); // Clear loading message
+            cityChoices.setValue([{ value: '', label: 'Error loading cities', disabled: true, placeholder: true }], 'value', 'label', true);
+        }
+    }
+
+    async function updateSubLocationChoices(countryCode, subdivisionCode, city) {
+        if (!subLocationChoices) {
+            console.warn("[Debug] Sub-location Choices instance not available for update.");
+            return;
+        }
+
+        subLocationChoices.clearStore();
+
+        if (!countryCode || !city) {
+            subLocationChoices.setValue([{ value: '', label: 'Select country and city first', disabled: true, placeholder: true }], 'value', 'label', true);
+            subLocationChoices.disable();
+            return;
+        }
+
+        subLocationChoices.enable();
+        subLocationChoices.setValue([{ value: '', label: 'Loading locations...', disabled: true, placeholder: true }], 'value', 'label', true);
+
+        try {
+            const url = new URL(`{{ url('ajax_get_sub_locations') }}`, window.location.origin);
+            url.searchParams.append('country_code', countryCode);
+            if (subdivisionCode) {
+                url.searchParams.append('subdivision_code', subdivisionCode);
+            }
+            url.searchParams.append('city', city);
+
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+
+            let subLocationData = await response.json();
+            console.log('[Debug] Data for Sub-location setValue (from AJAX):', subLocationData);
+
+            if (!Array.isArray(subLocationData)) {
+                console.error('[Debug] subLocationData from AJAX was not an array!');
+                subLocationData = [];
+            }
+
+            subLocationChoices.clearStore(); // Clear loading message
+            if (subLocationData.length > 0) {
+                subLocationChoices.setValue(subLocationData, 'value', 'label', true);
+            } else {
+                subLocationChoices.setValue([{ value: '', label: 'Type to add a new location', disabled: true, placeholder: true }], 'value', 'label', true);
+            }
+        } catch (error) {
+            console.error('Failed to load sub-locations:', error);
+            subLocationChoices.clearStore(); // Clear loading message
+            subLocationChoices.setValue([{ value: '', label: 'Error loading locations', disabled: true, placeholder: true }], 'value', 'label', true);
+        }
+    }
+
     // Date validation functions
     function getDaysInMonth(year, month) { // month is 1-indexed (January is 1)
         if (!year || !month || isNaN(parseInt(year)) || isNaN(parseInt(month))) return 31; // Default
@@ -306,17 +441,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const countryVal = countryChoices ? countryChoices.getValue(true) : (countryInputEl ? countryInputEl.value.trim() : null);
         const subdivisionVal = subdivisionChoices ? subdivisionChoices.getValue(true) : (subdivisionInputEl ? subdivisionInputEl.value.trim() : null);
 
-        // Enable/disable city field based on country selection
-        if (cityInput) {
-            cityInput.disabled = !countryVal;
-            if (!countryVal) cityInput.value = '';
+        // Update cities when country or subdivision changes
+        if (countryVal) {
+            updateCityChoices(countryVal, subdivisionVal);
+        } else if (cityChoices) {
+            cityChoices.disable();
+            cityChoices.clearStore();
         }
 
-        // Enable/disable sub-location field based on city selection
-        if (subLocationInput) {
-            const cityVal = cityInput ? cityInput.value.trim() : null;
-            subLocationInput.disabled = !(countryVal && cityVal);
-            if (!(countryVal && cityVal)) subLocationInput.value = '';
+        // Update sub-locations when city changes
+        const cityVal = cityChoices ? cityChoices.getValue(true) : null;
+        if (countryVal && cityVal) {
+            updateSubLocationChoices(countryVal, subdivisionVal, cityVal);
+        } else if (subLocationChoices) {
+            subLocationChoices.disable();
+            subLocationChoices.clearStore();
         }
     }
 
@@ -343,25 +482,76 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    if (cityInput) {
-        cityInput.addEventListener('input', updateLocationDependencies);
+    if (subdivisionChoices && subdivisionInputEl) {
+        subdivisionInputEl.addEventListener('change', function() {
+            console.log('[Debug] Subdivision changed');
+            updateLocationDependencies();
+        });
     }
 
-    if (subdivisionChoices && subdivisionInputEl) {
-        subdivisionInputEl.addEventListener('change', updateLocationDependencies);
+    if (cityChoices && cityInputEl) {
+        cityInputEl.addEventListener('change', function() {
+            const selectedCity = cityChoices.getValue(true);
+            console.log('[Debug] City changed to:', selectedCity);
+
+            // Get current country and subdivision values
+            const countryVal = countryChoices ? countryChoices.getValue(true) : null;
+            const subdivisionVal = subdivisionChoices ? subdivisionChoices.getValue(true) : null;
+
+            // Update sub-locations based on new city value
+            if (countryVal && selectedCity) {
+                updateSubLocationChoices(countryVal, subdivisionVal, selectedCity);
+            }
+        });
     }
 
     // Initial state setup on page load
     updateDayMaxValue();
-    updateLocationDependencies();
 
     // Initialize subdivisions if country is pre-selected
-    const initialCountryValue = countryChoices ? countryChoices.getValue(true) : (countryInputEl ? countryInputEl.value : null);
+    {% if form.location_country_input.value() %}
+        const initialCountryValue = "{{ form.location_country_input.value() }}";
+        countryChoices.setChoiceByValue(initialCountryValue);
+    {% else %}
+        const initialCountryValue = "{{ form.location_country_input.value() }}";
+    {% endif %}
     console.log('[Debug] Initial country value for subdivision load:', initialCountryValue);
     if (initialCountryValue) {
-        updateSubdivisionChoices(initialCountryValue);
-    } else if (subdivisionChoices) {
-        updateSubdivisionChoices(null);
+        // Must await so the choices are updated
+        await updateSubdivisionChoices(initialCountryValue);
+
+        {% if form.location_subdivision_input.value() %}
+            const initialSubdivisionValue = "{{ form.location_subdivision_input.value() }}"
+            subdivisionChoices.setChoiceByValue("{{ form.location_subdivision_input.value() }}");
+            subdivisionChoices.enable();
+        {% else %}
+            const initialSubdivisionValue = null;
+        {% endif %}
+
+        await updateCityChoices(initialCountryValue, initialSubdivisionValue);
+
+        {% if form.location_city.value() %}
+            const initialCityValue = "{{ form.location_city.value() }}"
+            cityChoices.clearStore();
+            cityChoices.setValue(["{{ form.location_city.value() }}"]);
+            cityChoices.enable();
+            console.log(initialCityValue);
+        {% else %}
+            const initialCityValue = null;
+        {% endif %}
+
+        // Initialize sub-locations if city is pre-selected
+        if (initialCityValue) {
+            await updateSubLocationChoices(initialCountryValue, initialSubdivisionValue, initialCityValue);
+            {% if form.location_sub_location.value() %}
+            subLocationChoices.clearStore();
+            subLocationChoices.setValue(["{{ form.location_sub_location.value() }}"])
+            {% endif %}
+        }
+    } else {
+        if (subdivisionChoices) updateSubdivisionChoices(null);
+        if (cityChoices) cityChoices.disable();
+        if (subLocationChoices) subLocationChoices.disable();
     }
 });
     </script>

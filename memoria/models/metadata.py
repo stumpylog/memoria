@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from memoria.models.image import Image  # noqa: F401
 
 from django.db import models
-from simpleiso3166.countries import Country
+from simpleiso3166 import Country
 from treenode.models import TreeNodeModel
 
 from memoria.models.abstract import AbstractBoxInImage
@@ -225,12 +225,12 @@ class RoughLocation(AbstractTimestampMixin, ObjectPermissionModelMixin, models.M
         country = Country.from_alpha2(self.country_code)  # type: ignore[arg-type]
         if TYPE_CHECKING:
             assert isinstance(country, Country)
-        value = f"Country: {country.common_name or country.name}"
+        value = f"Country: {country.best_name} ({country.alpha2})"
         if self.subdivision_code:
             subdivision_name = country.get_subdivision_name(self.subdivision_code)  # type: ignore[arg-type]
             if TYPE_CHECKING:
                 assert isinstance(subdivision_name, str)
-            value = f"{value} - State: {subdivision_name}"
+            value = f"{value} - State: {subdivision_name} ({self.subdivision_code})"
         if self.city:
             value = f"{value} - City: {self.city}"
         if self.sub_location:
@@ -247,7 +247,7 @@ class RoughLocation(AbstractTimestampMixin, ObjectPermissionModelMixin, models.M
             # The code is validated
             assert country is not None
 
-        return country.name
+        return country.best_name
 
     @property
     def subdivision_name(self) -> str | None:

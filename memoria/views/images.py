@@ -4,6 +4,8 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
+from django.http import HttpRequest
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
@@ -11,11 +13,12 @@ from django.urls import reverse
 from django.views.generic import DetailView
 from django.views.generic import ListView
 from django.views.generic import UpdateView
+from simpleiso3166 import ALPHA2_CODE_TO_COUNTRIES
 
 from memoria.forms import ImageUpdateForm
 from memoria.models import Image
+from memoria.models import RoughLocation
 from memoria.utils.geo import get_country_list_for_autocomplete
-from memoria.utils.geo import get_subdivisions_for_country_for_autocomplete
 from memoria.views.mixins import DefaultPaginationMixin
 from memoria.views.mixins import ObjectPermissionViewMixin
 
@@ -110,10 +113,107 @@ class ImageUpdateView(LoginRequiredMixin, ObjectPermissionViewMixin, UpdateView)
         return redirect(reverse("image_update", kwargs={"pk": image.pk}))
 
 
-def get_subdivisions_ajax(request):
+# TODO: Make login required
+def ajax_get_subdivisions(request: HttpRequest):
     country_code = request.GET.get("country_code", None)
     if not country_code:
-        return JsonResponse([], safe=False)  # Return empty list if no country code
+        return JsonResponse([], safe=False)
 
-    subdivisions_list = get_subdivisions_for_country_for_autocomplete(country_code)
-    return JsonResponse(subdivisions_list, safe=False)
+    country_data = ALPHA2_CODE_TO_COUNTRIES.get(country_code)
+    if country_data:
+        return JsonResponse(
+            [{"value": subdivision.code, "label": subdivision.name} for subdivision in country_data.subdivisions],
+            safe=False,
+        )
+
+    return JsonResponse([], safe=False)
+
+
+def ajax_get_cities(request: HttpRequest):
+    """
+    AJAX endpoint to fetch city suggestions for autocomplete.
+
+    Required query parameters:
+    - country_code: The ISO country code
+
+    Optional query parameters:
+    - subdivision_code: The ISO subdivision code
+    - q: Search term for filtering results
+
+    Returns:
+    - JSON array of {value, label} objects for Choices.js
+    """
+    country_code = request.GET.get("country_code")
+    subdivision_code = request.GET.get("subdivision_code")
+    search_query = request.GET.get("q", "").strip()
+
+    if not country_code:
+        return JsonResponse([], safe=False)
+
+    # Build query to filter unique cities
+    query = Q(country_code=country_code)
+
+    if subdivision_code:
+        query &= Q(subdivision_code=subdivision_code)
+
+    # Only include cities that aren't null or empty
+    query &= ~Q(city__isnull=True) & ~Q(city="")
+
+    # Add search filter if provided
+    if search_query:
+        query &= Q(city__icontains=search_query)
+
+    # Get distinct cities (case-insensitive)
+    cities = RoughLocation.objects.filter(query).values_list("city", flat=True).distinct()
+
+    # Sort cities alphabetically and convert to choices format
+    cities_list = sorted(set(cities), key=lambda x: x.lower())
+    choices = [{"value": city, "label": city} for city in cities_list]
+
+    return JsonResponse(choices, safe=False)
+
+
+def ajax_get_sub_locations(request: HttpRequest):
+    """
+    AJAX endpoint to fetch sub-location suggestions for autocomplete.
+
+    Required query parameters:
+    - country_code: The ISO country code
+    - city: The city name
+
+    Optional query parameters:
+    - subdivision_code: The ISO subdivision code
+    - q: Search term for filtering results
+
+    Returns:
+    - JSON array of {value, label} objects for Choices.js
+    """
+    country_code = request.GET.get("country_code")
+    subdivision_code = request.GET.get("subdivision_code")
+    city = request.GET.get("city")
+    search_query = request.GET.get("q", "").strip()
+
+    if not country_code or not city:
+        return JsonResponse([], safe=False)
+
+    # Build query to filter unique sub-locations
+    query = Q(country_code=country_code) & Q(city=city)
+
+    if subdivision_code:
+        query &= Q(subdivision_code=subdivision_code)
+
+    # Only include sub_locations that aren't null or empty
+    query &= ~Q(sub_location__isnull=True) & ~Q(sub_location="")
+
+    # Add search filter if provided
+    if search_query:
+        query &= Q(sub_location__icontains=search_query)
+
+    # Get distinct sub_locations (case-insensitive)
+    sub_locations = RoughLocation.objects.filter(query).values_list("sub_location", flat=True).distinct()
+
+    # Sort sub_locations alphabetically and convert to choices format
+    sub_locations_list = sorted(set(sub_locations), key=lambda x: x.lower())
+    choices = [{"value": loc, "label": loc} for loc in sub_locations_list]
+
+    return JsonResponse(choices, safe=False)
