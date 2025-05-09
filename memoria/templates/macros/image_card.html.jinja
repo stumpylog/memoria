@@ -52,13 +52,7 @@ Args:
         <div class="card-body d-flex flex-column">
             {# Use flexbox for body content #}
             {# Card title: Use description or original name #}
-            {% if image.title %}
-                <h6 class="card-title">{{ image.title | truncate(100) }}</h6>
-            {% elif image.description %}
-                <h6 class="card-title">{{ image.description | truncate(100) }}</h6>
-            {% else %}
-                <h6 class="card-title">{{ image.original_name }}</h6>
-            {% endif %}
+            <h6 class="card-title">{{ image.title }}</h6>
             {# Link to view the full image details - use mt-auto to push button to bottom #}
             {% if url %}
                 {# Check if url function is available, good practice #}

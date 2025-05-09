@@ -1,0 +1,26 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  reset:
+    cmds:
+      - rm db.sqlite3 || true
+      - rm -r ./logs/ || true
+      - rm -r ./media/ || true
+      - uv run manage.py migrate
+  indexholmes:
+    cmds:
+      - uv run manage.py index --hash-threads 16 --view-group "Holmes Viewers" --edit-group "Holmes Editors" --top-lvl-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Parents'"
+  indexclaudia:
+    cmds:
+      - uv run manage.py index --hash-threads 16 --view-group "Claudia Viewers" --edit-group "Claudia Editors" --top-lvl-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Grandma's"
+  indexanderson:
+    cmds:
+      - uv run manage.py index --hash-threads 16 --view-group "Anderson Viewers" --edit-group "Anderson Editors" --top-lvl-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Anderson Family"
+  makemigrations:
+    cmds:
+      - uv run manage.py makemigrations

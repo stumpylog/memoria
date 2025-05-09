@@ -29,5 +29,16 @@ PEOPLE_KEYWORD: Final[str] = "People"
 PET_KEYWORD: Final[str] = "Pets"
 LOCATION_KEYWORD: Final[str] = "Locations"
 
-MIN_IMAGES_PER_PAGE = 1
-MAX_IMAGES_PER_PAGE = 200
+MIN_IMAGES_PER_PAGE: Final[int] = 1
+MAX_IMAGES_PER_PAGE: Final[int] = 200
+
+BATCH_SIZE: Final[int] = 2
+
+IMAGE_EXTENSIONS: Final[set[str]] = {
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".tiff",
+    ".tif",
+    ".webp",
+}

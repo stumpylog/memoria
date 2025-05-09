@@ -12,9 +12,11 @@ from huey.contrib.djhuey import lock_task
 
 from memoria.imageops.index import handle_existing_image
 from memoria.imageops.index import handle_new_image
+from memoria.imageops.replace import replace_image_via_path
 from memoria.imageops.sync import fill_image_metadata_from_db
 from memoria.models import Image as ImageModel
 from memoria.tasks.models import ImageIndexTaskModel
+from memoria.tasks.models import ImageReplaceTaskModel
 from memoria.tasks.models import ImageUpdateTaskModel
 from memoria.utils.constants import EXIF_TOOL_EXE
 
@@ -33,8 +35,8 @@ def sync_metadata_to_files(images: list[ImageModel]) -> None:
         try:
             metadata = ImageMetadata(
                 SourceFile=image.original_path,
-                ImageHeight=image.height,
-                ImageWidth=image.width,
+                ImageHeight=image.original_height,
+                ImageWidth=image.original_width,
             )
 
             updated = fill_image_metadata_from_db(image, metadata)
@@ -56,6 +58,9 @@ def sync_metadata_to_files(images: list[ImageModel]) -> None:
 
 @db_task()
 def index_image_batch(pkgs: list[ImageIndexTaskModel]) -> None:
+    """
+    These are all new images (the hash did not already exist)
+    """
     with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool, transaction.atomic():
         for pkg in pkgs:
             if not pkg.logger:
@@ -68,14 +73,29 @@ def index_image_batch(pkgs: list[ImageIndexTaskModel]) -> None:
 
 @db_task()
 def index_update_existing_images(pkgs: list[ImageUpdateTaskModel]) -> None:
-    with transaction.atomic():
+    """
+    These are all existing images, check for modifications to the locations
+    """
+    with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool, transaction.atomic():
         for pkg in pkgs:
             if not pkg.logger:
                 pkg.logger = logger
 
             pkg.logger.info(f"Checking {pkg.image_path.stem} for updates")
 
-            handle_existing_image(pkg)
+            handle_existing_image(pkg, tool)
+
+
+@db_task()
+def index_replace_existing_images(pkgs: list[ImageReplaceTaskModel]) -> None:
+    """
+    These images exist via Path, but are assumed to have been replaced with a new image file (with new metadata)
+    """
+    with transaction.atomic():
+        for pkg in pkgs:
+            if not pkg.logger:
+                pkg.logger = logger
+            replace_image_via_path(pkg)
 
 
 @db_periodic_task(crontab(minute="0", hour="0"))
@@ -83,6 +103,7 @@ def index_update_existing_images(pkgs: list[ImageUpdateTaskModel]) -> None:
 def remove_trashed_images() -> None:
     # Filter images based on deleted_at being less than now - some set period of time and call .delete on the queryset
     # TODO: Set the days from settings
-    qs = ImageModel.objects.filter(deleted_at__lte=timezone.now() - timedelta(days=30))
+    with transaction.atomic():
+        qs = ImageModel.objects.filter(deleted_at__lte=timezone.now() - timedelta(days=30))
 
-    qs.delete()
+        qs.delete()

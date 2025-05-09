@@ -9,7 +9,7 @@ from memoria.models import Image
 
 @dataclass(slots=True)
 class ImageIndexTaskModel:
-    parent_path: Path
+    top_level_dir: Path
     image_path: Path
     hash_threads: int
     original_hash: str
@@ -22,11 +22,20 @@ class ImageIndexTaskModel:
 
 @dataclass(slots=True)
 class ImageUpdateTaskModel:
-    parent_path: Path
+    top_level_dir: Path
     image_path: Path
     image: Image
 
     logger: Logger | None = None
     overwrite: bool = False
+    view_groups: QuerySet | None = None
+    edit_groups: QuerySet | None = None
+
+
+@dataclass(slots=True)
+class ImageReplaceTaskModel:
+    top_level_dir: Path
+    image: Image
+    logger: Logger | None = None
     view_groups: QuerySet | None = None
     edit_groups: QuerySet | None = None

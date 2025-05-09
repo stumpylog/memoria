@@ -25,8 +25,8 @@
                             {# Apply max-height to limit image size in full screen #}
                             <img id="mainImage"
                                  src="{{ image.full_size_url }}"
-                                 height="{{ image.height }}"
-                                 width="{{ image.height }}"
+                                 height="{{ image.original_height }}"
+                                 width="{{ image.original_width }}"
                                  class="img-fluid rounded"
                                  alt="{{ image.title }}"
                                  style="max-height: 70vh;
@@ -50,7 +50,7 @@
                     </div>
                     <div class="card-footer d-flex justify-content-between flex-wrap">
                         {# Use flex-wrap for better layout on smaller screens #}
-                        <span>{{ image.width }}x{{ image.height }} px</span>
+                        <span>{{ image.original_width }}x{{ image.original_height }} px</span>
                         <span>{{ image.file_size|filesizeformat }}</span>
                         <div class="d-flex">
                             {# Container for the toggles #}
@@ -239,7 +239,7 @@
                             </p>
                             <p class="small mb-1">
                                 <strong>Dimensions:</strong>
-                                <span class="text-muted">{{ image.width }}x{{ image.height }} pixels</span>
+                                <span class="text-muted">{{ image.original_width }}x{{ image.original_height }} pixels</span>
                             </p>
                             <p class="small mb-1">
                                 <strong>ID:</strong>

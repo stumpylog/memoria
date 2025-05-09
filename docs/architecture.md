@@ -117,7 +117,7 @@ erDiagram
 
     Image {
         string original_checksum
-        string original_name
+        string title
         boolean is_starred
         ForeignKey source
         ForeignKey location

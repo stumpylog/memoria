@@ -7,8 +7,9 @@ from typer import Option
 
 from memoria.models import Image as ImageModel
 from memoria.tasks.images import sync_metadata_to_files
+from memoria.utils.constants import BATCH_SIZE
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("memoria.sync")
 
 
 class Command(TyperCommand):
@@ -25,7 +26,7 @@ class Command(TyperCommand):
             .order_by("pk")
             .prefetch_related("location", "date", "people", "pets", "tags")
             .all(),
-            10,
+            BATCH_SIZE,
         )
 
         for i in paginator.page_range:

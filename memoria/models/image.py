@@ -50,23 +50,6 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         help_text="The BLAKE3 checksum of the original file",
     )
 
-    # TODO: These two might not be needed, as the production server probably handles the etag/last modified
-    thumbnail_checksum = models.CharField(
-        max_length=64,
-        unique=True,
-        db_index=True,
-        verbose_name="blake3 hex digest",
-        help_text="The BLAKE3 checksum of the image thumbnail",
-    )
-
-    full_size_checksum = models.CharField(
-        max_length=64,
-        unique=True,
-        db_index=True,
-        verbose_name="blake3 hex digest",
-        help_text="The BLAKE3 checksum of the full size image",
-    )
-
     phash = models.CharField(
         max_length=32,
         db_index=True,
@@ -79,8 +62,8 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         help_text="Size of the original file in bytes",
     )
 
-    height = models.PositiveIntegerField(verbose_name="original image height in pixels")
-    width = models.PositiveIntegerField(verbose_name="original image width in pixels")
+    original_height = models.PositiveIntegerField(verbose_name="original image height in pixels")
+    original_width = models.PositiveIntegerField(verbose_name="original image width in pixels")
 
     thumbnail_height = models.PositiveSmallIntegerField(verbose_name="Thumbnail image height in pixels")
     thumbnail_width = models.PositiveSmallIntegerField(verbose_name="Thumbnail image width in pixels")
@@ -91,9 +74,7 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         help_text="MWG Orientation flag",
     )
 
-    title = models.TextField(  # noqa: DJ001
-        blank=True,
-        null=True,
+    title = models.TextField(
         help_text="Title of the image (used for display only currently)",
     )
 
@@ -107,11 +88,6 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         max_length=1024,
         unique=True,
         verbose_name="Path to the original image",
-    )
-
-    original_name = models.CharField(
-        max_length=256,
-        verbose_name="The stemmed filename of the original file",
     )
 
     is_dirty = models.BooleanField(

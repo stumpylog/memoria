@@ -2,7 +2,6 @@ import dataclasses
 import logging
 from pathlib import Path
 from typing import Annotated
-from typing import Final
 from typing import Optional
 
 from django.contrib.auth.models import Group
@@ -21,6 +20,8 @@ from memoria.tasks.images import index_image_batch
 from memoria.tasks.images import index_update_existing_images
 from memoria.tasks.models import ImageIndexTaskModel
 from memoria.tasks.models import ImageUpdateTaskModel
+from memoria.utils.constants import BATCH_SIZE
+from memoria.utils.constants import IMAGE_EXTENSIONS
 from memoria.utils.hashing import calculate_blake3_hash
 
 
@@ -66,25 +67,22 @@ def get_or_create_groups(group_names: list[str]) -> QuerySet[Group]:
 class Command(TyperCommand):
     help = "Indexes the given path(s) for new Images"
 
-    IMAGE_EXTENSIONS: Final[set[str]] = {
-        ".jpg",
-        ".jpeg",
-        ".png",
-        ".tiff",
-        ".tif",
-        ".webp",
-    }
-
-    BATCH_SIZE: Final[int] = 2
-
     def handle(
         self,
+        top_level_dir: Annotated[
+            Path,
+            Option("--top-lvl-dir", help="Set the top level directory for folder structure"),
+        ],
         paths: Annotated[list[Path], Argument(help="The paths to index for new images")],
         hash_threads: Annotated[int, Option(help="Number of threads to use for hashing")] = 4,
         view_group: Annotated[Optional[list[str]], Option("--view-group", help="Specify view groups")] = None,  # noqa: UP007
         edit_group: Annotated[Optional[list[str]], Option("--edit-group", help="Specify edit groups")] = None,  # noqa: UP007
         *,
         synchronous: Annotated[bool, Option(help="If True, run the indexing in the same process")] = True,
+        overwrite: Annotated[
+            bool,
+            Option(help="If True, overwrite values on existing images with the new ones"),
+        ] = False,
     ) -> None:
         view_groups = None
         if view_group:
@@ -103,7 +101,7 @@ class Command(TyperCommand):
         ) as progress:
             file_task_id = progress.add_task("", total=None, visible=False)
             for path in [x.resolve() for x in paths]:
-                for extension in self.IMAGE_EXTENSIONS:
+                for extension in IMAGE_EXTENSIONS:
                     for image_path in path.rglob(f"*{extension}"):
                         progress.update(
                             file_task_id,
@@ -138,14 +136,14 @@ class Command(TyperCommand):
         logger.info(f"Found {len(self.new_images)} images to index")
         logger.info(f"Found {len(self.existing_images)} images to check for modifications")
 
-        # Process new images in batches of 10
-        for i in range(0, len(self.new_images), self.BATCH_SIZE):
-            batch = self.new_images[i : i + self.BATCH_SIZE]
+        # Process new images in batches
+        for i in range(0, len(self.new_images), BATCH_SIZE):
+            batch = self.new_images[i : i + BATCH_SIZE]
             batch_packages = []
 
             for found_image in sorted(batch):
                 pkg = ImageIndexTaskModel(
-                    parent_path=found_image.original_path,
+                    top_level_dir=top_level_dir.resolve(),
                     image_path=found_image.image_path,
                     original_hash=found_image.checksum,
                     logger=logger,
@@ -160,19 +158,20 @@ class Command(TyperCommand):
             else:  # pragma: no cover
                 index_image_batch(batch_packages)
 
-        images = list(self.existing_images.values())
-        for i in range(0, len(self.existing_images), self.BATCH_SIZE):
-            batch = images[i : i + self.BATCH_SIZE]
+        images = list(self.existing_images.items())
+        for i in range(0, len(self.existing_images), BATCH_SIZE):
+            batch = images[i : i + BATCH_SIZE]
             batch_packages = []
 
-            for existing_image in batch:
+            for found_image, existing_image in batch:
                 pkg = ImageUpdateTaskModel(
-                    parent_path=image.original_path,
-                    image_path=image.image_path,
+                    top_level_dir=top_level_dir.resolve(),
+                    image_path=found_image.image_path,
                     image=existing_image,
                     logger=logger,
                     view_groups=view_groups,
                     edit_groups=edit_groups,
+                    overwrite=overwrite,
                 )
                 batch_packages.append(pkg)
 
