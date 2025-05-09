@@ -1,9 +1,8 @@
 {% extends "base.html.jinja" %}
-{% from "macros/image_gallery.html.jinja" import image_gallery_with_pagination %}
 {% block title %}
     {{ title }}
 {% endblock title %}
 {% block content %}
     {% include "partials/navbar.html.jinja" %}
-    {{ image_gallery_with_pagination(page_obj, "My Images") }}
+    <div class="container mt-5"></div>
 {% endblock content %}

@@ -259,6 +259,21 @@ class RoughLocation(AbstractTimestampMixin, ObjectPermissionModelMixin, models.M
             assert country is not None
         return country.get_subdivision_name(self.subdivision_code)  # type: ignore[arg-type]
 
+    @property
+    def full_location_display(self) -> str:
+        """
+        Returns a user-friendly string representation of the location,
+        including only the parts that are present.
+        """
+        parts: list[str] = [self.country_name]
+        if self.subdivision_code:
+            parts.append(self.subdivision_name)
+        if self.city:
+            parts.append(self.city)
+        if self.sub_location:
+            parts.append(self.sub_location)
+        return ", ".join(parts)
+
 
 class ImageFolder(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, ObjectPermissionModelMixin, TreeNodeModel):
     # Required TreeNodeModel attributes

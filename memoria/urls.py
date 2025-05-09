@@ -32,7 +32,8 @@ urlpatterns = [
     path("people/", views.PeopleListView.as_view(), name="people_list"),
     path("people/<int:pk>/", views.PersonDetailView.as_view(), name="person_detail"),
     path("people/<int:pk>/photos/", views.PersonPhotosListView.as_view(), name="person_photos"),
-    path("locations/", views.LocationsView.as_view(), name="locations"),
+    path("locations/", views.RoughLocationListView.as_view(), name="locations"),
+    path("locations/<int:pk>/", views.RoughLocationDetailView.as_view(), name="location_detail"),
     path("dates/", views.DatesView.as_view(), name="dates"),
     #
     # User Profile

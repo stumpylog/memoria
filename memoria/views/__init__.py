@@ -9,7 +9,8 @@ from memoria.views.images import ImageUpdateView
 from memoria.views.images import ajax_get_cities
 from memoria.views.images import ajax_get_sub_locations
 from memoria.views.images import ajax_get_subdivisions
-from memoria.views.locations import LocationsView
+from memoria.views.locations import RoughLocationDetailView
+from memoria.views.locations import RoughLocationListView
 from memoria.views.people import PeopleListView
 from memoria.views.people import PersonDetailView
 from memoria.views.people import PersonPhotosListView
@@ -36,7 +37,6 @@ __all__ = [
     "ImageFolderListView",
     "ImageListView",
     "ImageUpdateView",
-    "LocationsView",
     "ManageGroupsView",
     "ManageUserGroupsView",
     "PeopleListView",
@@ -44,6 +44,8 @@ __all__ = [
     "PersonPhotosListView",
     "ProfileView",
     "RemoveGroupView",
+    "RoughLocationDetailView",
+    "RoughLocationListView",
     "ToggleUserActiveView",
     "UpdateEmailView",
     "UpdateProfileView",

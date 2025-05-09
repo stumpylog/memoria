@@ -8,7 +8,6 @@
     <div class="container mt-5">
         <h1 class="mb-4">Welcome back, {{ user.username }}!</h1>
         <p class="lead">{{ message }}</p>
-        {# Use the image_gallery macro to display recent images #}
         {{ image_gallery(images=recent_images,
                 title="Your Recent Images") }}
         {% if not recent_images %}

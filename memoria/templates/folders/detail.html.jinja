@@ -30,7 +30,6 @@
         {% endif %}
         {# Section for Child Folders #}
         <h2 class="mt-5 mb-3">Subfolders</h2>
-        {# Use the folder_gallery macro to display child folders #}
         {{ folder_gallery(child_folders,
                 empty_message="No subfolders found.",
                 child_count_attr="child_folder_count",
@@ -38,7 +37,7 @@
                 button_text="View Folder",
                 truncate_description=100) }}
         <hr class="my-5">
-        {# Section for Images (keeping the existing macro call) #}
+        {# Section for Images #}
         {{ image_gallery(folder_images, "Images") }}
     </div>
 {% endblock content %}
