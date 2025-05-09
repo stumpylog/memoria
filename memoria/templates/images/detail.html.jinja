@@ -72,21 +72,6 @@
                             {% endif %}
                         </div>
                     </div>
-                    <script>
-                        document.getElementById('personBoundingBoxToggle').addEventListener('change', function() {
-                            var personBoxes = document.querySelectorAll('.bounding-box.person');
-                            personBoxes.forEach(function(box) {
-                                box.style.display = this.checked ? 'block' : 'none';
-                            }, this);
-                        });
-
-                        document.getElementById('petBoundingBoxToggle').addEventListener('change', function() {
-                            var petBoxes = document.querySelectorAll('.bounding-box.pet');
-                            petBoxes.forEach(function(box) {
-                                box.style.display = this.checked ? 'block' : 'none';
-                            }, this);
-                        });
-                    </script>
                 </div>
             {% else %}
                 <div class="alert alert-warning" role="alert">Full image not available.</div>
@@ -272,3 +257,23 @@
         </div>
     </div>
 {% endblock content %}
+{% block extra_js %}
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('personBoundingBoxToggle').addEventListener('change', function() {
+        var personBoxes = document.querySelectorAll('.bounding-box.person');
+        personBoxes.forEach(function(box) {
+            box.style.display = this.checked ? 'block' : 'none';
+        }, this);
+    });
+{% if image.petinimage_set.count() > 0 %}
+    document.getElementById('petBoundingBoxToggle').addEventListener('change', function() {
+        var petBoxes = document.querySelectorAll('.bounding-box.pet');
+        petBoxes.forEach(function(box) {
+            box.style.display = this.checked ? 'block' : 'none';
+        }, this);
+    });
+{% endif %}
+});
+    </script>
+{% endblock extra_js %}
