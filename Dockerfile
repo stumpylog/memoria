@@ -17,7 +17,7 @@ ENV \
 ARG TARGETARCH
 ARG TARGETVARIANT
 # Lock this version
-ARG S6_OVERLAY_VERSION=3.2.0.2
+ARG S6_OVERLAY_VERSION=3.2.1.0
 
 ARG S6_BUILD_TIME_PKGS="curl \
                         xz"
@@ -96,10 +96,12 @@ RUN set -eux \
     && mkdir --parents --verbose /app/valkey/ \
     && mkdir --parents --verbose /app/static/ \
     && mkdir --parents --verbose /app/media/ \
-  && echo "Adjusting all permissions" \
     && chown --changes --recursive memoria:memoria /app/ \
   && echo "Collecting static files" \
-    && s6-setuidgid memoria python3 manage.py collectstatic --clear --no-input --link
+    && s6-setuidgid memoria python3 manage.py collectstatic --clear --no-input --link \
+  && echo "Adjusting all permissions" \
+    && chown --changes --recursive memoria:memoria /app/
+
 
 EXPOSE 8101
 
