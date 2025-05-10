@@ -1,4 +1,5 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv /bin/ash
 
-# Execute nginx in the foreground
-exec s6-setuidgid memoria nginx -g 'daemon off;'
+# TODO: s6-setuidgid memoria
+
+exec nginx -g 'daemon off;' -c /etc/nginx/nginx.conf

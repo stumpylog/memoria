@@ -1,4 +1,5 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv /bin/ash
 
+cd /app/
 
-exec s6-setuidgid memoria granian --interface asginl--loop uvloop --host "127.0.0.1" --port 8100 "memoria.asgi:application"
+exec s6-setuidgid memoria granian --interface asginl --loop uvloop --host "127.0.0.1" --port 8100 "memoria.asgi:application"

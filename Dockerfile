@@ -48,7 +48,9 @@ RUN set -eux \
       && apk del --no-cache .s6-utils
 
 # Copy our service defs and filesystem
-COPY ./docker/rootfs /
+COPY ./docker/rootfs/ /
+
+RUN apk add --no-cache tree && tree -hl /etc/s6-overlay/
 
 # Stage: main-app
 # Purpose: The final image
@@ -72,7 +74,7 @@ COPY --chown=1000:1000 ["pyproject.toml", "uv.lock", "manage.py", "/app/"]
 RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
   set -eux \
   && echo "Installing system packages" \
-    && apk add --no-cache valkey \
+    && apk add --no-cache nginx tree \
   && echo "Installing build system packages" \
     && apk add --no-cache --virtual .python-build \
         postgresql-dev \
@@ -93,6 +95,8 @@ RUN set -eux \
     && adduser -S -u 1000 -G memoria memoria \
   && echo "Creating volume directories" \
     && mkdir --parents --verbose /app/data/ \
+    && mkdir --parents --verbose /app/data/logs/ \
+    && mkdir --parents --verbose /app/data/logs/nginx \
     && mkdir --parents --verbose /app/valkey/ \
     && mkdir --parents --verbose /app/static/ \
     && mkdir --parents --verbose /app/media/ \

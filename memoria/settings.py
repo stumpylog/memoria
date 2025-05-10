@@ -24,7 +24,7 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 STATIC_ROOT = BASE_DIR / "static"
 
-LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR = DATA_DIR / "logs"
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
 MEDIA_ROOT = BASE_DIR / "media"
