@@ -123,11 +123,12 @@ if DATABASE_TYPE == "postgresql":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("DB_NAME", "your_db_name"),
-            "USER": os.environ.get("DB_USER", "your_db_user"),
-            "PASSWORD": os.environ.get("DB_PASSWORD", "your_db_password"),
-            "HOST": os.environ.get("DB_HOST", "localhost"),
+            "NAME": os.environ.get("DB_NAME", "memoria"),
+            "USER": os.environ.get("DB_USER", "memoria"),
+            "PASSWORD": os.environ["DB_PASSWORD"],
+            "HOST": os.environ["DB_HOST"],
             "PORT": os.environ.get("DB_PORT", "5432"),
+            "pool": True,
         },
     }
 else:  # SQLite for development
