@@ -2,7 +2,7 @@
 # Purpose: Installs s6-overlay and rootfs
 # Comments:
 #  - Don't leave anything extra in here either
-FROM ghcr.io/astral-sh/uv:0.7.2-python3.11-alpine AS s6-overlay-base
+FROM ghcr.io/astral-sh/uv:0.7.3-python3.11-alpine AS s6-overlay-base
 
 WORKDIR /usr/src/s6
 
@@ -72,7 +72,7 @@ COPY --chown=1000:1000 ["pyproject.toml", "uv.lock", "manage.py", "/app/"]
 RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
   set -eux \
   && echo "Installing system packages" \
-    && apk add --no-cache nginx tree \
+    && apk add --no-cache nginx postgresql-client \
   && echo "Installing build system packages" \
     && apk add --no-cache --virtual .python-build \
         postgresql-dev \

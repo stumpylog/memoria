@@ -519,11 +519,14 @@ wheels = [
 
 [[package]]
 name = "exceptiongroup"
-version = "1.2.2"
+version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/09/35/2495c4ac46b980e4ca1f6ad6db102322ef3ad2410b79fdde159a4b0f3b92/exceptiongroup-1.2.2.tar.gz", hash = "sha256:47c2edf7c6738fafb49fd34290706d1a1a2f4d1c6df275526b62cbb4aa5393cc", size = 28883 }
+dependencies = [
+    { name = "typing-extensions", marker = "(python_full_version < '3.13' and sys_platform == 'linux') or (python_full_version < '3.13' and sys_platform == 'win32')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/02/cc/b7e31358aac6ed1ef2bb790a9746ac2c69bcb3c8588b41616914eb106eaf/exceptiongroup-1.2.2-py3-none-any.whl", hash = "sha256:3111b9d131c238bec2f8f516e123e14ba243563fb135d3fe885990585aa7795b", size = 16453 },
+    { url = "https://files.pythonhosted.org/packages/36/f4/c6e662dade71f56cd2f3735141b265c3c79293c109549c1e6933b0651ffc/exceptiongroup-1.3.0-py3-none-any.whl", hash = "sha256:4d111e6e0c13d0644cad6ddaa7ed0261a0b36971f6d23e7ec9b4b9097da78a10", size = 16674 },
 ]
 
 [[package]]
@@ -1990,11 +1993,11 @@ wheels = [
 
 [[package]]
 name = "simpleiso3166"
-version = "0.2.1"
+version = "0.2.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/61/6f/828b3af0b44ff3ca6970af102c745a2833eca41b8146c57c2dc79c30ee3e/simpleiso3166-0.2.1.tar.gz", hash = "sha256:22664e5a4e819165d63ebf547450495d18752f35d90827856dd025c7de02c20c", size = 151746 }
+sdist = { url = "https://files.pythonhosted.org/packages/2b/6d/8b1103030d2e035a82591cbf80f90dd223318dcc12f350be671f2b17345c/simpleiso3166-0.2.2.tar.gz", hash = "sha256:df5a5912a87826e4897a9f6f03f0d59484b106240295db2535cfb0c11ddfe070", size = 151794 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/36/ec/b9f96f291317697fc1b8f5d7f73dc68602319fc8dddb28db4cc32ad03f56/simpleiso3166-0.2.1-py3-none-any.whl", hash = "sha256:e6349060d334e59681b1e29f5b88bc0eeb1e1e394f2242dcded176dc2ab73e23", size = 276141 },
+    { url = "https://files.pythonhosted.org/packages/1a/50/4f241e7103c33374e442ebd5e314d92f239c9ad0528ad7bcd3cd83ba3ef6/simpleiso3166-0.2.2-py3-none-any.whl", hash = "sha256:3feed67f7bb97f91a2a282588baee3841251302f62369b68516fa3fd26639019", size = 276176 },
 ]
 
 [package.optional-dependencies]

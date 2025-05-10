@@ -47,9 +47,11 @@ LOGIN_REDIRECT_URL = "/home/"
 LOGOUT_REDIRECT_URL = "/logout/"
 LOGIN_URL = "/login/"
 MEDIA_URL = "/media/"
-CSRF_TRUSTED_ORIGINS = [os.getenv("MEMORIA_URL")] if "MEMORIA_URL" in os.environ else []
-CORS_ALLOWED_ORIGINS = [os.getenv("MEMORIA_URL")] if "MEMORIA_URL" in os.environ else []
-ALLOWED_HOSTS = [urlparse(os.getenv("MEMORIA_URL")).hostname] if "MEMORIA_URL" in os.environ else []
+CSRF_TRUSTED_ORIGINS = [os.getenv("MEMORIA_URL")] if "MEMORIA_URL" in os.environ else ["http://localhost:8101"]
+CORS_ALLOWED_ORIGINS = [os.getenv("MEMORIA_URL")] if "MEMORIA_URL" in os.environ else ["http://localhost:8101"]
+ALLOWED_HOSTS = (
+    [urlparse(os.getenv("MEMORIA_URL")).hostname, "localhost"] if "MEMORIA_URL" in os.environ else ["localhost"]
+)
 # The reverse proxy handles SSL
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = True
@@ -131,17 +133,17 @@ WSGI_APPLICATION = "memoria.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASE_TYPE = os.environ.get("DATABASE_TYPE", "sqlite")
+DATABASE_TYPE = os.environ.get("MEMORIA_DATABASE_TYPE", "sqlite")
 
 if DATABASE_TYPE == "postgresql":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("DB_NAME", "memoria"),
-            "USER": os.environ.get("DB_USER", "memoria"),
-            "PASSWORD": os.environ["DB_PASSWORD"],
-            "HOST": os.environ["DB_HOST"],
-            "PORT": os.environ.get("DB_PORT", "5432"),
+            "NAME": os.environ.get("MEMORIA_DB_NAME", "memoria"),
+            "USER": os.environ.get("MEMORIA_DB_USER", "memoria"),
+            "PASSWORD": os.environ["MEMORIA_DB_PASSWORD"],
+            "HOST": os.environ["MEMORIA_DB_HOST"],
+            "PORT": int(os.environ.get("MEMORIA_DB_PORT", "5432")),
             "pool": True,
         },
     }

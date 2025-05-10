@@ -1,0 +1,30 @@
+networks:
+  memoria-net:
+
+services:
+  memoria-db:
+    image: postgres:17-alpine
+    container_name: memoria-db
+    networks:
+      - memoria-net
+    environment:
+      POSTGRES_DB: memoria
+      POSTGRES_USER: memoria
+      POSTGRES_PASSWORD: memoria
+  memoria-valkey:
+    image: valkey/valkey:latest
+    container_name: memoria-valkey
+    networks:
+      - memoria-net
+  memoria:
+    image: memoria:latest
+    container_name: memoria
+    networks:
+      - memoria-net
+    ports:
+      - "8101:8101"
+    environment:
+      MEMORIA_DATABASE_TYPE: postgresql
+      MEMORIA_DB_HOST: memoria-db
+      MEMORIA_DB_PASSWORD: memoria
+      MEMORIA_REDIS_URL: "redis://memoria-valkey:6379/0"
