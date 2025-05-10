@@ -50,8 +50,6 @@ RUN set -eux \
 # Copy our service defs and filesystem
 COPY ./docker/rootfs/ /
 
-RUN apk add --no-cache tree && tree -hl /etc/s6-overlay/
-
 # Stage: main-app
 # Purpose: The final image
 # Comments:
@@ -96,8 +94,8 @@ RUN set -eux \
   && echo "Creating volume directories" \
     && mkdir --parents --verbose /app/data/ \
     && mkdir --parents --verbose /app/data/logs/ \
-    && mkdir --parents --verbose /app/data/logs/nginx \
-    && mkdir --parents --verbose /app/valkey/ \
+    && mkdir --parents --verbose /app/data/logs/nginx/ \
+    && mkdir --parents --verbose /app/data/nginx/ \
     && mkdir --parents --verbose /app/static/ \
     && mkdir --parents --verbose /app/media/ \
     && chown --changes --recursive memoria:memoria /app/ \

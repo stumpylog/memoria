@@ -1,5 +1,29 @@
 #!/command/with-contenv /bin/ash
 
-# TODO: s6-setuidgid memoria
+# Create required directories
+mkdir -p /app/data/nginx/run
+mkdir -p /app/data/logs/nginx
+mkdir -p /app/data/nginx/client_body_temp
+mkdir -p /app/data/nginx/proxy_temp
+mkdir -p /app/data/nginx/fastcgi_temp
+mkdir -p /app/data/nginx/uwsgi_temp
+mkdir -p /app/data/nginx/scgi_temp
 
-exec nginx -g 'daemon off;' -c /etc/nginx/nginx.conf
+chown -R memoria:memoria /app/data/nginx/
+
+# Handle default log directories that might be compiled into nginx
+mkdir -p /var/lib/nginx/logs
+touch /var/lib/nginx/logs/error.log
+touch /var/lib/nginx/logs/access.log
+chmod 644 /var/lib/nginx/logs/*.log
+chown -R memoria:memoria /var/lib/nginx
+
+# Handle potential /var/log/nginx path
+mkdir -p /var/log/nginx
+touch /var/log/nginx/error.log
+touch /var/log/nginx/access.log
+chmod 644 /var/log/nginx/*.log
+chown -R memoria:memoria /var/log/nginx
+
+
+exec s6-setuidgid memoria nginx -g 'daemon off;' -c /etc/nginx/nginx.conf
