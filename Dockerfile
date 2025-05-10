@@ -20,11 +20,11 @@ ARG TARGETVARIANT
 ARG S6_OVERLAY_VERSION=3.2.0.2
 
 ARG S6_BUILD_TIME_PKGS="curl \
-                        xz-utils"
+                        xz"
 
 RUN set -eux \
     && echo "Installing build time packages" \
-      && apk add --no-cache ${S6_BUILD_TIME_PKGS} \
+      && apk add --no-cache --virtual .s6-utils ${S6_BUILD_TIME_PKGS} \
     && echo "Determining arch" \
       && S6_ARCH="" \
       && if [ "${TARGETARCH}${TARGETVARIANT}" = "amd64" ]; then S6_ARCH="x86_64"; \
@@ -37,7 +37,7 @@ RUN set -eux \
         "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz" \
         "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz.sha256" \
       && echo "Validating s6-archive checksums" \
-        && sha256sum --check ./*.sha256 \
+        && sha256sum -c ./*.sha256 \
       && echo "Unpacking archives" \
         && tar --directory / -Jxpf s6-overlay-noarch.tar.xz \
         && tar --directory / -Jxpf s6-overlay-${S6_ARCH}.tar.xz \
@@ -45,9 +45,7 @@ RUN set -eux \
         && rm ./*.tar.xz \
         && rm ./*.sha256 \
     && echo "Cleaning up image" \
-      && apt-get --yes purge ${S6_BUILD_TIME_PKGS} \
-      && apt-get --yes autoremove --purge \
-      && rm -rf /var/lib/apt/lists/*
+      && apk del --no-cache .s6-utils
 
 # Copy our service defs and filesystem
 COPY ./docker/rootfs /
@@ -68,42 +66,37 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Set the working directory inside the container
 WORKDIR /app
 
-COPY --chown=1000:1000 ["pyproject.toml", "uv.lock", "manage.py", "memoria", "/app/"]
+COPY --chown=1000:1000 ["pyproject.toml", "uv.lock", "manage.py", "/app/"]
 
 # hadolint ignore=DL3042
 RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
   set -eux \
   && echo "Installing build system packages" \
-    && apt-get update \
-    && apt-get install --yes --quiet --no-install-recommends ${BUILD_PACKAGES} \
+    && apk add --no-cache --virtual .python-build \
+        postgresql-dev \
+        mariadb-dev \
+        pkgconfig \
   && echo "Installing Python requirements" \
     && uv export --quiet --no-dev --all-extras --format requirements-txt --output-file requirements.txt \
     && uv pip install --system --no-python-downloads --python-preference system --requirements requirements.txt \
   && echo "Cleaning up image" \
-    && apt-get --yes purge ${BUILD_PACKAGES} \
-    && apt-get --yes autoremove --purge \
-    && apt-get clean --yes \
-    && rm --recursive --force --verbose *.whl \
-    && rm --recursive --force --verbose /var/lib/apt/lists/* \
-    && rm --recursive --force --verbose /tmp/* \
-    && rm --recursive --force --verbose /var/tmp/* \
-    && rm --recursive --force --verbose /var/cache/apt/archives/* \
-    && truncate --size 0 /var/log/*log
+    && apk del --no-cache .python-build
+
+    COPY --chown=1000:1000 ["./memoria/",  "/app/memoria/"]
 
 RUN set -eux \
   && sed -i '1s|^#!/usr/bin/env python3|#!/command/with-contenv python3|' manage.py \
   && echo "Setting up user/group" \
-    && addgroup --gid 1000 memoria \
-    && useradd --uid 1000 --gid memoria --home-dir /app/ \
+    && addgroup -S memoria \
+    && adduser -S -G memoria memoria \
   && echo "Creating volume directories" \
     && mkdir --parents --verbose /app/data/ \
     && mkdir --parents --verbose /app/static/ \
     && mkdir --parents --verbose /app/media/ \
   && echo "Adjusting all permissions" \
-    && chown --from root:root --changes --recursive memoria:memoria /app/ \
+    && chown --changes --recursive memoria:memoria /app/ \
   && echo "Collecting static files" \
-    && s6-setuidgid memoria python3 manage.py collectstatic --clear --no-input --link \
-    && s6-setuidgid memoria python3 manage.py compilemessages
+    && s6-setuidgid memoria python3 manage.py collectstatic --clear --no-input --link
 
 # Expose the port nginx is listening on (standard HTTP is 80)
 EXPOSE 80
