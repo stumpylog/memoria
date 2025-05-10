@@ -143,7 +143,7 @@ class Command(TyperCommand):
 
             for found_image in sorted(batch):
                 pkg = ImageIndexTaskModel(
-                    top_level_dir=top_level_dir.resolve(),
+                    root_dir=top_level_dir.resolve(),
                     image_path=found_image.image_path,
                     original_hash=found_image.checksum,
                     logger=logger,
@@ -165,7 +165,7 @@ class Command(TyperCommand):
 
             for found_image, existing_image in batch:
                 pkg = ImageUpdateTaskModel(
-                    top_level_dir=top_level_dir.resolve(),
+                    root_dir=top_level_dir.resolve(),
                     image_path=found_image.image_path,
                     image=existing_image,
                     logger=logger,

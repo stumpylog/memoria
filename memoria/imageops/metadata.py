@@ -436,7 +436,7 @@ def update_image_folder_structure(pkg: ImageIndexTaskModel | ImageUpdateTaskMode
     if TYPE_CHECKING:
         assert pkg.logger is not None
 
-    path_from_parent = pkg.image_path.relative_to(pkg.top_level_dir).parent
+    path_from_parent = pkg.image_path.relative_to(pkg.root_dir).parent
 
     parent, created = ImageFolder.objects.get_or_create(name=path_from_parent.parts[0], tn_parent=None)
     if created:
