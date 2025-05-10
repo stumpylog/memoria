@@ -183,7 +183,7 @@ asyncio_mode = "auto"
 DJANGO_SETTINGS_MODULE = "memoria.settings"
 
 [tool.pytest_env]
-SCAN_STEWARD_UNDER_TEST = 1
+MEMORIA_DEBUG = 1
 
 [tool.coverage.run]
 branch = true

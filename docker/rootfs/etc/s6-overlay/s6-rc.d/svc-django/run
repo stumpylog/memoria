@@ -1,4 +1,4 @@
 #!/usr/bin/with-contenv bash
 
 
-exec gunicorn --bind 127.0.0.1:8000 myproject.wsgi
+exec s6-setuidgid memoria granian --interface asginl--loop uvloop --host "127.0.0.1" --port 8100 "memoria.asgi:application"

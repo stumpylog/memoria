@@ -12,11 +12,15 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 from django_jinja.builtins import DEFAULT_EXTENSIONS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+DATA_DIR = BASE_DIR / "data"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 STATIC_ROOT = BASE_DIR / "static"
 
@@ -31,16 +35,26 @@ THUMBNAIL_DIR.mkdir(exist_ok=True, parents=True)
 FULL_SIZE_DIR = MEDIA_ROOT / "fullsize"
 FULL_SIZE_DIR.mkdir(exist_ok=True, parents=True)
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure--^jm&ojgb%wu_#e#)p2r7c^h&-9q#avh^%7%m*4^8#*%c^s*dx"
+SECRET_KEY = os.environ.get("MEMORIA_SECRET_KEY", "AuxBXBU1JzzFn1evKoVD818m4uRUqN0dJxCIDda0Op7L4NR7ftvZpF6uxp0xuoOU")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = "MEMORIA_DEBUG" in os.environ
 
-ALLOWED_HOSTS = []
+#
+# Hosting configuration
+#
+LOGIN_REDIRECT_URL = "/home/"
+LOGOUT_REDIRECT_URL = "/logout/"
+LOGIN_URL = "/login/"
+MEDIA_URL = "/media/"
+CSRF_TRUSTED_ORIGINS = [os.getenv("MEMORIA_URL")] if "MEMORIA_URL" in os.environ else []
+CORS_ALLOWED_ORIGINS = [os.getenv("MEMORIA_URL")] if "MEMORIA_URL" in os.environ else []
+ALLOWED_HOSTS = [urlparse(os.getenv("MEMORIA_URL")).hostname] if "MEMORIA_URL" in os.environ else []
+# The reverse proxy handles SSL
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 # Application definition
@@ -135,7 +149,7 @@ else:  # SQLite for development
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "NAME": DATA_DIR / "db.sqlite3",
         },
     }
 
@@ -189,14 +203,30 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+#
+# Cache configuration
+#
+REDIS_URL = os.environ.get("MEMORIA_REDIS_URL")
+
+if REDIS_URL:
+    _cache_backend = "django.core.cache.backends.redis.RedisCache"
+    _cache_location = REDIS_URL
+else:
+    _cache_backend = "django.core.cache.backends.dummy.DummyCache"
+    _cache_location = None
+
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "BACKEND": _cache_backend,
+        "LOCATION": _cache_location,
     },
     "treenode": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "BACKEND": _cache_backend,
+        "LOCATION": _cache_location,
     },
 }
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db" if REDIS_URL else "django.contrib.sessions.backends.db"
 
 LOGGING = {
     "version": 1,
@@ -267,8 +297,3 @@ LOGGING = {
         },
     },
 }
-
-LOGIN_REDIRECT_URL = "/home/"
-LOGOUT_REDIRECT_URL = "/logout/"
-LOGIN_URL = "/login/"
-MEDIA_URL = "/media/"

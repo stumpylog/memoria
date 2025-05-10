@@ -66,7 +66,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Set the working directory inside the container
 WORKDIR /app
 
-COPY --chown=100:101 ["pyproject.toml", "uv.lock", "manage.py", "/app/"]
+COPY --chown=1000:1000 ["pyproject.toml", "uv.lock", "manage.py", "/app/"]
 
 # hadolint ignore=DL3042
 RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
@@ -84,13 +84,13 @@ RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
   && echo "Cleaning up image" \
     && apk del --no-cache .python-build
 
-COPY --chown=100:101 ["./memoria/",  "/app/memoria/"]
+COPY --chown=1000:1000 ["./memoria/",  "/app/memoria/"]
 
 RUN set -eux \
   && sed -i '1s|^#!/usr/bin/env python3|#!/command/with-contenv python3|' manage.py \
   && echo "Setting up user/group" \
-    && addgroup -S memoria \
-    && adduser -S -G memoria memoria \
+    && addgroup -S -g 1000 memoria \
+    && adduser -S -u 1000 -G memoria memoria \
   && echo "Creating volume directories" \
     && mkdir --parents --verbose /app/data/ \
     && mkdir --parents --verbose /app/valkey/ \
@@ -101,14 +101,6 @@ RUN set -eux \
   && echo "Collecting static files" \
     && s6-setuidgid memoria python3 manage.py collectstatic --clear --no-input --link
 
-# Expose the port nginx is listening on (standard HTTP is 80)
-EXPOSE 80
+EXPOSE 8101
 
-# s6-overlay as the entrypoint.
-# This is crucial for s6-overlay to manage the services defined in /etc/s6-overlay.
 ENTRYPOINT ["/init"]
-
-# The default command can be left empty as s6-overlay handles startup.
-# You could optionally set a CMD here to override the s6 entrypoint for debugging
-# (e.g., CMD ["bash"] to get a shell).
-# CMD []

@@ -10,9 +10,10 @@ wheels/
 .venv
 
 # Development
-db.sqlite3
+**/db.sqlite3
 logs/
 media/
+data/
 
 # Docs
 site/
