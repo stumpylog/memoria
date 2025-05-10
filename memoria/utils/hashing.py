@@ -1,8 +1,6 @@
 from pathlib import Path
 
 from blake3 import blake3
-from imagehash import phash
-from PIL import Image
 
 
 def calculate_blake3_hash(file_path: Path, *, chunk_size: int = 1_048_576, hash_threads: int = 4) -> str:
@@ -23,5 +21,8 @@ def calculate_blake3_hash(file_path: Path, *, chunk_size: int = 1_048_576, hash_
 
 
 def calculate_image_phash(file_path: Path) -> str:
+    from imagehash import phash
+    from PIL import Image
+
     with Image.open(file_path) as im_file:
         return str(phash(im_file))

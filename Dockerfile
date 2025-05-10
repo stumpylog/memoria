@@ -66,7 +66,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Set the working directory inside the container
 WORKDIR /app
 
-COPY --chown=1000:1000 ["pyproject.toml", "uv.lock", "manage.py", "/app/"]
+COPY --chown=100:101 ["pyproject.toml", "uv.lock", "manage.py", "/app/"]
 
 # hadolint ignore=DL3042
 RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
@@ -82,7 +82,7 @@ RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
   && echo "Cleaning up image" \
     && apk del --no-cache .python-build
 
-    COPY --chown=1000:1000 ["./memoria/",  "/app/memoria/"]
+COPY --chown=100:101 ["./memoria/",  "/app/memoria/"]
 
 RUN set -eux \
   && sed -i '1s|^#!/usr/bin/env python3|#!/command/with-contenv python3|' manage.py \

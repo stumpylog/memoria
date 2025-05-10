@@ -19,6 +19,7 @@ from memoria.tasks.models import ImageIndexTaskModel
 from memoria.tasks.models import ImageReplaceTaskModel
 from memoria.tasks.models import ImageUpdateTaskModel
 from memoria.utils.constants import EXIF_TOOL_EXE
+from memoria.utils.hashing import calculate_blake3_hash
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,8 @@ def sync_metadata_to_files(images: list[ImageModel]) -> None:
         with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool:
             tool.bulk_write_image_metadata(metadata_items)
         for image in images:
-            image.update_hashes()
+            image.original_checksum = calculate_blake3_hash(image.original_path, hash_threads=8)
+            image.save()
             image.mark_as_clean()
 
 

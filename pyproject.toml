@@ -21,7 +21,6 @@ dependencies = [
   "django-typer[rich]>=2.2.1",
   "exifmwg",
   "huey>=2.5.1",
-  "imagehash>=4.3.1",
   "pillow~=11.2.1",
   "pyvips[binary]",
   "redis[hiredis]>=5.0.8",
@@ -53,14 +52,11 @@ docs = [
 ]
 
 testing = [
-  "daphne",
   "factory-boy~=3.3.1",
-  "imagehash",
   "pytest~=8.3.3",
   "pytest-cov~=6.1.0",
   "pytest-django~=4.11.0",
   "pytest-env",
-  "pytest-httpx",
   "pytest-mock",
   "pytest-rerunfailures",
   "pytest-sugar",

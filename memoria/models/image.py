@@ -3,12 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from blake3 import blake3
 from django.conf import settings
 from django.db import models
 from exifmwg.models import RotationEnum
-from imagehash import average_hash
-from PIL import Image as PILImage
 
 from memoria.models.abstract import AbstractTimestampMixin
 from memoria.models.abstract import ObjectPermissionModelMixin
@@ -208,19 +205,3 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         Helper to mark an image as clean
         """
         Image.objects.filter(pk=self.pk).update(is_dirty=False)
-
-    def update_hashes(self, *, threads=4) -> None:
-        def hash_file(filepath: Path, *, hash_threads: int = 4) -> str:
-            return blake3(
-                filepath.read_bytes(),
-                max_threads=hash_threads,
-            ).hexdigest()
-
-        with PILImage.open(self.original_path) as im_file:
-            self.phash = str(average_hash(im_file))
-
-        self.original_checksum = hash_file(self.original_path, hash_threads=threads)
-        self.full_size_checksum = hash_file(self.full_size_path, hash_threads=threads)
-        self.thumbnail_checksum = hash_file(self.thumbnail_path, hash_threads=threads)
-
-        self.save()
