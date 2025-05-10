@@ -71,6 +71,8 @@ COPY --chown=100:101 ["pyproject.toml", "uv.lock", "manage.py", "/app/"]
 # hadolint ignore=DL3042
 RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
   set -eux \
+  && echo "Installing system packages" \
+    && apk add --no-cache valkey \
   && echo "Installing build system packages" \
     && apk add --no-cache --virtual .python-build \
         postgresql-dev \
@@ -91,6 +93,7 @@ RUN set -eux \
     && adduser -S -G memoria memoria \
   && echo "Creating volume directories" \
     && mkdir --parents --verbose /app/data/ \
+    && mkdir --parents --verbose /app/valkey/ \
     && mkdir --parents --verbose /app/static/ \
     && mkdir --parents --verbose /app/media/ \
   && echo "Adjusting all permissions" \

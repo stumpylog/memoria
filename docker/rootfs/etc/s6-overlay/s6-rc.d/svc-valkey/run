@@ -1,0 +1,6 @@
+#!/command/with-contenv ash
+# shellcheck shell=ash
+
+exec s6-setuidgid cleaner \
+    /usr/bin/valkey-server \
+        /app/valkey/valkey.conf
