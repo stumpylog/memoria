@@ -1,18 +1,19 @@
+
 .bounding-box {
     position: absolute;
     box-sizing: border-box;
-    display: none; /* Hidden by default */
+    display: none; /* Hidden by default, JS will make it 'block' when toggled */
     z-index: 10; /* Ensure boxes are above the image */
 }
 
 .bounding-box.person {
-    border: 2px solid blue;
-    background-color: rgba(0, 0, 255, 0.1); /* Slightly less transparent background */
+    border: 2px solid #007bff; /* Bootstrap primary blue */
+    background-color: rgba(0, 0, 255, 0.1); /* Slightly transparent background */
 }
 
 .bounding-box.pet {
-    border: 2px solid green;
-    background-color: rgba(0, 128, 0, 0.1); /* Slightly less transparent background */
+    border: 2px solid #28a745; /* Bootstrap success green */
+    background-color: rgba(0, 128, 0, 0.1); /* Slightly transparent background */
 }
 
 .bounding-box span {
@@ -25,15 +26,17 @@
     font-size: 12px; /* Adjust font size as needed */
     background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background for readability */
     padding: 2px 4px; /* Add horizontal padding */
-    /* Allow text to wrap */
-    white-space: normal;
+    white-space: normal; /* Allow text to wrap */
     word-wrap: break-word; /* Break long words if necessary */
     max-width: 200px; /* Set a maximum width for the name span - adjust as needed */
     display: none; /* Initially hidden */
     pointer-events: none; /* Ensure mouse events pass through the text */
     z-index: 11; /* Ensure name is above the bounding box */
+    /* Optional: Add a small margin to space it from the box */
+    margin-top: 2px;
 }
 
+/* Show the name span when the bounding box is hovered */
 .bounding-box:hover span {
-    display: block; /* Show the name span on hover */
+    display: block;
 }

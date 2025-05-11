@@ -38,7 +38,7 @@ FULL_SIZE_DIR.mkdir(exist_ok=True, parents=True)
 SECRET_KEY = os.environ.get("MEMORIA_SECRET_KEY", "AuxBXBU1JzzFn1evKoVD818m4uRUqN0dJxCIDda0Op7L4NR7ftvZpF6uxp0xuoOU")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = "MEMORIA_DEBUG" in os.environ
+DEBUG = True  # "MEMORIA_DEBUG" in os.environ
 
 #
 # Hosting configuration
@@ -47,8 +47,12 @@ LOGIN_REDIRECT_URL = "/home/"
 LOGOUT_REDIRECT_URL = "/logout/"
 LOGIN_URL = "/login/"
 MEDIA_URL = "/media/"
-CSRF_TRUSTED_ORIGINS = [os.getenv("MEMORIA_URL")] if "MEMORIA_URL" in os.environ else ["http://localhost:8101"]
-CORS_ALLOWED_ORIGINS = [os.getenv("MEMORIA_URL")] if "MEMORIA_URL" in os.environ else ["http://localhost:8101"]
+CSRF_TRUSTED_ORIGINS = (
+    [os.getenv("MEMORIA_URL")] if "MEMORIA_URL" in os.environ else ["http://localhost:8101", "http://localhost:8000"]
+)
+CORS_ALLOWED_ORIGINS = (
+    [os.getenv("MEMORIA_URL")] if "MEMORIA_URL" in os.environ else ["http://localhost:8101", "http://localhost:8000"]
+)
 ALLOWED_HOSTS = (
     [urlparse(os.getenv("MEMORIA_URL")).hostname, "localhost"] if "MEMORIA_URL" in os.environ else ["localhost"]
 )
@@ -204,6 +208,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

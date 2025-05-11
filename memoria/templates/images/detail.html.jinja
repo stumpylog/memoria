@@ -4,12 +4,6 @@
 {% endblock title %}
 {% block extra_head %}
     <link href="{{ static('css/boundingbox.css') }}" rel="stylesheet">
-    {# Add CSS here or to boundingbox.css to initially hide bounding boxes #}
-    <style>
-        .bounding-box {
-            display: none; /* Bounding boxes are hidden by default */
-        }
-    </style>
 {% endblock extra_head %}
 {% block content %}
     {% include "partials/navbar.html.jinja" %}
@@ -21,259 +15,423 @@
                     <div class="card-body p-1 text-center">
                         {# Center image within card-body #}
                         {# Container for image and bounding boxes #}
-                        <div style="position: relative; display: inline-block;">
+                        {# Add data-orientation attribute here #}
+                        <div id="imageContainer"
+                             style="position: relative;
+                                    display: inline-block"
+                             data-orientation="{{ image.orientation }}">
+                            {# <-- Added orientation data #}
                             {# Apply max-height to limit image size in full screen #}
+                            {# We no longer need original_width/height set here for positioning, but they are fine for initial render #}
                             <img id="mainImage"
-                                 src="{{ image.full_size_url }}"
-                                 height="{{ image.original_height }}"
-                                 width="{{ image.original_width }}"
-                                 class="img-fluid rounded"
-                                 alt="{{ image.title }}"
-                                 style="max-height: 70vh;
-                                        width: auto">
-                            {# Limit height and maintain aspect ratio #}
-                            {# Bounding Boxes for People #}
-                            {% for person_in_image in image.personinimage_set.all() %}
-                                <div class="bounding-box person"
-                                     style="{{ person_in_image.bounding_box_style }}">
-                                    <span>{{ person_in_image.person.name }}</span>
-                                </div>
-                            {% endfor %}
-                            {# Bounding Boxes for Pets #}
-                            {% for pet_in_image in image.petinimage_set.all() %}
-                                <div class="bounding-box pet"
-                                     style="{{ pet_in_image.bounding_box_style }}">
-                                    <span>{{ pet_in_image.pet.name }}</span>
-                                </div>
-                            {% endfor %}
+                                src="{{ image.full_size_url }}"
+                                height="{{ image.original_height }}"
+                                width="{{ image.original_width }}
+                                class="img-fluid rounded"
+                                alt="{{ image.title }}"
+                                style="max-height: 70vh;
+                                width: auto">
+                                {# This style means actual rendered size might differ from original #}
+                                {# Limit height and maintain aspect ratio #}
+                                {# Bounding Boxes for People #}
+                                {% for person_in_image in image.personinimage_set.all() %}
+                                    <div class="bounding-box person"
+                                         data-center-x="{{ person_in_image.center_x }}"
+                                         data-center-y="{{ person_in_image.center_y }}"
+                                         data-width="{{ person_in_image.width }}"
+                                         data-height="{{ person_in_image.height }}">
+                                        <span>{{ person_in_image.person.name }}</span>
+                                    </div>
+                                {% endfor %}
+                                {# Bounding Boxes for Pets #}
+                                {% for pet_in_image in image.petinimage_set.all() %}
+                                    <div class="bounding-box pet"
+                                         data-center-x="{{ pet_in_image.center_x }}"
+                                         data-center-y="{{ pet_in_image.center_y }}"
+                                         data-width="{{ pet_in_image.width }}"
+                                         data-height="{{ pet_in_image.height }}">
+                                        <span>{{ pet_in_image.pet.name }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between flex-wrap">
+                            {# Use flex-wrap for better layout on smaller screens #}
+                            <span>{{ image.original_width }}x{{ image.original_height }} px</span>
+                            <span>{{ image.file_size|filesizeformat }}</span>
+                            <div class="d-flex">
+                                {# Container for the toggles #}
+                                {% if image.personinimage_set.count() > 0 %}
+                                    {# Toggle for People bounding boxes #}
+                                    <div class="form-check form-switch ms-3">
+                                        {# Add margin-left for spacing #}
+                                        <input class="form-check-input" type="checkbox" id="personBoundingBoxToggle">
+                                        <label class="form-check-label" for="personBoundingBoxToggle">Show People</label>
+                                    </div>
+                                {% endif %}
+                                {% if image.petinimage_set.count() > 0 %}
+                                    {# Toggle for Pets bounding boxes #}
+                                    <div class="form-check form-switch ms-3">
+                                        {# Add margin-left for spacing #}
+                                        <input class="form-check-input" type="checkbox" id="petBoundingBoxToggle">
+                                        <label class="form-check-label" for="petBoundingBoxToggle">Show Pets</label>
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-                    <div class="card-footer d-flex justify-content-between flex-wrap">
-                        {# Use flex-wrap for better layout on smaller screens #}
-                        <span>{{ image.original_width }}x{{ image.original_height }} px</span>
-                        <span>{{ image.file_size|filesizeformat }}</span>
-                        <div class="d-flex">
-                            {# Container for the toggles #}
-                            {% if image.personinimage_set.count() > 0 %}
-                                {# Toggle for People bounding boxes #}
-                                <div class="form-check form-switch ms-3">
-                                    {# Add margin-left for spacing #}
-                                    <input class="form-check-input" type="checkbox" id="personBoundingBoxToggle">
-                                    <label class="form-check-label" for="personBoundingBoxToggle">Show People</label>
-                                </div>
-                            {% endif %}
-                            {% if image.petinimage_set.count() > 0 %}
-                                {# Toggle for Pets bounding boxes #}
-                                <div class="form-check form-switch ms-3">
-                                    {# Add margin-left for spacing #}
-                                    <input class="form-check-input" type="checkbox" id="petBoundingBoxToggle">
-                                    <label class="form-check-label" for="petBoundingBoxToggle">Show Pets</label>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            {% else %}
-                <div class="alert alert-warning" role="alert">Full image not available.</div>
-            {% endif %}
-        </div>
-        {# Info, People, Pets, Edit Section (Right Column) #}
-        <div class="col-md-4">
-            {# Image Info Card #}
-            <div class="card mb-4">
-                {# Added mb-4 for spacing below #}
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Image Info</h5>
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ image.title }}</h5>
-                    {% if image.title %}
-                        <p class="card-text">{{ image.title }}</p>
-                    {% else %}
-                        <p class="text-muted small">No title available.</p>
-                    {% endif %}
-                    {% if image.description %}
-                        <p class="card-text">{{ image.description }}</p>
-                    {% else %}
-                        <p class="text-muted small">No description available.</p>
-                    {% endif %}
-                    <p class="mb-1">
-                        <strong>Date:</strong>
-                        {% if image.date %}
-                            <span class="text-muted">{{ image.date }}</span>
-                        {% else %}
-                            <span class="text-muted fst-italic">Not available</span>
-                        {% endif %}
-                    </p>
-                    <p class="mb-1">
-                        <strong>Location:</strong>
-                        {% if image.location %}
-                            <span class="text-muted">
-                                {% if image.location.sub_location %}{{ image.location.sub_location }},{% endif %}
-                                {% if image.location.city %}{{ image.location.city }},{% endif %}
-                                {% if image.location.subdivision_name %}{{ image.location.subdivision_name }},{% endif %}
-                                {% if image.location.country_name %}{{ image.location.country_name }}{% endif %}
-                            </span>
-                        {% else %}
-                            <span class="text-muted fst-italic">Not available</span>
-                        {% endif %}
-                    </p>
-                    <p class="mb-1">
-                        <strong>Folder:</strong>
-                        {% if image.folder %}
-                            <span class="text-muted">{{ image.folder.name }}</span>
-                        {% else %}
-                            <span class="text-muted fst-italic">Not available</span>
-                        {% endif %}
-                    </p>
-                    <p class="mb-1">
-                        <strong>Source:</strong>
-                        {% if image.source %}
-                            <span class="text-muted">{{ image.source.name }}</span>
-                        {% else %}
-                            <span class="text-muted fst-italic">Not available</span>
-                        {% endif %}
-                    </p>
-                    <hr>
-                    <p class="small mb-1">
-                        <strong>Created:</strong>
-                        <span class="text-muted">{{ image.created_at.astimezone(user.profile.timezone) |date("N j, Y, P") }}</span>
-                    </p>
-                    <p class="small mb-1">
-                        <strong>Updated:</strong>
-                        <span class="text-muted">{{ image.updated_at.astimezone(user.profile.timezone) |date("N j, Y, P") }}</span>
-                    </p>
-                </div>
+                {% else %}
+                    <div class="alert alert-warning" role="alert">Full image not available.</div>
+                {% endif %}
             </div>
-            {# People Card #}
-            {% if image.people.all()|length > 0 %}
+            {# Info, People, Pets, Edit Section (Right Column) #}
+            <div class="col-md-4">
+                {# Image Info Card #}
                 <div class="card mb-4">
                     {# Added mb-4 for spacing below #}
-                    <div class="card-header">
-                        <h5 class="mb-0">People</h5>
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        {% for person_in_image in image.personinimage_set.all() %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ person_in_image.person.name }}
-                                {% if person_in_image.description %}
-                                    <span class="badge bg-secondary">{{ person_in_image.description }}</span>
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% endif %}
-            {# Pets Card #}
-            {% if image.pets.all()|length > 0 %}
-                <div class="card mb-4">
-                    {# Added mb-4 for spacing below #}
-                    <div class="card-header">
-                        <h5 class="mb-0">Pets</h5>
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        {% for pet_in_image in image.petinimage_set.all() %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ pet_in_image.pet.name }}
-                                {% if pet_in_image.pet.pet_type %}
-                                    <span class="badge bg-info text-dark">{{ pet_in_image.pet.pet_type }}</span>
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% endif %}
-            {# Edit Button #}
-            {% if can_edit %}
-                {# Use d-flex and justify-content-end to align the button to the right within this column #}
-                <div class="d-flex justify-content-end mb-4">
-                    <a href=" {{ url('image_update', pk=image.pk) }}"
-                       class="btn btn-primary">
-                        <i class="bi bi-pencil"></i> Edit
-                    </a>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-    {# Technical Details and Tags (remain full width below) #}
-    <div class="row">
-        <div class="col-md-12 mb-4">
-            {% if image.tags.count() > 0 %}
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Tags</h5>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Image Info</h5>
                     </div>
                     <div class="card-body">
-                        {% for tag in image.tags.all() %}<span class="badge bg-primary me-1 mb-1">{{ tag.name }}</span>{% endfor %}
+                        <h5 class="card-title">{{ image.title }}</h5>
+                        {% if image.title %}
+                            <p class="card-text">{{ image.title }}</p>
+                        {% else %}
+                            <p class="text-muted small">No title available.</p>
+                        {% endif %}
+                        {% if image.description %}
+                            <p class="card-text">{{ image.description }}</p>
+                        {% else %}
+                            <p class="text-muted small">No description available.</p>
+                        {% endif %}
+                        <p class="mb-1">
+                            <strong>Date:</strong>
+                            {% if image.date %}
+                                <span class="text-muted">{{ image.date }}</span>
+                            {% else %}
+                                <span class="text-muted fst-italic">Not available</span>
+                            {% endif %}
+                        </p>
+                        <p class="mb-1">
+                            <strong>Location:</strong>
+                            {% if image.location %}
+                                <span class="text-muted">
+                                    {% if image.location.sub_location %}{{ image.location.sub_location }},{% endif %}
+                                    {% if image.location.city %}{{ image.location.city }},{% endif %}
+                                    {% if image.location.subdivision_name %}{{ image.location.subdivision_name }},{% endif %}
+                                    {% if image.location.country_name %}{{ image.location.country_name }}{% endif %}
+                                </span>
+                            {% else %}
+                                <span class="text-muted fst-italic">Not available</span>
+                            {% endif %}
+                        </p>
+                        <p class="mb-1">
+                            <strong>Folder:</strong>
+                            {% if image.folder %}
+                                <span class="text-muted">{{ image.folder.name }}</span>
+                            {% else %}
+                                <span class="text-muted fst-italic">Not available</span>
+                            {% endif %}
+                        </p>
+                        <p class="mb-1">
+                            <strong>Source:</strong>
+                            {% if image.source %}
+                                <span class="text-muted">{{ image.source.name }}</span>
+                            {% else %}
+                                <span class="text-muted fst-italic">Not available</span>
+                            {% endif %}
+                        </p>
+                        <hr>
+                        <p class="small mb-1">
+                            <strong>Created:</strong>
+                            <span class="text-muted">{{ image.created_at.astimezone(user.profile.timezone) |date("N j, Y, P") }}</span>
+                        </p>
+                        <p class="small mb-1">
+                            <strong>Updated:</strong>
+                            <span class="text-muted">{{ image.updated_at.astimezone(user.profile.timezone) |date("N j, Y, P") }}</span>
+                        </p>
                     </div>
                 </div>
-            {% endif %}
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Technical Details</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p class="small mb-1">
-                                <strong>Original Checksum:</strong>
-                                <span class="text-monospace text-muted">{{ image.original_checksum[:16] }}...</span>
-                            </p>
-                            <p class="small mb-1">
-                                <strong>Perceptual Hash:</strong>
-                                <span class="text-monospace text-muted">{{ image.phash }}</span>
-                            </p>
-                            <p class="small mb-1">
-                                <strong>Orientation:</strong>
-                                <span class="text-muted">{{ image.get_orientation_display() }}</span>
-                            </p>
+                {# People Card #}
+                {% if image.people.all()|length > 0 %}
+                    <div class="card mb-4">
+                        {# Added mb-4 for spacing below #}
+                        <div class="card-header">
+                            <h5 class="mb-0">People</h5>
                         </div>
-                        <div class="col-md-6">
-                            <p class="small mb-1">
-                                <strong>File Size:</strong>
-                                <span class="text-muted">{{ image.file_size|filesizeformat }}</span>
-                            </p>
-                            <p class="small mb-1">
-                                <strong>Dimensions:</strong>
-                                <span class="text-muted">{{ image.original_width }}x{{ image.original_height }} pixels</span>
-                            </p>
-                            <p class="small mb-1">
-                                <strong>ID:</strong>
-                                <span class="text-monospace text-muted">{{ image.image_fs_id }}</span>
-                            </p>
-                            <p class="small mb-1">
-                                <strong>Original File:</strong>
-                                <span class="text-monospace text-muted text-truncate d-inline-block"
-                                      style="max-width: 100%">{{ image.original_path }}</span>
-                            </p>
+                        <ul class="list-group list-group-flush">
+                            {% for person_in_image in image.personinimage_set.all() %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ person_in_image.person.name }}
+                                    {% if person_in_image.description %}
+                                        <span class="badge bg-secondary">{{ person_in_image.description }}</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                {# Pets Card #}
+                {% if image.pets.all()|length > 0 %}
+                    <div class="card mb-4">
+                        {# Added mb-4 for spacing below #}
+                        <div class="card-header">
+                            <h5 class="mb-0">Pets</h5>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            {% for pet_in_image in image.petinimage_set.all() %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ pet_in_image.pet.name }}
+                                    {% if pet_in_image.pet.pet_type %}
+                                        <span class="badge bg-info text-dark">{{ pet_in_image.pet.pet_type }}</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                {# Edit Button #}
+                {% if can_edit %}
+                    {# Use d-flex and justify-content-end to align the button to the right within this column #}
+                    <div class="d-flex justify-content-end mb-4">
+                        <a href=" {{ url('image_update', pk=image.pk) }}"
+                           class="btn btn-primary">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {# Technical Details and Tags (remain full width below) #}
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                {% if image.tags.count() > 0 %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Tags</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for tag in image.tags.all() %}<span class="badge bg-primary me-1 mb-1">{{ tag.name }}</span>{% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Technical Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="small mb-1">
+                                    <strong>Original Checksum:</strong>
+                                    <span class="text-monospace text-muted">{{ image.original_checksum[:16] }}...</span>
+                                </p>
+                                <p class="small mb-1">
+                                    <strong>Perceptual Hash:</strong>
+                                    <span class="text-monospace text-muted">{{ image.phash }}</span>
+                                </p>
+                                <p class="small mb-1">
+                                    <strong>Orientation:</strong>
+                                    <span class="text-muted">{{ image.get_orientation_display() }} ({{ image.orientation }})</span> {# <-- Display raw value too #}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="small mb-1">
+                                    <strong>File Size:</strong>
+                                    <span class="text-muted">{{ image.file_size|filesizeformat }}</span>
+                                </p>
+                                <p class="small mb-1">
+                                    <strong>Dimensions:</strong>
+                                    <span class="text-muted">{{ image.original_width }}x{{ image.original_height }} pixels</span>
+                                </p>
+                                <p class="small mb-1">
+                                    <strong>ID:</strong>
+                                    <span class="text-monospace text-muted">{{ image.image_fs_id }}</span>
+                                </p>
+                                <p class="small mb-1">
+                                    <strong>Original File:</strong>
+                                    <span class="text-monospace text-muted text-truncate d-inline-block"
+                                          style="max-width: 100%">{{ image.original_path }}</span>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-{% endblock content %}
-{% block extra_js %}
-    <script>
+    {% endblock content %}
+    {% block extra_js %}
+        <script>
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('personBoundingBoxToggle').addEventListener('change', function() {
-        var personBoxes = document.querySelectorAll('.bounding-box.person');
-        personBoxes.forEach(function(box) {
-            box.style.display = this.checked ? 'block' : 'none';
-        }, this);
-    });
-{% if image.petinimage_set.count() > 0 %}
-    document.getElementById('petBoundingBoxToggle').addEventListener('change', function() {
-        var petBoxes = document.querySelectorAll('.bounding-box.pet');
-        petBoxes.forEach(function(box) {
-            box.style.display = this.checked ? 'block' : 'none';
-        }, this);
-    });
-{% endif %}
+    const imageContainer = document.getElementById('imageContainer');
+    const mainImage = document.getElementById('mainImage');
+    // Ensure imageContainer and mainImage exist before proceeding
+    if (!imageContainer || !mainImage) {
+        console.error("Image container or main image element not found.");
+        return;
+    }
+
+    const orientation = parseInt(imageContainer.dataset.orientation, 10); // Get orientation from data attribute
+    const boundingBoxes = document.querySelectorAll('.bounding-box');
+
+/**
+ * Transform coordinates based on orientation
+ * @param {number} centerX - The center X coordinate (0.0-1.0)
+ * @param {number} centerY - The center Y coordinate (0.0-1.0)
+ * @param {number} width - The width (0.0-1.0)
+ * @param {number} height - The height (0.0-1.0)
+ * @param {number} orientation - The orientation (1-8 as per EXIF orientation)
+ * @return {Object} - Transformed box with x, y, w, h
+ */
+function transformCoordinates(centerX, centerY, width, height, orientation) {
+  // For MWG regions, these are already center coordinates
+  let xPrime, yPrime, wPrime, hPrime;
+
+  // First handle the width/height swap for orientations that need it
+  const dimensionsSwapped = [5, 6, 7, 8].includes(orientation);
+  wPrime = dimensionsSwapped ? height : width;
+  hPrime = dimensionsSwapped ? width : height;
+
+  // Then handle the center point transformations
+  switch (orientation) {
+    case 1: // Normal
+      xPrime = centerX;
+      yPrime = centerY;
+      break;
+
+    case 2: // Flip horizontal
+      xPrime = 1 - centerX;
+      yPrime = centerY;
+      break;
+
+    case 3: // Rotate 180
+      xPrime = 1 - centerX;
+      yPrime = 1 - centerY;
+      break;
+
+    case 4: // Flip vertical
+      xPrime = centerX;
+      yPrime = 1 - centerY;
+      break;
+
+    case 5: // Transpose (Flip horizontal and rotate 270 CW)
+      xPrime = centerY;
+      yPrime = centerX;
+      break;
+
+    case 6: // Rotate 90 CW
+      xPrime = 1 - centerY;
+      yPrime = centerX;
+      break;
+
+    case 7: // Transverse (Flip horizontal and rotate 90 CW)
+      xPrime = 1 - centerY;
+      yPrime = 1 - centerX;
+      break;
+
+    case 8: // Rotate 270 CW
+      xPrime = centerY;
+      yPrime = 1 - centerX;
+      break;
+
+    default: // Assume normal if orientation is unknown
+      xPrime = centerX;
+      yPrime = centerY;
+      break;
+  }
+
+  return {
+    x: xPrime,
+    y: yPrime,
+    w: wPrime,
+    h: hPrime
+  };
+}
+
+    // Function to position bounding boxes after the image has loaded and rendered
+    function positionBoundingBoxes() {
+        const imgWidth = mainImage.offsetWidth; // Get the rendered width of the image
+        const imgHeight = mainImage.offsetHeight; // Get the rendered height of the image
+
+        if (imgWidth === 0 || imgHeight === 0) {
+             // Image might not be fully rendered yet, retry or handle error
+             // console.warn("Image dimensions are zero, skipping box positioning.");
+             // Optionally, add a small delay and retry if this is a common issue
+             // setTimeout(positionBoundingBoxes, 100);
+             return;
+        }
+
+        boundingBoxes.forEach(function(box) {
+            // Read raw relative coordinates from data attributes
+            const centerX = parseFloat(box.dataset.centerX);
+            const centerY = parseFloat(box.dataset.centerY);
+            const width = parseFloat(box.dataset.width);
+            const height = parseFloat(box.dataset.height);
+
+            if (isNaN(centerX) || isNaN(centerY) || isNaN(width) || isNaN(height)) {
+                console.error("Invalid bounding box data for element:", box);
+                return;
+            }
+
+            // Transform coordinates based on orientation
+            const transformed = transformCoordinates(centerX, centerY, width, height, orientation);
+
+            // Calculate CSS properties (top, left, width, height) as percentages
+            // relative to the image container.
+            // Note: CSS top/left are the top-left corner, not the center
+            const cssWidthPercent = transformed.w * 100;
+            const cssHeightPercent = transformed.h * 100;
+            const cssLeftPercent = (transformed.x - transformed.w / 2) * 100;
+            const cssTopPercent = (transformed.y - transformed.h / 2) * 100;
+
+            // Apply the calculated styles
+            box.style.width = cssWidthPercent + '%';
+            box.style.height = cssHeightPercent + '%';
+            box.style.left = cssLeftPercent + '%';
+            box.style.top = cssTopPercent + '%';
+        });
+    }
+
+    // Listen for the image load event to ensure dimensions are available
+    if (mainImage.complete && mainImage.naturalWidth > 0) {
+        // Image is already loaded (e.g., from cache) and has dimensions
+        positionBoundingBoxes();
+    } else {
+        // Image is not loaded, wait for the load event
+        mainImage.addEventListener('load', positionBoundingBoxes);
+    }
+
+     // Also re-position boxes if the window is resized, as image dimensions might change
+     // Debounce this event listener in a real application for performance
+     let resizeTimeout;
+     window.addEventListener('resize', () => {
+         clearTimeout(resizeTimeout);
+         resizeTimeout = setTimeout(positionBoundingBoxes, 100); // Debounce with 100ms delay
+     });
+
+
+    // Existing toggle logic - modified slightly to just change display
+    const personToggle = document.getElementById('personBoundingBoxToggle');
+    if (personToggle) {
+        personToggle.addEventListener('change', function() {
+            document.querySelectorAll('.bounding-box.person').forEach(function(box) {
+                box.style.display = this.checked ? 'block' : 'none';
+            }, this);
+        });
+    }
+
+    const petToggle = document.getElementById('petBoundingBoxToggle');
+    if (petToggle) {
+        petToggle.addEventListener('change', function() {
+            document.querySelectorAll('.bounding-box.pet').forEach(function(box) {
+                box.style.display = this.checked ? 'block' : 'none';
+            }, this);
+        });
+    }
 });
-    </script>
-{% endblock extra_js %}
+        </script>
+    {% endblock extra_js %}
