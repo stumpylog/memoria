@@ -38,7 +38,7 @@ FULL_SIZE_DIR.mkdir(exist_ok=True, parents=True)
 SECRET_KEY = os.environ.get("MEMORIA_SECRET_KEY", "AuxBXBU1JzzFn1evKoVD818m4uRUqN0dJxCIDda0Op7L4NR7ftvZpF6uxp0xuoOU")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True  # "MEMORIA_DEBUG" in os.environ
+DEBUG = "MEMORIA_DEBUG" in os.environ
 
 #
 # Hosting configuration
