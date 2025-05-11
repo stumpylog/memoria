@@ -106,6 +106,11 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
             ],
             "extensions": [*DEFAULT_EXTENSIONS, "django_bootstrap5.jinja2.BootstrapTags"],
+            "bytecode_cache": {
+                "name": "default",
+                "backend": "django_jinja.cache.BytecodeCache",
+                "enabled": True,
+            },
         },
     },
     {

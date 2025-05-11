@@ -71,7 +71,7 @@ class Command(TyperCommand):
         self,
         root_dir: Annotated[
             Path,
-            Option("--top-lvl-dir", help="Set the root directory for folder structure"),
+            Option("--root-dir", help="Set the root directory for folder structure"),
         ],
         paths: Annotated[list[Path], Argument(help="The paths to index for new images")],
         hash_threads: Annotated[int, Option(help="Number of threads to use for hashing")] = 4,
@@ -115,6 +115,8 @@ class Command(TyperCommand):
                                 calculate_blake3_hash(image_path, hash_threads=hash_threads),
                             ),
                         )
+
+        found_images.sort()
 
         hash_to_path: dict[str, FoundImage] = {}
         for image in found_images:

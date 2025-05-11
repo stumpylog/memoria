@@ -47,7 +47,7 @@ def generate_image_versions_pyvips(
         # Save the image as WebP with specified quality
         # The quality is passed as a keyword argument 'Q'
         logger.info("    Creating WebP version")
-        image.write_to_file(str(webp_output_path), Q=webp_quality)
+        image.autorot().write_to_file(str(webp_output_path), Q=webp_quality)
 
     except pyvips.Error:
         logger.exception("An libvips error occurred")
