@@ -1,0 +1,24 @@
+I want you to create a React.js application, using react-bootstrap for styling, which does the following.  Assume the backend is functional and does not need to be generated
+The application should use Typescript, jsx, etc.
+The application should use Vite.
+The application should use block body syntax
+The application should use icons from bootstrap-icons.
+Other packages may be installed if required, such as react router
+uses axios for the http client
+HTTP errors should be handled
+Makes requests to http://localhost:8000 as the backend base url
+The backend provides /api/csrf/, /api/login/, /api/logout/, /api/user/, which do what they sound.  The user route provides fields from a Django user model
+The backend uses session based auth (from Django)
+The application should use a branded bootstrap navigation bar
+The navigation should include / (the home page), /folder, and /people
+The components, except the homepage, should be skeletons for now.
+Under a dropdown on the right should be profile, settings (if the user is a staff or superuser) and logout links.
+The user menu should be separated from the main navigation links.
+The navigation bar should include a light or dark theme picker, which is applied to the whole application, to the left of the user dropdown.
+The theme should default to following the system theme.
+No part of the application except the login page should be accessible until successful login.
+All http will be requested as json.
+If the user logs out, they should redirect to a logout page, which includes a message and a link to log back in
+We should use react-bootstrap for bootstrap integration.
+We should define models for the types used, such as a User.
+The brand should be loaded from static/images/brand.svg (and scaled if needed)

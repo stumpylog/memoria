@@ -159,3 +159,11 @@ class ManageGroupsView(LoginRequiredMixin, StaffOrSuperuserRequiredMixin, View):
             messages.error(request, "Please correct the errors below for group management.")  # Generic error
 
         return redirect("profile")  # Always redirect back to the main profile view
+
+
+def login_view(request: HttpRequest):
+    pass
+
+
+def logout_view(request: HttpRequest):
+    pass

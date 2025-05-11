@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
-from urllib.parse import urlparse
 
 from django_jinja.builtins import DEFAULT_EXTENSIONS
 
@@ -47,20 +46,24 @@ LOGIN_REDIRECT_URL = "/home/"
 LOGOUT_REDIRECT_URL = "/logout/"
 LOGIN_URL = "/login/"
 MEDIA_URL = "/media/"
-CSRF_TRUSTED_ORIGINS = (
-    [os.getenv("MEMORIA_URL")] if "MEMORIA_URL" in os.environ else ["http://localhost:8101", "http://localhost:8000"]
-)
-CORS_ALLOWED_ORIGINS = (
-    [os.getenv("MEMORIA_URL")] if "MEMORIA_URL" in os.environ else ["http://localhost:8101", "http://localhost:8000"]
-)
-ALLOWED_HOSTS = (
-    [urlparse(os.getenv("MEMORIA_URL")).hostname, "localhost"] if "MEMORIA_URL" in os.environ else ["localhost"]
-)
-# The reverse proxy handles SSL
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# CSRF settings
+CSRF_COOKIE_SAMESITE = "Lax"  # or 'None' if using HTTPS with different domains
+CSRF_COOKIE_HTTPONLY = False  # False to allow JavaScript access to the cookie
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+
+# Session settings
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SAMESITE = "Lax"  # or 'None' if using different domains
+
+# React is served from a different domain than Django
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React development server
+    "http://localhost:5173",  # Vite development server
+]
+CORS_ALLOW_CREDENTIALS = True  # Important for sending cookies
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://localhost:5173"]
 
 
 # Application definition
@@ -72,6 +75,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "django_jinja",
     "django_jinja.contrib._humanize",
     "treenode",
@@ -83,6 +87,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
