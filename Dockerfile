@@ -72,7 +72,7 @@ COPY --chown=1000:1000 ["pyproject.toml", "uv.lock", "manage.py", "/app/"]
 RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
   set -eux \
   && echo "Installing system packages" \
-    && apk add --no-cache nginx postgresql-client \
+    && apk add --no-cache nginx postgresql-client exiftool vips \
   && echo "Installing build system packages" \
     && apk add --no-cache --virtual .python-build \
         postgresql-dev \
@@ -94,7 +94,7 @@ RUN set -eux \
   && echo "Creating volume directories" \
     && mkdir --parents --verbose /app/data/ \
     && mkdir --parents --verbose /app/data/logs/ \
-    && mkdir --parents --verbose /app/data/logs/nginx/ \
+    && mkdir --parents --verbose /app/data/nginx/ \
     && mkdir --parents --verbose /app/data/nginx/ \
     && mkdir --parents --verbose /app/static/ \
     && mkdir --parents --verbose /app/media/ \

@@ -69,9 +69,9 @@ class Command(TyperCommand):
 
     def handle(
         self,
-        top_level_dir: Annotated[
+        root_dir: Annotated[
             Path,
-            Option("--top-lvl-dir", help="Set the top level directory for folder structure"),
+            Option("--top-lvl-dir", help="Set the root directory for folder structure"),
         ],
         paths: Annotated[list[Path], Argument(help="The paths to index for new images")],
         hash_threads: Annotated[int, Option(help="Number of threads to use for hashing")] = 4,
@@ -143,7 +143,7 @@ class Command(TyperCommand):
 
             for found_image in sorted(batch):
                 pkg = ImageIndexTaskModel(
-                    root_dir=top_level_dir.resolve(),
+                    root_dir=root_dir.resolve(),
                     image_path=found_image.image_path,
                     original_hash=found_image.checksum,
                     logger=logger,
@@ -165,7 +165,7 @@ class Command(TyperCommand):
 
             for found_image, existing_image in batch:
                 pkg = ImageUpdateTaskModel(
-                    root_dir=top_level_dir.resolve(),
+                    root_dir=root_dir.resolve(),
                     image_path=found_image.image_path,
                     image=existing_image,
                     logger=logger,

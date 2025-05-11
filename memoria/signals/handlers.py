@@ -24,9 +24,6 @@ def handle_post_migrate(sender, **kwargs):
 
     _has_run_post_migrate_once = True
 
-    # Your setup logic here (safe to use database)
-    print("Running post-migrate startup logic once")
-
     import importlib
 
     try:

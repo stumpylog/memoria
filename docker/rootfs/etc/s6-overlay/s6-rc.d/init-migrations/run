@@ -6,6 +6,10 @@ echo "${log_prefix} Apply database migrations..."
 
 cd /app/
 
+ls -ahl .
+ls -ahl /app/data/
+ls -ahl /app/data/logs/
+
 # The whole migrate, with flock, needs to run as the right user
 exec s6-setuidgid memoria \
     s6-setlock -n "/app//migration_lock" \

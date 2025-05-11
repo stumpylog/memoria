@@ -1,13 +1,13 @@
 #!/command/with-contenv /bin/ash
 
 # Create required directories
-mkdir -p /app/data/nginx/run
-mkdir -p /app/data/logs/nginx
-mkdir -p /app/data/nginx/client_body_temp
-mkdir -p /app/data/nginx/proxy_temp
-mkdir -p /app/data/nginx/fastcgi_temp
-mkdir -p /app/data/nginx/uwsgi_temp
-mkdir -p /app/data/nginx/scgi_temp
+mkdir -p /app/data/nginx/run/
+mkdir -p /app/data/nginx/logs/
+mkdir -p /app/data/nginx/client_body_temp/
+mkdir -p /app/data/nginx/proxy_temp/
+mkdir -p /app/data/nginx/fastcgi_temp/
+mkdir -p /app/data/nginx/uwsgi_temp/
+mkdir -p /app/data/nginx/scgi_temp/
 
 chown -R memoria:memoria /app/data/nginx/
 
@@ -26,4 +26,4 @@ chmod 644 /var/log/nginx/*.log
 chown -R memoria:memoria /var/log/nginx
 
 
-exec s6-setuidgid memoria nginx -g 'daemon off;' -c /etc/nginx/nginx.conf
+exec s6-setuidgid memoria nginx -c /etc/nginx/nginx.conf

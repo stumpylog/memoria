@@ -4,3 +4,8 @@
 log_prefix="[init-start]"
 
 echo "${log_prefix} memoria docker container starting..."
+
+cd /app/
+
+chown -R memoria:memoria /app/data/
+chown -R memoria:memoria /app/media/
