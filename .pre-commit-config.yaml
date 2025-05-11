@@ -45,6 +45,8 @@ repos:
           - json
           - html
           - yaml
+          - javascript
+          - css
   # Python hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: "v0.11.7"
