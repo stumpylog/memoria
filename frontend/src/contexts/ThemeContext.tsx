@@ -32,12 +32,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
     document.documentElement.setAttribute('data-bs-theme', currentEffectiveTheme);
     return currentEffectiveTheme;
-  }, []);
+  }, []); // applyTheme uses no external variables that change across renders, so dependency array is empty
 
   useEffect(() => {
     const newEffectiveTheme = applyTheme(theme);
     setEffectiveTheme(newEffectiveTheme);
-  }, [theme, applyTheme]);
+  }, [theme, applyTheme]); // Dependency on theme and the stable applyTheme
 
   // Listener for system theme changes
   useEffect(() => {
@@ -51,18 +51,19 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme, applyTheme]);
+  }, [theme, applyTheme]); // Dependency on theme and the stable applyTheme
 
-  const setTheme = (newTheme: Theme): void => {
+  // Wrap setTheme in useCallback to make it stable
+  const setTheme = useCallback((newTheme: Theme): void => {
     localStorage.setItem('app-theme', newTheme);
-    setThemeState(newTheme);
-  };
+    setThemeState(newTheme); // setThemeState is stable, so listing it here doesn't cause issues
+  }, [setThemeState]); // Dependency array includes setThemeState because it's used inside the callback
 
   const contextValue = useMemo(() => ({
     theme,
     effectiveTheme,
-    setTheme,
-  }), [theme, effectiveTheme, setTheme]);
+    setTheme, // This is now the stable function wrapped by useCallback
+  }), [theme, effectiveTheme, setTheme]); // Now setTheme is a stable dependency
 
   return (
     <ThemeContext.Provider value={contextValue}>
