@@ -2,12 +2,16 @@
 import React from 'react';
 import { Container, Card } from 'react-bootstrap';
 import { useAuth } from '../hooks/useAuth';
+import { Helmet } from 'react-helmet-async';
 
 const ProfilePage: React.FC = () => {
   const { user } = useAuth();
 
   return (
     <Container fluid className="p-4">
+      <Helmet>
+        <title>Profile: {user?.username}</title>
+      </Helmet>
       <Card>
         <Card.Header as="h2">User Profile</Card.Header>
         <Card.Body>
