@@ -18,14 +18,14 @@ logger = logging.getLogger(__name__)
 UserModelT = get_user_model()
 
 
-@router.get("/profile/", response=UserOutSchema, auth=django_auth)
+@router.get("/profile/", response=UserOutSchema, auth=django_auth, operation_id="user_get_profile")
 def get_profile(
     request: HttpRequest,
 ):
     return request.user
 
 
-@router.post("/profile/edit/", response=UserOutSchema, auth=django_auth)
+@router.post("/profile/edit/", response=UserOutSchema, auth=django_auth, operation_id="user_edit_profile")
 def edit_profile(
     request: HttpRequest,
     data: UserUpdateInScheme,
@@ -33,7 +33,7 @@ def edit_profile(
     return request.user
 
 
-@router.post("/create/", response={HTTPStatus.OK: UserOutSchema}, auth=django_auth)
+@router.post("/create/", response={HTTPStatus.OK: UserOutSchema}, auth=django_auth, operation_id="user_create")
 async def create_user(
     request: HttpRequest,
     data: UserInCreateSchema,

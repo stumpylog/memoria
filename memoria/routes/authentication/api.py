@@ -24,7 +24,7 @@ router = Router(tags=["auth"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("/csrf/", response=CsrfTokenOutSchema)
+@router.get("/csrf/", response=CsrfTokenOutSchema, operation_id="auth_get_csrf_token")
 @ensure_csrf_cookie
 @csrf_exempt
 def get_csrf_token(request: HttpRequest):
@@ -45,6 +45,7 @@ def get_csrf_token(request: HttpRequest):
             },
         },
     },
+    operation_id="auth_login",
 )
 async def login(request):
     data = loads(request.body)
@@ -70,6 +71,7 @@ async def login(request):
     "/logout/",
     response={HTTPStatus.NO_CONTENT: None},
     auth=django_auth,
+    operation_id="auth_logout",
 )
 def logout(request: HttpRequest):
     django_logout(request)

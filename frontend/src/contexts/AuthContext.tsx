@@ -1,8 +1,15 @@
-// src/contexts/AuthContext.tsx
 import React, { createContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { apiService, initializeCsrfToken } from '../api/apiClient';
-import type { User, ApiError } from '../api/types';
+import type { UserOutSchema as User, AuthLoginData } from '../api';
+import {
+  authLogin,
+  authLogout,
+  userGetProfile,
+} from '../api'
+
+import { initializeCsrfToken } from '../api-config';
+
 import { AxiosError } from 'axios';
+
 
 interface AuthContextType {
   user: User | null;
@@ -11,9 +18,10 @@ interface AuthContextType {
   error: string | null;
   generalApiError: string | null;
   setGeneralApiError: (message: string | null) => void;
-  login: (credentials: unknown) => Promise<boolean>;
+  // Use the generated type for login credentials if available, otherwise 'any' or an interface
+  login: (credentials: AuthLoginData['body']) => Promise<boolean>;
   logout: () => Promise<void>;
-  fetchCurrentUser: () => Promise<void>; // Keep as Promise<void> - its job is to set state
+  fetchCurrentUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,86 +36,94 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
   const [generalApiError, setGeneralApiErrorState] = useState<string | null>(null);
 
+  // Adapted handleApiError for more general error logging
   const handleApiError = useCallback((err: unknown, context?: string): string => {
-    let errorMessage = `An unexpected error occurred${context ? ` ${context}` : ''}.`;
+    const contextMessage = context ? ` ${context}` : '';
+    console.error(`API Error${contextMessage}:`, err); // Log the full error object
+
+    let userFacingMessage = `An unexpected error occurred${contextMessage}.`;
+
     if (err instanceof AxiosError) {
-      const apiError = err.response?.data as ApiError;
-      if (apiError?.detail) {
-        if (typeof apiError.detail === 'string') {
-          errorMessage = apiError.detail;
-        } else if (Array.isArray(apiError.detail)) {
-          errorMessage = apiError.detail.map(d => `${d.loc.join('.')}: ${d.msg}`).join('; ');
-        }
-      } else if (err.response?.statusText && (err.response.status === 401 || err.response.status === 403) ) {
-        errorMessage = `Authentication failed: ${err.response.statusText}`;
+      // Log Axios specific info
+      console.error('Axios Error Details:', {
+        message: err.message,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data, // Log response data, which might contain useful info
+      });
+
+      // Provide a slightly more informative message if status or status text is available
+      if (err.response) {
+          userFacingMessage = `Request failed with status ${err.response.status}${err.response.statusText ? `: ${err.response.statusText}` : ''}${contextMessage}.`;
+          // If there's a 'detail' field or similar in your common error response, you could check for it here,
+          // but without a specific type, you'd need to access it generally (e.g., `(err.response.data as any)?.detail`)
+          // and add checks. For now, we'll keep it simple.
+      } else {
+         userFacingMessage = `Request failed: ${err.message}${contextMessage}.`;
       }
-       else if (err.message) {
-        errorMessage = err.message;
-      }
+
     } else if (err instanceof Error) {
-      errorMessage = err.message;
+      userFacingMessage = `An error occurred: ${err.message}${contextMessage}.`;
     }
-    return errorMessage;
+
+    // You could return err.message directly if you prefer less generic messages
+    return userFacingMessage; // Return a user-friendly message
   }, []);
 
   const fetchCurrentUser = useCallback(async (): Promise<void> => {
-    // This function is called on initial load and after login.
-    // It should not manage setIsLoading by itself if part of a larger flow like login() or initAuth().
     try {
-      const userData = await apiService.getCurrentUser();
-      setUser(userData); // This will make isAuthenticated true if userData is valid
+      const { data } = await userGetProfile();
+      if (data !== undefined) {
+        setUser(data);
+      } else {
+        // If data is undefined, treat it as no user being logged in
+        setUser(null);
+      }
     } catch (err) {
-      console.log(err);
-      setUser(null); // Crucial: if fetching user fails, ensure user is null
+      console.error("Failed to fetch current user:", handleApiError(err, 'when fetching current user'));
+      setUser(null);
     }
-  }, [/* setUser is stable */]);
+  }, [handleApiError]);
 
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
-      setIsLoading(true); // Start loading for initial auth check
-      await initializeCsrfToken();
-      await fetchCurrentUser(); // Attempt to fetch user (sets user state)
-      setIsLoading(false); // Finish loading for initial auth check
+      setIsLoading(true);
+      await initializeCsrfToken(); // KEEP THIS AS IS
+      await fetchCurrentUser();
+      setIsLoading(false);
     };
     initAuth();
   }, [fetchCurrentUser]);
 
-
-  const login = useCallback(async (credentials: unknown): Promise<boolean> => {
+  const login = useCallback(async (credentials: AuthLoginData['body']): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
     setGeneralApiErrorState(null);
     try {
-      await apiService.login(credentials); // Call login, backend sets session cookie (e.g., 204 response)
-      await fetchCurrentUser();         // Now, fetch the user details using the new session
-
-      // After fetchCurrentUser, the `user` state (and thus `isAuthenticated`) will be updated.
-      // The `isLoading` state is also managed.
-      // The `useEffect` in `LoginPage` will react to these state changes.
-      setIsLoading(false); // Login process (API calls) complete
-
-      // To determine actual success for the boolean return, we would need to check the user state here.
-      // However, state updates are async. Instead, we rely on the reactive flow.
-      // If fetchCurrentUser fails and sets user to null, isAuthenticated remains false.
-      // This boolean mainly indicates the POST /login didn't throw an immediate error.
-      return true; // Indicates POST /login was successful (2xx). User state will determine actual auth.
+      await authLogin({
+         headers: {
+             'Content-Type': 'application/json',
+         },
+         body: credentials
+      });
+      await fetchCurrentUser();
+      setIsLoading(false);
+      return true;
     } catch (err) {
-      // This error is likely from apiService.login() itself (e.g., 400 Bad Request, 500)
-      // or if fetchCurrentUser() re-threw an error (which it currently doesn't).
       const errorMessage = handleApiError(err, 'during login attempt');
-      setError(errorMessage); // For the login form
-      setGeneralApiErrorState(errorMessage); // For a toast
-      setUser(null); // Ensure user state is cleared
+      setError(errorMessage);
+      setGeneralApiErrorState(errorMessage);
+      setUser(null);
       setIsLoading(false);
       return false;
     }
-  }, [handleApiError, fetchCurrentUser /* Dependencies like setIsLoading, setUser, etc., are stable */]);
+  }, [handleApiError, fetchCurrentUser]);
 
   const logout = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     setGeneralApiErrorState(null);
     try {
-      await apiService.logout();
+      await authLogout();
     } catch (err) {
       const errorMessage = handleApiError(err, 'during logout');
       setGeneralApiErrorState(errorMessage);
@@ -124,7 +140,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const contextValue = useMemo(() => ({
     user,
-    isAuthenticated: !!user, // This is key for redirection
+    isAuthenticated: !!user,
     isLoading,
     error,
     generalApiError,
@@ -133,7 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     fetchCurrentUser,
   }), [
-    user, // `isAuthenticated` depends directly on `user`
+    user,
     isLoading,
     error,
     generalApiError,
