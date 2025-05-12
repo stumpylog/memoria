@@ -10,6 +10,7 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 from ninja import Router
+from ninja.security import django_auth
 from orjson import loads
 
 from memoria.common.errors import HttpBadRequestError
@@ -23,7 +24,7 @@ router = Router(tags=["auth"])
 logger = logging.getLogger(__name__)
 
 
-@router.post("/csrf/", response=CsrfTokenOutSchema)
+@router.get("/csrf/", response=CsrfTokenOutSchema)
 @ensure_csrf_cookie
 @csrf_exempt
 def get_csrf_token(request: HttpRequest):
@@ -33,6 +34,7 @@ def get_csrf_token(request: HttpRequest):
 @router.post(
     "/login/",
     response=UserOutSchema,
+    auth=None,
     openapi_extra={
         "responses": {
             HTTPStatus.BAD_REQUEST: {
@@ -64,6 +66,7 @@ async def login(request):
 @router.post(
     "/logout/",
     response={HTTPStatus.NO_CONTENT: None},
+    auth=django_auth,
 )
 async def logout(request: HttpRequest):
     await alogout(request)

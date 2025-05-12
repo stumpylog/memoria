@@ -26,6 +26,7 @@ dependencies = [
   "imagehash",
   "orjson",
   "pillow~=11.2.1",
+  "pydantic[email]",
   "pydantic-extra-types",
   "pyvips[binary]",
   "redis[hiredis]>=5.0.8",
