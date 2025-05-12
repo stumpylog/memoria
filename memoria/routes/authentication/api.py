@@ -3,9 +3,10 @@ from http import HTTPStatus
 
 from django.contrib.auth import aauthenticate
 from django.contrib.auth import alogin
-from django.contrib.auth import alogout
 from django.contrib.auth import get_user_model
+from django.contrib.auth import logout as django_logout
 from django.http import HttpRequest
+from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -16,7 +17,6 @@ from orjson import loads
 from memoria.common.errors import HttpBadRequestError
 from memoria.common.errors import HttpNotAuthorizedError
 from memoria.routes.authentication.schemas import CsrfTokenOutSchema
-from memoria.routes.authentication.schemas import UserOutSchema
 
 UserModelT = get_user_model()
 
@@ -28,12 +28,12 @@ logger = logging.getLogger(__name__)
 @ensure_csrf_cookie
 @csrf_exempt
 def get_csrf_token(request: HttpRequest):
-    return {"csrf_token": get_token(request)}
+    return JsonResponse({"csrf_token": get_token(request)})
 
 
 @router.post(
     "/login/",
-    response=UserOutSchema,
+    response={HTTPStatus.NO_CONTENT: None},
     auth=None,
     openapi_extra={
         "responses": {
@@ -54,12 +54,15 @@ async def login(request):
     if not username or not password:
         raise HttpBadRequestError("Please provide both username and password")
 
+    logger.info(username)
+    logger.info(password)
+
     user: UserModelT | None = await aauthenticate(request, username=username, password=password)
 
     if user is not None:
         await alogin(request, user)
 
-        return user
+        return HTTPStatus.NO_CONTENT, None
     raise HttpNotAuthorizedError("Invalid credentials. Please try again.")
 
 
@@ -68,6 +71,6 @@ async def login(request):
     response={HTTPStatus.NO_CONTENT: None},
     auth=django_auth,
 )
-async def logout(request: HttpRequest):
-    await alogout(request)
+def logout(request: HttpRequest):
+    django_logout(request)
     return HTTPStatus.NO_CONTENT, None

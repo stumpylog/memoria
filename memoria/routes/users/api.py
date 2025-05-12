@@ -8,8 +8,9 @@ from ninja.security import django_auth
 
 from memoria.common.errors import HttpBadRequestError
 from memoria.common.errors import HttpNotAuthorizedError
-from memoria.routes.authentication.schemas import UserOutSchema
 from memoria.routes.users.schemas import UserInCreateSchema
+from memoria.routes.users.schemas import UserOutSchema
+from memoria.routes.users.schemas import UserUpdateInScheme
 
 router = Router(tags=["users"])
 logger = logging.getLogger(__name__)
@@ -20,6 +21,14 @@ UserModelT = get_user_model()
 @router.get("/profile/", response=UserOutSchema, auth=django_auth)
 def get_profile(
     request: HttpRequest,
+):
+    return request.user
+
+
+@router.post("/profile/edit/", response=UserOutSchema, auth=django_auth)
+def edit_profile(
+    request: HttpRequest,
+    data: UserUpdateInScheme,
 ):
     return request.user
 

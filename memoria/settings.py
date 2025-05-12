@@ -84,6 +84,10 @@ INSTALLED_APPS = [
     "memoria",
 ]
 
+# Only used to generate schema
+if DEBUG:
+    INSTALLED_APPS.append("ninja")
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
