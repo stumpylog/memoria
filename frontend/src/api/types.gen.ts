@@ -25,9 +25,11 @@ export type UserInCreateSchemaWritable = {
 
 export type UserOutSchema = {
     email: string | null;
+    first_name: string;
     id: number;
     is_staff: boolean;
     is_superuser: boolean;
+    last_name: string;
     profile: UserProfileOutSchema;
     username: string;
 };

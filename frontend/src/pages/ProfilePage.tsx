@@ -22,7 +22,7 @@ const ProfilePage: React.FC = () => {
               <Card.Text><strong>First Name:</strong> {user.first_name}</Card.Text>
               <Card.Text><strong>Last Name:</strong> {user.last_name}</Card.Text>
               <Card.Text><strong>Timezone:</strong> {user.profile.timezone}</Card.Text>
-              <Card.Text><strong>Default Items Per Page:</strong> {user.profile.default_items_per_page}</Card.Text>
+              <Card.Text><strong>Default Items Per Page:</strong> {user.profile.items_per_page}</Card.Text>
               <Card.Text><em>More profile editing features can be added here.</em></Card.Text>
             </>
           ) : (
