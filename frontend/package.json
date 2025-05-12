@@ -11,7 +11,8 @@
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.{ts,tsx,js,jsx}\" --fix",
     "format": "prettier --write \"{src,apps,libs,test}/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
     "stylelint": "stylelint \"src/**/*.{css,scss}\"",
-    "stylelint:fix": "stylelint \"src/**/*.{css,scss}\" --fix"
+    "stylelint:fix": "stylelint \"src/**/*.{css,scss}\" --fix",
+    "generate-api-client": "openapi-generator-cli generate -i ../schema.json -g typescript-axios -o ./src/api"
   },
   "dependencies": {
     "axios": "^1.9.0",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@openapitools/openapi-generator-cli": "^2.20.0",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@typescript-eslint/eslint-plugin": "^8.32.0",
