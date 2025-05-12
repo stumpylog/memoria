@@ -4,6 +4,8 @@
     "batisteo.vscode-django",
     "editorconfig.editorconfig",
     "charliermarsh.ruff",
-    "monosans.djlint"
+    "monosans.djlint",
+    "esbenp.prettier-vscode",
+    "stylelint.vscode-stylelint"
   ]
 }
