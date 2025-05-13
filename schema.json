@@ -1,6 +1,23 @@
 {
   "components": {
     "schemas": {
+      "AuthLoginSchema": {
+        "properties": {
+          "password": {
+            "format": "password",
+            "title": "Password",
+            "type": "string",
+            "writeOnly": true
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": ["username", "password"],
+        "title": "AuthLoginSchema",
+        "type": "object"
+      },
       "BreadcrumbSchema": {
         "properties": {
           "id": {
@@ -908,6 +925,16 @@
       "post": {
         "operationId": "auth_login",
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthLoginSchema"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "204": {
             "description": "No Content"
@@ -1021,6 +1048,15 @@
               }
             },
             "description": "OK"
+          },
+          "204": {
+            "description": "The image has no date"
+          },
+          "401": {
+            "description": "The user does not have permissions for this image"
+          },
+          "404": {
+            "description": "The image does not exist"
           }
         },
         "security": [
@@ -1056,6 +1092,15 @@
               }
             },
             "description": "OK"
+          },
+          "204": {
+            "description": "The image has no location"
+          },
+          "401": {
+            "description": "The user does not have permissions for this image"
+          },
+          "404": {
+            "description": "The image does not exist"
           }
         },
         "security": [

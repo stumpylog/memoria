@@ -11,11 +11,10 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 from ninja import Router
-from orjson import loads
 
 from memoria.common.auth import active_user_auth
-from memoria.common.errors import HttpBadRequestError
 from memoria.common.errors import HttpNotAuthorizedError
+from memoria.routes.authentication.schemas import AuthLoginSchema
 from memoria.routes.authentication.schemas import CsrfTokenOutSchema
 
 UserModelT = get_user_model()
@@ -47,18 +46,8 @@ def get_csrf_token(request: HttpRequest):
     },
     operation_id="auth_login",
 )
-async def login(request):
-    data = loads(request.body)
-    username: str | None = data.get("username")
-    password: str | None = data.get("password")
-
-    if not username or not password:
-        raise HttpBadRequestError("Please provide both username and password")
-
-    logger.info(username)
-    logger.info(password)
-
-    user: UserModelT | None = await aauthenticate(request, username=username, password=password)
+async def login(request: HttpRequest, data: AuthLoginSchema):
+    user: UserModelT | None = await aauthenticate(request, username=data.username, password=data.password)
 
     if user is not None:
         await alogin(request, user)
