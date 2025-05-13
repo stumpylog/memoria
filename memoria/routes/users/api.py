@@ -6,8 +6,9 @@ from django.contrib.auth.models import Group
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from ninja import Router
-from ninja.security import django_auth
 
+from memoria.common.auth import active_staff_or_superuser_auth
+from memoria.common.auth import active_user_auth
 from memoria.common.errors import HttpBadRequestError
 from memoria.common.errors import HttpNotAuthorizedError
 from memoria.routes.users.schemas import GroupAssignSchema
@@ -24,64 +25,59 @@ logger = logging.getLogger(__name__)
 UserModelT = get_user_model()
 
 
-@router.get("/profile/", response=UserProfileOutSchema, auth=django_auth, operation_id="user_get_profile")
+@router.get("/profile/", response=UserProfileOutSchema, auth=active_user_auth, operation_id="user_get_profile")
 def get_profile(
     request: HttpRequest,
 ):
     return request.user.profile
 
 
-@router.post("/profile/edit/", response=UserProfileOutSchema, auth=django_auth, operation_id="user_edit_profile")
+@router.post("/profile/edit/", response=UserProfileOutSchema, auth=active_user_auth, operation_id="user_edit_profile")
 def edit_profile(
     request: HttpRequest,
     data: UserProfileUpdateSchema,
 ):
-    # TODO
+    # TODO: Update a user profile if it is them or a staff member
     return request.user
 
 
-@router.get("/me/", response=UserOutSchema, auth=django_auth, operation_id="user_get_info")
+@router.get("/me/", response=UserOutSchema, auth=active_user_auth, operation_id="user_get_info")
 def get_user_info(
     request: HttpRequest,
 ):
     return request.user
 
 
-@router.post("/me/edit/", response=UserOutSchema, auth=django_auth, operation_id="user_edit_info")
+@router.post("/me/edit/", response=UserOutSchema, auth=active_user_auth, operation_id="user_edit_info")
 def edit_user_info(
     request: HttpRequest,
     data: UserUpdateInScheme,
 ):
+    # TODO: Update a user details if it is them or a staff member
     return request.user
 
 
-@router.get("/{user_id}/groups", response=list[GroupOut], auth=django_auth, operation_id="user_get_groups")
+@router.get("/{user_id}/groups", response=list[GroupOut], auth=active_user_auth, operation_id="user_get_groups")
 def get_user_groups(request: HttpRequest, user_id: int):
     user = get_object_or_404(UserModelT, id=user_id)
     groups = user.groups.all()
     return [{"id": group.id, "name": group.name} for group in groups]
 
 
-@router.get(
+@router.post(
     "/{user_id}/groups",
     response=list[GroupOut],
-    auth=django_auth,
+    auth=active_staff_or_superuser_auth,
     operation_id="user_set_groups",
     openapi_extra={
         "responses": {
             HTTPStatus.BAD_REQUEST: {
                 "description": "some provided groups don't exist",
             },
-            HTTPStatus.UNAUTHORIZED: {
-                "description": "only staff or superusers can assign new groups",
-            },
         },
     },
 )
 def set_user_groups(request: HttpRequest, user_id: int, data: GroupAssignSchema):
-    if not request.user.is_staff or not request.user.is_superuser:
-        raise HttpNotAuthorizedError("only staff or superusers can assign new groups")
-
     user = get_object_or_404(UserModelT, id=user_id)
 
     group_ids = [item.id for item in data]
@@ -97,13 +93,16 @@ def set_user_groups(request: HttpRequest, user_id: int, data: GroupAssignSchema)
     return [{"id": group.id, "name": group.name} for group in groups]
 
 
-@router.post("/create/", response={HTTPStatus.OK: UserOutSchema}, auth=django_auth, operation_id="user_create")
+@router.post(
+    "/create/",
+    response={HTTPStatus.OK: UserOutSchema},
+    auth=active_staff_or_superuser_auth,
+    operation_id="user_create",
+)
 async def create_user(
     request: HttpRequest,
     data: UserInCreateSchema,
 ):
-    if not request.user.is_active:
-        raise HttpBadRequestError("Only an active user may create users")  # noqa: EM101, TRY003
     if data.is_staff and not (request.user.is_staff or request.user.is_superuser):
         raise HttpNotAuthorizedError("Only staff or superusers can create a new staff user")  # noqa: EM101, TRY003
     if data.is_superuser and not request.user.is_superuser:

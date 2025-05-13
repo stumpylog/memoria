@@ -11,9 +11,9 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 from ninja import Router
-from ninja.security import django_auth
 from orjson import loads
 
+from memoria.common.auth import active_user_auth
 from memoria.common.errors import HttpBadRequestError
 from memoria.common.errors import HttpNotAuthorizedError
 from memoria.routes.authentication.schemas import CsrfTokenOutSchema
@@ -70,7 +70,7 @@ async def login(request):
 @router.post(
     "/logout/",
     response={HTTPStatus.NO_CONTENT: None},
-    auth=django_auth,
+    auth=active_user_auth,
     operation_id="auth_logout",
 )
 def logout(request: HttpRequest):

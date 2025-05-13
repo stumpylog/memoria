@@ -5,6 +5,7 @@ from memoria.common.renderer import OrjsonRenderer
 
 # from memoria.routes.albums.api import router as albums_router
 from memoria.routes.authentication.api import router as auth_router
+from memoria.routes.folders.api import router as folder_router
 
 # from memoria.routes.images.api import router as images_router
 # from memoria.routes.locations.api import router as locations_router
@@ -24,3 +25,4 @@ api = NinjaAPI(title="Memoria API", renderer=OrjsonRenderer(), parser=OrjsonPars
 # api.add_router("/date/", rough_dates_router)
 api.add_router("/auth/", auth_router)
 api.add_router("/user/", user_router)
+api.add_router("/folders/", folder_router)
