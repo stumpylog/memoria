@@ -1,50 +1,39 @@
-from ninja import Field
+from datetime import date
+
+from exifmwg.models import RotationEnum
 from ninja import Schema
-from scansteward.imageops.models import RotationEnum
+from pydantic import HttpUrl
 
 
-class Album(Schema):
+class ImageThumbnailSchema(Schema):
     id: int
-    name: str
-    description: str | None = None
+    title: str
+    thumbnail_url: HttpUrl
+    thumbnail_height: int
+    thumbnail_width: int
 
 
-class BoundingBoxSchema(Schema):
-    center_x: float = Field(description="Center X coordinate of the bounding box", ge=0.0, le=1.0)
-    center_y: float = Field(description="Center Y coordinate of the bounding box", ge=0.0, le=1.0)
-    height: float = Field(description="Height of the bounding box", gt=0.0, lt=1.0)
-    width: float = Field(description="Width of the bounding box", gt=0.0, lt=1.0)
+class ImageDateSchema(Schema):
+    date: date
+    month_valid: bool
+    day_valid: bool
 
 
-class PersonWithBoxSchema(Schema):
-    person_id: int = Field(description="Person ID")
-    box: BoundingBoxSchema = Field(description="Bounding box of the person's face")
+class ImageLocationSchema(Schema):
+    country_code: str
+    country_name: str
+    subdivision_code: str | None
+    subdivision_name: str | None
+    city: str | None
+    sub_location: str | None
 
 
-class PersonFaceDeleteSchema(Schema):
-    people_ids: list[int] = Field(description="List of people to delete from the image")
-
-
-class PetWithBoxSchema(Schema):
-    pet_id: int = Field(description="Pet ID")
-    box: BoundingBoxSchema = Field(description="Bounding box of the pet")
-
-
-class PetBoxDeleteInSchema(Schema):
-    pet_ids: list[int] = Field(description="List of pets to delete from the image")
-
-
-class ImageMetadataOutSchema(Schema):
+class ImageDetailSchema(Schema):
+    id: int
+    full_size_url: HttpUrl
     orientation: RotationEnum
-    description: str | None = None
-    location_id: int | None = None
-    date_id: int | None = None
-
-
-class ImageMetadataUpdateInSchema(Schema):
-    description: str | None = None
-
-    orientation: RotationEnum | None = None
-
-    location_id: int | None = None
-    date_id: int | None = None
+    original_height: int
+    original_width: int
+    title: str
+    file_size: int
+    description: str | None

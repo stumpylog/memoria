@@ -1,6 +1,21 @@
 {
   "components": {
     "schemas": {
+      "BreadcrumbSchema": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": ["name", "id"],
+        "title": "BreadcrumbSchema",
+        "type": "object"
+      },
       "CsrfTokenOutSchema": {
         "properties": {
           "csrf_token": {
@@ -36,6 +51,121 @@
         },
         "required": ["name", "id"],
         "title": "GroupOut",
+        "type": "object"
+      },
+      "ImageFolderDetailSchema": {
+        "properties": {
+          "breadcrumbs": {
+            "items": {
+              "$ref": "#/components/schemas/BreadcrumbSchema"
+            },
+            "title": "Breadcrumbs",
+            "type": "array"
+          },
+          "child_folders": {
+            "items": {
+              "$ref": "#/components/schemas/ImageFolderSchema"
+            },
+            "title": "Child Folders",
+            "type": "array"
+          },
+          "folder_images": {
+            "items": {
+              "$ref": "#/components/schemas/ImageThumbnailSchema"
+            },
+            "title": "Folder Images",
+            "type": "array"
+          },
+          "has_children": {
+            "title": "Has Children",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "image_count": {
+            "title": "Image Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "child_folders",
+          "folder_images",
+          "breadcrumbs",
+          "has_children",
+          "image_count"
+        ],
+        "title": "ImageFolderDetailSchema",
+        "type": "object"
+      },
+      "ImageFolderSchema": {
+        "properties": {
+          "child_count": {
+            "default": 0,
+            "title": "Child Count",
+            "type": "integer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "image_count": {
+            "default": 0,
+            "title": "Image Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "description"],
+        "title": "ImageFolderSchema",
+        "type": "object"
+      },
+      "ImageThumbnailSchema": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "thumbnail_height": {
+            "title": "Thumbnail Height",
+            "type": "integer"
+          },
+          "thumbnail_url": {
+            "title": "Thumbnail Url",
+            "type": "string"
+          },
+          "thumbnail_width": {
+            "title": "Thumbnail Width",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": ["id", "title", "thumbnail_url", "thumbnail_height", "thumbnail_width"],
+        "title": "ImageThumbnailSchema",
         "type": "object"
       },
       "ImagesPerPageChoices": {
@@ -515,7 +645,12 @@
       }
     },
     "securitySchemes": {
-      "SessionAuth": {
+      "SessionAuthIsActive": {
+        "in": "cookie",
+        "name": "sessionid",
+        "type": "apiKey"
+      },
+      "SessionAuthIsActiveSuperUserOrStaff": {
         "in": "cookie",
         "name": "sessionid",
         "type": "apiKey"
@@ -579,11 +714,102 @@
         },
         "security": [
           {
-            "SessionAuth": []
+            "SessionAuthIsActive": []
           }
         ],
         "summary": "Logout",
         "tags": ["auth"]
+      }
+    },
+    "/api/folder/": {
+      "get": {
+        "description": "List root image folders with permission filtering",
+        "operationId": "folder_list_roots",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ImageFolderSchema"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List Image Folders",
+        "tags": ["folders"]
+      }
+    },
+    "/api/folder/{folder_id}/": {
+      "get": {
+        "description": "Get details of a specific image folder with children and images",
+        "operationId": "folder_get_details",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "folder_id",
+            "required": true,
+            "schema": {
+              "title": "Folder Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageFolderDetailSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Image Folder",
+        "tags": ["folders"]
+      }
+    },
+    "/api/image/{image_id}/thumbnail/": {
+      "get": {
+        "operationId": "image_get_thumb_info",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageThumbnailSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Get Image Thumbnail Info",
+        "tags": ["images"]
       }
     },
     "/api/user/create/": {
@@ -614,7 +840,7 @@
         },
         "security": [
           {
-            "SessionAuth": []
+            "SessionAuthIsActiveSuperUserOrStaff": []
           }
         ],
         "summary": "Create User",
@@ -639,7 +865,7 @@
         },
         "security": [
           {
-            "SessionAuth": []
+            "SessionAuthIsActive": []
           }
         ],
         "summary": "Get User Info",
@@ -674,7 +900,7 @@
         },
         "security": [
           {
-            "SessionAuth": []
+            "SessionAuthIsActive": []
           }
         ],
         "summary": "Edit User Info",
@@ -699,7 +925,7 @@
         },
         "security": [
           {
-            "SessionAuth": []
+            "SessionAuthIsActive": []
           }
         ],
         "summary": "Get Profile",
@@ -734,7 +960,7 @@
         },
         "security": [
           {
-            "SessionAuth": []
+            "SessionAuthIsActive": []
           }
         ],
         "summary": "Edit Profile",
@@ -743,6 +969,43 @@
     },
     "/api/user/{user_id}/groups": {
       "get": {
+        "operationId": "user_get_groups",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Get User Groups",
+        "tags": ["users"]
+      },
+      "post": {
         "operationId": "user_set_groups",
         "parameters": [
           {
@@ -782,14 +1045,11 @@
           },
           "400": {
             "description": "some provided groups don't exist"
-          },
-          "401": {
-            "description": "only staff or superusers can assign new groups"
           }
         },
         "security": [
           {
-            "SessionAuth": []
+            "SessionAuthIsActiveSuperUserOrStaff": []
           }
         ],
         "summary": "Set User Groups",

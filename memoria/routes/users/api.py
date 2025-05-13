@@ -59,7 +59,7 @@ def edit_user_info(
 
 @router.get("/{user_id}/groups", response=list[GroupOut], auth=active_user_auth, operation_id="user_get_groups")
 def get_user_groups(request: HttpRequest, user_id: int):
-    user = get_object_or_404(UserModelT, id=user_id)
+    user = get_object_or_404(UserModelT.objects.prefetch_related("groups"), id=user_id)
     groups = user.groups.all()
     return [{"id": group.id, "name": group.name} for group in groups]
 
@@ -78,7 +78,7 @@ def get_user_groups(request: HttpRequest, user_id: int):
     },
 )
 def set_user_groups(request: HttpRequest, user_id: int, data: GroupAssignSchema):
-    user = get_object_or_404(UserModelT, id=user_id)
+    user = get_object_or_404(UserModelT.objects.prefetch_related("groups"), id=user_id)
 
     group_ids = [item.id for item in data]
     groups_to_assign = Group.objects.filter(id__in=group_ids)
