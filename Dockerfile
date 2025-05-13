@@ -1,3 +1,19 @@
+# syntax=docker/dockerfile:1
+
+FROM node:lts-alpine AS frontend-builder
+
+RUN npm install -g pnpm
+
+WORKDIR /build/
+
+COPY ./frontend/package.json ./frontend/pnpm-lock.yaml ./
+
+RUN pnpm install
+
+COPY ./frontend/ .
+
+RUN pnpm run build
+
 # Stage: s6-overlay-base
 # Purpose: Installs s6-overlay and rootfs
 # Comments:
@@ -72,7 +88,7 @@ COPY --chown=1000:1000 ["pyproject.toml", "uv.lock", "manage.py", "/app/"]
 RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
   set -eux \
   && echo "Installing system packages" \
-    && apk add --no-cache nginx postgresql-client exiftool vips \
+    && apk add --no-cache nginx nginx-mod-http-brotli postgresql-client exiftool vips \
   && echo "Installing build system packages" \
     && apk add --no-cache --virtual .python-build \
         postgresql-dev \
@@ -99,11 +115,11 @@ RUN set -eux \
     && mkdir --parents --verbose /app/static/ \
     && mkdir --parents --verbose /app/media/ \
     && chown --changes --recursive memoria:memoria /app/ \
-  && echo "Collecting static files" \
-    && s6-setuidgid memoria python3 manage.py collectstatic --clear --no-input --link \
   && echo "Adjusting all permissions" \
     && chown --changes --recursive memoria:memoria /app/
 
+# Copy the build frontend
+COPY --chown=1000:1000 --from=frontend-builder /build/dist/ /app/frontend/
 
 EXPOSE 8101
 
