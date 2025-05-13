@@ -40,11 +40,11 @@ const ImageDetailPage: React.FC = () => {
         imageGetPeople({"path": {"image_id": id}}),
         imageGetPets({"path": {"image_id": id}}),
       ]);
-      setMetadata(meta.data);
-      setLocation(loc.data);
-      setDateInfo(date.data);
-      setPeople(ppl.data);
-      setPets(pets.data);
+      setMetadata(meta.data === undefined ? null : meta.data);
+      setLocation(loc.data === undefined ? null : loc.data);
+      setDateInfo(date.data === undefined ? null : date.data);
+      setPeople(ppl.data === undefined ? [] : ppl.data);
+      setPets(pets.data === undefined ? [] : pets.data);
     };
     loadData();
   }, [imageId]); // Depend on imageId

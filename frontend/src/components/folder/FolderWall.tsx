@@ -1,10 +1,10 @@
 import React from 'react';
 import { Container, Row } from 'react-bootstrap';
 import FolderCard from './FolderCard';
-import type { ImageFolderSchema } from '../../api';
+import type { RootFolderSchema } from '../../api';
 
 interface FolderWallProps {
-    folders: ImageFolderSchema[];
+    folders: RootFolderSchema[];
     buttonText?: string;
     truncateDescription?: number;
     onFolderClick?: (id: number) => void;

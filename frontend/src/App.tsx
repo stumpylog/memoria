@@ -43,7 +43,7 @@ const AppLayout: React.FC = () => {
 };
 
 
-function App(): JSX.Element {
+function App(): React.JSX.Element {
   return (
     <ThemeProvider>
       <Router>

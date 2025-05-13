@@ -1,8 +1,10 @@
 import React, { createContext, useState, useEffect, useMemo, useCallback } from 'react';
-import type { UserOutSchema as User, AuthLoginData } from '../api';
+import type { UserOutSchemaReadable as User, AuthLoginData } from '../api';
+import type { UserProfileOutSchema as UserProfile } from '../api';
 import {
   authLogin,
   authLogout,
+  userGetInfo,
   userGetProfile,
 } from '../api'
 
@@ -13,6 +15,7 @@ import { AxiosError } from 'axios';
 
 interface AuthContextType {
   user: User | null;
+  profile: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -22,6 +25,7 @@ interface AuthContextType {
   login: (credentials: AuthLoginData['body']) => Promise<boolean>;
   logout: () => Promise<void>;
   fetchCurrentUser: () => Promise<void>;
+  fetchUserProfile: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,6 +36,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [generalApiError, setGeneralApiErrorState] = useState<string | null>(null);
@@ -72,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchCurrentUser = useCallback(async (): Promise<void> => {
     try {
-      const { data } = await userGetProfile();
+      const { data } = await userGetInfo();
       if (data !== undefined) {
         setUser(data);
       } else {
@@ -85,15 +90,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [handleApiError]);
 
+  const fetchUserProfile = useCallback(async (): Promise<void> => {
+    try {
+      const { data } = await userGetProfile();
+      if (data !== undefined) {
+        setProfile(data);
+      } else {
+        setProfile(null);
+      }
+    } catch (err) {
+      console.error("Failed to fetch user profile:", handleApiError(err, 'when fetching user profile'));
+      setProfile(null);
+    }
+  }, [handleApiError]);
+
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
       setIsLoading(true);
       await initializeCsrfToken(); // KEEP THIS AS IS
       await fetchCurrentUser();
+      await fetchUserProfile();
       setIsLoading(false);
     };
     initAuth();
-  }, [fetchCurrentUser]);
+  }, [fetchCurrentUser,fetchUserProfile]);
 
   const login = useCallback(async (credentials: AuthLoginData['body']): Promise<boolean> => {
     setIsLoading(true);
@@ -140,6 +160,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const contextValue = useMemo(() => ({
     user,
+    profile,
     isAuthenticated: !!user,
     isLoading,
     error,
@@ -148,15 +169,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     fetchCurrentUser,
+    fetchUserProfile,
   }), [
     user,
+    profile,
     isLoading,
     error,
     generalApiError,
     setGeneralApiError,
     login,
     logout,
-    fetchCurrentUser
+    fetchCurrentUser,
+    fetchUserProfile
   ]);
 
   return (

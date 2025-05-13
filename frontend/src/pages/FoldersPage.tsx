@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Container, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import FolderWall from '../components/folder/FolderWall';
-import type { ImageFolderSchema } from '../api';
+import type { RootFolderSchema } from '../api';
 import { folderListRoots } from '../api'; // Adjust import path as needed
 
 interface FoldersPageProps {
@@ -16,7 +16,7 @@ const FoldersPage: React.FC<FoldersPageProps> = ({
   buttonText = "View Folder",
   truncateDescription = 100
 }) => {
-  const [folders, setFolders] = useState<ImageFolderSchema[]>([]);
+  const [folders, setFolders] = useState<RootFolderSchema[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();

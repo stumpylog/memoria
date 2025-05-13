@@ -29,7 +29,7 @@ const GlobalErrorToast: React.FC = () => {
 
   return (
     <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
-      <Toast show={show} onClose={handleClose} delay={5000} autohide bg="danger" text="white">
+      <Toast show={show} onClose={handleClose} delay={5000} autohide bg="danger">
         <Toast.Header closeButton={true}>
           <strong className="me-auto">Error</strong>
         </Toast.Header>

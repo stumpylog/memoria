@@ -31,10 +31,14 @@ export const authGetCsrfToken = <ThrowOnError extends boolean = false>(options?:
 /**
  * Login
  */
-export const authLogin = <ThrowOnError extends boolean = false>(options?: Options<AuthLoginData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AuthLoginResponse, unknown, ThrowOnError>({
+export const authLogin = <ThrowOnError extends boolean = false>(options: Options<AuthLoginData, ThrowOnError>) => {
+    return (options.client ?? _heyApiClient).post<AuthLoginResponse, unknown, ThrowOnError>({
         url: '/api/auth/login/',
-        ...options
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options?.headers
+        }
     });
 };
 

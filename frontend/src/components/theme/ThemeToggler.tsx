@@ -1,13 +1,15 @@
 // src/components/theme/ThemeToggler.tsx
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
-import { useTheme, type Theme } from '../../hooks/useTheme'; // Ensure Theme type is exported
+import { useTheme } from '../../hooks/useTheme'; // Ensure Theme type is exported
+import type { Theme } from '../../contexts/ThemeContext';
 
 const ThemeToggler: React.FC = () => {
   const { theme, effectiveTheme, setTheme } = useTheme();
 
-  const handleThemeChange = (selectedTheme: Theme | null): void => {
-    if (selectedTheme) {
+  const handleThemeChange = (eventKey: string | null): void => {
+    if (eventKey) {
+      const selectedTheme: Theme = eventKey as Theme;
       setTheme(selectedTheme);
     }
   };

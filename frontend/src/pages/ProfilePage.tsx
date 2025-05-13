@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Helmet } from 'react-helmet-async';
 
 const ProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return (
     <Container fluid className="p-4">
@@ -21,12 +21,17 @@ const ProfilePage: React.FC = () => {
               <Card.Text><strong>Email:</strong> {user.email}</Card.Text>
               <Card.Text><strong>First Name:</strong> {user.first_name}</Card.Text>
               <Card.Text><strong>Last Name:</strong> {user.last_name}</Card.Text>
-              <Card.Text><strong>Timezone:</strong> {user.profile.timezone}</Card.Text>
-              <Card.Text><strong>Default Items Per Page:</strong> {user.profile.items_per_page}</Card.Text>
-              <Card.Text><em>More profile editing features can be added here.</em></Card.Text>
             </>
           ) : (
-            <Card.Text>Loading profile...</Card.Text>
+            <Card.Text>Loading user info...</Card.Text>
+          )}
+          {profile ? (
+            <>
+              <Card.Text><strong>Timezone:</strong> {profile.timezone}</Card.Text>
+              <Card.Text><strong>Default Items Per Page:</strong> {profile.items_per_page}</Card.Text>
+            </>
+          ) : (
+            <Card.Text>Loading user profile...</Card.Text>
           )}
         </Card.Body>
       </Card>

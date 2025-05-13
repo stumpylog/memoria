@@ -38,7 +38,7 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
           folder_id: folderId
         }
         });
-        setFolderDetail(response.data);
+        setFolderDetail(response.data === undefined ? null : response.data);
       } catch (err) {
         setError('Failed to load folder details. Please try again later.');
         console.error('Error fetching folder detail:', err);

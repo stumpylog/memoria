@@ -1,7 +1,6 @@
 // src/pages/LogoutPage.tsx
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Container, Card, Button } from 'react-bootstrap';
+import { Container, Card } from 'react-bootstrap';
+import LinkButton from '../components/common/LinkButton';
 
 const LogoutPage: React.FC = () => {
   return (
@@ -12,9 +11,9 @@ const LogoutPage: React.FC = () => {
           <Card.Text>
             Thank you for using our application. You can log back in at any time.
           </Card.Text>
-          <Button as={Link} to="/login" variant="primary">
+          <LinkButton to="/login" variant="primary">
             Log Back In
-          </Button>
+          </LinkButton>
         </Card.Body>
       </Card>
     </Container>
