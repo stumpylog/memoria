@@ -19,8 +19,8 @@ const NavigationBar: React.FC = () => {
       <Container fluid>
         <Navbar.Brand as={Link} to="/">
           <Image
-            src="brand.svg" // Vite serves from public/ at the root
-            alt="App Brand"
+            src="/brand.svg" // Vite serves from public/ at the root
+            alt="Memoria"
             style={{ height: '30px', marginRight: '10px' }} // Adjust scaling as needed
           />
           Memoria

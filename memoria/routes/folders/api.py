@@ -12,8 +12,8 @@ from ninja import Router
 from memoria.common.errors import HttpNotAuthorizedError
 from memoria.models import Image
 from memoria.models import ImageFolder
-from memoria.routes.folders.schemas import ImageFolderDetailSchema
-from memoria.routes.folders.schemas import ImageFolderSchema
+from memoria.routes.folders.schemas import FolderDetailSchema
+from memoria.routes.folders.schemas import RootFolderSchema
 
 router = Router(tags=["folders"])
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ def annotate_folder_counts(queryset, perm_filter):
     )
 
 
-@router.get("/", response=list[ImageFolderSchema], operation_id="folder_list_roots")
+@router.get("/", response=list[RootFolderSchema], operation_id="folder_list_roots")
 def list_image_folders(request):
     """List root image folders with permission filtering"""
     user = request.user
@@ -77,7 +77,7 @@ def list_image_folders(request):
     return annotate_folder_counts(queryset, perm_filter)
 
 
-@router.get("/{folder_id}/", response=ImageFolderDetailSchema, operation_id="folder_get_details")
+@router.get("/{folder_id}/", response=FolderDetailSchema, operation_id="folder_get_details")
 def get_image_folder(request, folder_id: int):
     """Get details of a specific image folder with children and images"""
     user = request.user
@@ -109,20 +109,6 @@ def get_image_folder(request, folder_id: int):
     if not user.is_superuser:
         images = images.filter(perm_filter).distinct()
 
-    image_custom_data = []
-
-    for image in images:
-        # Start building the dictionary for this image
-        image_custom_data.append(
-            {
-                "id": image.id,
-                "title": image.title,
-                "thumbnail_width": image.thumbnail_width,
-                "thumbnail_height": image.thumbnail_height,
-                "thumbnail_url": request.build_absolute_uri(image.thumbnail_url),
-            },
-        )
-
     # Prepare breadcrumbs
     ancestors = list(folder.get_ancestors_queryset())
     breadcrumb_objects = [*ancestors, folder]
@@ -139,9 +125,9 @@ def get_image_folder(request, folder_id: int):
     return {
         "id": folder.pk,
         "name": folder.name,
-        "child_folders": list(child_folders.values("id", "name", "child_count", "image_count")),
-        "folder_images": image_custom_data,
+        "description": folder.description,
+        "child_folders": list(child_folders.values("id", "name", "child_count", "image_count", "description")),
+        "folder_images": images.values_list("id", flat=True),
         "breadcrumbs": breadcrumbs,
         "has_children": child_folders.exists(),
-        "image_count": images.count(),
     }

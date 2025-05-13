@@ -4,7 +4,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Q
+from django.db.models.query import QuerySet
 from exifmwg.models import RotationEnum
 
 from memoria.models.abstract import AbstractTimestampMixin
@@ -20,8 +23,59 @@ from memoria.models.metadata import RoughLocation
 from memoria.models.metadata import Tag
 from memoria.models.metadata import TagOnImage
 
+UserModelT = get_user_model()
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+
+class ImageQuerySet(QuerySet):
+    def permitted(self, user: UserModelT) -> ImageQuerySet:
+        """
+        Filters images to only include those the user has permission to view.
+        """
+        if user.is_superuser:
+            return self  # Superusers can see everything
+
+        if not user.grousp.exists():
+            # User has no groups, so they can't view anything via group permissions
+            return self.none()  # Return an empty queryset
+
+        # Filter images where *any* of the user's group IDs are in the image's view_groups OR edit_groups
+        # Use Q objects for OR logic and __in lookup for efficiency
+        return self.filter(
+            Q(view_groups__in=user.groups.all()) | Q(edit_groups__in=user.groups.all()),
+        ).distinct()  # Use distinct in case an image is in multiple relevant groups
+
+    def with_location(self) -> ImageQuerySet:
+        return self.select_related("location")
+
+    def with_folder(self) -> ImageQuerySet:
+        return self.select_related("folder")
+
+    def with_date(self) -> ImageQuerySet:
+        return self.select_related("date")
+
+    def with_tags(self) -> ImageQuerySet:
+        return self.prefetch_related("tags")
+
+    def with_people(self) -> ImageQuerySet:
+        """
+        Fetches Image with related peopl
+        """
+        return self.prefetch_related(
+            "people",
+            "personinimage_set__person",
+        )
+
+    def with_pets(self) -> ImageQuerySet:
+        """
+        Fetches Image with related peopl
+        """
+        return self.prefetch_related(
+            "pets",
+            "petinimage_set__pet",
+        )
 
 
 class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
@@ -154,6 +208,8 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         on_delete=models.CASCADE,
         help_text="The folder this image belongs to",
     )
+
+    objects = ImageQuerySet.as_manager()
 
     class Meta:
         ordering: Sequence[str] = ["pk"]

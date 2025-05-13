@@ -1,14 +1,12 @@
 from ninja import Schema
 
-from memoria.routes.images.schemas import ImageThumbnailSchema
-
 
 class BreadcrumbSchema(Schema):
     name: str
     id: int
 
 
-class ImageFolderSchema(Schema):
+class RootFolderSchema(Schema):
     id: int
     name: str
     description: str | None
@@ -16,11 +14,10 @@ class ImageFolderSchema(Schema):
     image_count: int = 0
 
 
-class ImageFolderDetailSchema(Schema):
+class FolderDetailSchema(Schema):
     id: int
     name: str
-    child_folders: list[ImageFolderSchema]
-    folder_images: list[ImageThumbnailSchema]
+    child_folders: list[RootFolderSchema]
+    folder_images: list[int]
     breadcrumbs: list[BreadcrumbSchema]
     has_children: bool
-    image_count: int

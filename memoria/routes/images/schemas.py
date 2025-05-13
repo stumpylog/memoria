@@ -2,13 +2,14 @@ from datetime import date
 
 from exifmwg.models import RotationEnum
 from ninja import Schema
-from pydantic import HttpUrl
+
+# TODO: use HttpUrl for the URLs, except orjson doesn't serialize them
 
 
 class ImageThumbnailSchema(Schema):
     id: int
     title: str
-    thumbnail_url: HttpUrl
+    thumbnail_url: str
     thumbnail_height: int
     thumbnail_width: int
 
@@ -28,12 +29,45 @@ class ImageLocationSchema(Schema):
     sub_location: str | None
 
 
-class ImageDetailSchema(Schema):
+class ImageMetadataSchema(Schema):
     id: int
-    full_size_url: HttpUrl
+    full_size_url: str
     orientation: RotationEnum
     original_height: int
     original_width: int
     title: str
     file_size: int
     description: str | None
+
+
+class BoxInImageBaseSchema(Schema):
+    """
+    Base schema for models inheriting from AbstractBoxInImage.
+    Represents a bounding box within an image and includes timestamps.
+    """
+
+    id: int
+    center_x: float
+    center_y: float
+    height: float
+    width: float
+
+
+class PersonInImageSchemaOut(BoxInImageBaseSchema):
+    """
+    Schema for representing a PersonInImage instance.
+    Details a specific person's bounding box in an image.
+    """
+
+    person_id: int
+    name: str
+
+
+class PetInImageSchemaOut(BoxInImageBaseSchema):
+    """
+    Schema for representing a PetInImage instance.
+    Details a specific pet's bounding box in an image.
+    """
+
+    pet_id: int | None = None
+    name: str

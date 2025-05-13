@@ -28,7 +28,7 @@ const ImageCard: React.FC<ImageCardProps> = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     overflow: 'hidden',
-                    backgroundColor: '#f8f9fa',
+                    //backgroundColor: '#f8f9fa',
                     borderBottom: '1px solid rgba(0,0,0,.125)'
                 }}
             >

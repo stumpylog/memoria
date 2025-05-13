@@ -9,6 +9,15 @@ export type CsrfTokenOutSchema = {
     csrf_token: string;
 };
 
+export type FolderDetailSchema = {
+    breadcrumbs: Array<BreadcrumbSchema>;
+    child_folders: Array<RootFolderSchema>;
+    folder_images: Array<number>;
+    has_children: boolean;
+    id: number;
+    name: string;
+};
+
 export type GroupAssignSchema = {
     id: number;
 };
@@ -18,22 +27,30 @@ export type GroupOut = {
     name: string;
 };
 
-export type ImageFolderDetailSchema = {
-    breadcrumbs: Array<BreadcrumbSchema>;
-    child_folders: Array<ImageFolderSchema>;
-    folder_images: Array<ImageThumbnailSchema>;
-    has_children: boolean;
-    id: number;
-    image_count: number;
-    name: string;
+export type ImageDateSchema = {
+    date: string;
+    day_valid: boolean;
+    month_valid: boolean;
 };
 
-export type ImageFolderSchema = {
-    child_count?: number;
+export type ImageLocationSchema = {
+    city: string | null;
+    country_code: string;
+    country_name: string;
+    sub_location: string | null;
+    subdivision_code: string | null;
+    subdivision_name: string | null;
+};
+
+export type ImageMetadataSchema = {
     description: string | null;
+    file_size: number;
+    full_size_url: string;
     id: number;
-    image_count?: number;
-    name: string;
+    orientation: RotationEnum;
+    original_height: number;
+    original_width: number;
+    title: string;
 };
 
 export type ImageThumbnailSchema = {
@@ -45,6 +62,47 @@ export type ImageThumbnailSchema = {
 };
 
 export type ImagesPerPageChoices = 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 100;
+
+/**
+ * Schema for representing a PersonInImage instance.
+ * Details a specific person's bounding box in an image.
+ */
+export type PersonInImageSchemaOut = {
+    center_x: number;
+    center_y: number;
+    height: number;
+    id: number;
+    name: string;
+    person_id: number;
+    width: number;
+};
+
+/**
+ * Schema for representing a PetInImage instance.
+ * Details a specific pet's bounding box in an image.
+ */
+export type PetInImageSchemaOut = {
+    center_x: number;
+    center_y: number;
+    height: number;
+    id: number;
+    name: string;
+    pet_id?: number | null;
+    width: number;
+};
+
+export type RootFolderSchema = {
+    child_count?: number;
+    description: string | null;
+    id: number;
+    image_count?: number;
+    name: string;
+};
+
+/**
+ * https://exiftool.org/TagNames/EXIF.html (0x0112)
+ */
+export type RotationEnum = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 export type TimezoneChoices = 'Africa/Abidjan' | 'Africa/Accra' | 'Africa/Addis_Ababa' | 'Africa/Algiers' | 'Africa/Asmara' | 'Africa/Asmera' | 'Africa/Bamako' | 'Africa/Bangui' | 'Africa/Banjul' | 'Africa/Bissau' | 'Africa/Blantyre' | 'Africa/Brazzaville' | 'Africa/Bujumbura' | 'Africa/Cairo' | 'Africa/Casablanca' | 'Africa/Ceuta' | 'Africa/Conakry' | 'Africa/Dakar' | 'Africa/Dar_es_Salaam' | 'Africa/Djibouti' | 'Africa/Douala' | 'Africa/El_Aaiun' | 'Africa/Freetown' | 'Africa/Gaborone' | 'Africa/Harare' | 'Africa/Johannesburg' | 'Africa/Juba' | 'Africa/Kampala' | 'Africa/Khartoum' | 'Africa/Kigali' | 'Africa/Kinshasa' | 'Africa/Lagos' | 'Africa/Libreville' | 'Africa/Lome' | 'Africa/Luanda' | 'Africa/Lubumbashi' | 'Africa/Lusaka' | 'Africa/Malabo' | 'Africa/Maputo' | 'Africa/Maseru' | 'Africa/Mbabane' | 'Africa/Mogadishu' | 'Africa/Monrovia' | 'Africa/Nairobi' | 'Africa/Ndjamena' | 'Africa/Niamey' | 'Africa/Nouakchott' | 'Africa/Ouagadougou' | 'Africa/Porto-Novo' | 'Africa/Sao_Tome' | 'Africa/Timbuktu' | 'Africa/Tripoli' | 'Africa/Tunis' | 'Africa/Windhoek' | 'America/Adak' | 'America/Anchorage' | 'America/Anguilla' | 'America/Antigua' | 'America/Araguaina' | 'America/Argentina/Buenos_Aires' | 'America/Argentina/Catamarca' | 'America/Argentina/ComodRivadavia' | 'America/Argentina/Cordoba' | 'America/Argentina/Jujuy' | 'America/Argentina/La_Rioja' | 'America/Argentina/Mendoza' | 'America/Argentina/Rio_Gallegos' | 'America/Argentina/Salta' | 'America/Argentina/San_Juan' | 'America/Argentina/San_Luis' | 'America/Argentina/Tucuman' | 'America/Argentina/Ushuaia' | 'America/Aruba' | 'America/Asuncion' | 'America/Atikokan' | 'America/Atka' | 'America/Bahia' | 'America/Bahia_Banderas' | 'America/Barbados' | 'America/Belem' | 'America/Belize' | 'America/Blanc-Sablon' | 'America/Boa_Vista' | 'America/Bogota' | 'America/Boise' | 'America/Buenos_Aires' | 'America/Cambridge_Bay' | 'America/Campo_Grande' | 'America/Cancun' | 'America/Caracas' | 'America/Catamarca' | 'America/Cayenne' | 'America/Cayman' | 'America/Chicago' | 'America/Chihuahua' | 'America/Ciudad_Juarez' | 'America/Coral_Harbour' | 'America/Cordoba' | 'America/Costa_Rica' | 'America/Coyhaique' | 'America/Creston' | 'America/Cuiaba' | 'America/Curacao' | 'America/Danmarkshavn' | 'America/Dawson' | 'America/Dawson_Creek' | 'America/Denver' | 'America/Detroit' | 'America/Dominica' | 'America/Edmonton' | 'America/Eirunepe' | 'America/El_Salvador' | 'America/Ensenada' | 'America/Fort_Nelson' | 'America/Fort_Wayne' | 'America/Fortaleza' | 'America/Glace_Bay' | 'America/Godthab' | 'America/Goose_Bay' | 'America/Grand_Turk' | 'America/Grenada' | 'America/Guadeloupe' | 'America/Guatemala' | 'America/Guayaquil' | 'America/Guyana' | 'America/Halifax' | 'America/Havana' | 'America/Hermosillo' | 'America/Indiana/Indianapolis' | 'America/Indiana/Knox' | 'America/Indiana/Marengo' | 'America/Indiana/Petersburg' | 'America/Indiana/Tell_City' | 'America/Indiana/Vevay' | 'America/Indiana/Vincennes' | 'America/Indiana/Winamac' | 'America/Indianapolis' | 'America/Inuvik' | 'America/Iqaluit' | 'America/Jamaica' | 'America/Jujuy' | 'America/Juneau' | 'America/Kentucky/Louisville' | 'America/Kentucky/Monticello' | 'America/Knox_IN' | 'America/Kralendijk' | 'America/La_Paz' | 'America/Lima' | 'America/Los_Angeles' | 'America/Louisville' | 'America/Lower_Princes' | 'America/Maceio' | 'America/Managua' | 'America/Manaus' | 'America/Marigot' | 'America/Martinique' | 'America/Matamoros' | 'America/Mazatlan' | 'America/Mendoza' | 'America/Menominee' | 'America/Merida' | 'America/Metlakatla' | 'America/Mexico_City' | 'America/Miquelon' | 'America/Moncton' | 'America/Monterrey' | 'America/Montevideo' | 'America/Montreal' | 'America/Montserrat' | 'America/Nassau' | 'America/New_York' | 'America/Nipigon' | 'America/Nome' | 'America/Noronha' | 'America/North_Dakota/Beulah' | 'America/North_Dakota/Center' | 'America/North_Dakota/New_Salem' | 'America/Nuuk' | 'America/Ojinaga' | 'America/Panama' | 'America/Pangnirtung' | 'America/Paramaribo' | 'America/Phoenix' | 'America/Port-au-Prince' | 'America/Port_of_Spain' | 'America/Porto_Acre' | 'America/Porto_Velho' | 'America/Puerto_Rico' | 'America/Punta_Arenas' | 'America/Rainy_River' | 'America/Rankin_Inlet' | 'America/Recife' | 'America/Regina' | 'America/Resolute' | 'America/Rio_Branco' | 'America/Rosario' | 'America/Santa_Isabel' | 'America/Santarem' | 'America/Santiago' | 'America/Santo_Domingo' | 'America/Sao_Paulo' | 'America/Scoresbysund' | 'America/Shiprock' | 'America/Sitka' | 'America/St_Barthelemy' | 'America/St_Johns' | 'America/St_Kitts' | 'America/St_Lucia' | 'America/St_Thomas' | 'America/St_Vincent' | 'America/Swift_Current' | 'America/Tegucigalpa' | 'America/Thule' | 'America/Thunder_Bay' | 'America/Tijuana' | 'America/Toronto' | 'America/Tortola' | 'America/Vancouver' | 'America/Virgin' | 'America/Whitehorse' | 'America/Winnipeg' | 'America/Yakutat' | 'America/Yellowknife' | 'Antarctica/Casey' | 'Antarctica/Davis' | 'Antarctica/DumontDUrville' | 'Antarctica/Macquarie' | 'Antarctica/Mawson' | 'Antarctica/McMurdo' | 'Antarctica/Palmer' | 'Antarctica/Rothera' | 'Antarctica/South_Pole' | 'Antarctica/Syowa' | 'Antarctica/Troll' | 'Antarctica/Vostok' | 'Arctic/Longyearbyen';
 
@@ -189,7 +247,7 @@ export type FolderListRootsResponses = {
     /**
      * OK
      */
-    200: Array<ImageFolderSchema>;
+    200: Array<RootFolderSchema>;
 };
 
 export type FolderListRootsResponse = FolderListRootsResponses[keyof FolderListRootsResponses];
@@ -207,10 +265,100 @@ export type FolderGetDetailsResponses = {
     /**
      * OK
      */
-    200: ImageFolderDetailSchema;
+    200: FolderDetailSchema;
 };
 
 export type FolderGetDetailsResponse = FolderGetDetailsResponses[keyof FolderGetDetailsResponses];
+
+export type ImageGetDateData = {
+    body?: never;
+    path: {
+        image_id: number;
+    };
+    query?: never;
+    url: '/api/image/{image_id}/date/';
+};
+
+export type ImageGetDateResponses = {
+    /**
+     * OK
+     */
+    200: ImageDateSchema;
+};
+
+export type ImageGetDateResponse = ImageGetDateResponses[keyof ImageGetDateResponses];
+
+export type ImageGetLocationData = {
+    body?: never;
+    path: {
+        image_id: number;
+    };
+    query?: never;
+    url: '/api/image/{image_id}/location/';
+};
+
+export type ImageGetLocationResponses = {
+    /**
+     * OK
+     */
+    200: ImageLocationSchema;
+};
+
+export type ImageGetLocationResponse = ImageGetLocationResponses[keyof ImageGetLocationResponses];
+
+export type ImageGetMetadataData = {
+    body?: never;
+    path: {
+        image_id: number;
+    };
+    query?: never;
+    url: '/api/image/{image_id}/metadata/';
+};
+
+export type ImageGetMetadataResponses = {
+    /**
+     * OK
+     */
+    200: ImageMetadataSchema;
+};
+
+export type ImageGetMetadataResponse = ImageGetMetadataResponses[keyof ImageGetMetadataResponses];
+
+export type ImageGetPeopleData = {
+    body?: never;
+    path: {
+        image_id: number;
+    };
+    query?: never;
+    url: '/api/image/{image_id}/people/';
+};
+
+export type ImageGetPeopleResponses = {
+    /**
+     * OK
+     */
+    200: Array<PersonInImageSchemaOut>;
+};
+
+export type ImageGetPeopleResponse = ImageGetPeopleResponses[keyof ImageGetPeopleResponses];
+
+export type ImageGetPetsData = {
+    body?: never;
+    path: {
+        image_id: number;
+    };
+    query?: never;
+    url: '/api/image/{image_id}/pets/';
+};
+
+export type ImageGetPetsResponses = {
+    /**
+     * OK
+     */
+    200: Array<PetInImageSchemaOut>;
+};
+
+export type ImageGetPetsResponse = ImageGetPetsResponses[keyof ImageGetPetsResponses];
 
 export type ImageGetThumbInfoData = {
     body?: never;

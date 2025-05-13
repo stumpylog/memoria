@@ -20,6 +20,7 @@ const PeoplePage = React.lazy(() => import('./pages/PeoplePage'));
 const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
 const SettingsPage = React.lazy(() => import('./pages/SettingsPage'));
 const FolderDetail = React.lazy(() => import('./pages/FolderDetail'));
+const ImageDetail = React.lazy(() => import('./pages/ImageDetail'));
 
 const AppLayout: React.FC = () => {
   return (
@@ -67,7 +68,8 @@ function App(): JSX.Element {
                 <Route path="/folders/:id" element={<FolderDetail />} />
                 <Route path="/people" element={<PeoplePage />} />
                 <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/settings" element={<SettingsPage />} /> {/* Additional permission check inside SettingsPage */}
+                <Route path="/images/:id" element={<ImageDetail />} />
+                <Route path="/settings" element={<SettingsPage />} />
                 {/* Add other protected routes here */}
               </Route>
             </Route>
