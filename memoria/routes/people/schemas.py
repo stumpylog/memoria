@@ -1,6 +1,7 @@
 import sys
 
 from ninja import Schema
+from pydantic import Field
 from pydantic import model_validator
 
 if sys.version_info > (3, 11):
@@ -24,6 +25,14 @@ class PersonReadOutSchema(PersonCreateInSchema):
     """
 
     id: int
+    image_count: int
+
+
+class PersonDetailOutSchema(Schema):
+    id: int
+    name: str
+    description: str | None = None
+    image_ids: list[int] = Field(default_factory=list)
 
 
 class PersonUpdateInSchema(Schema):

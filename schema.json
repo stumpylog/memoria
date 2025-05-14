@@ -322,6 +322,39 @@
         "title": "ImagesPerPageChoices",
         "type": "integer"
       },
+      "PersonDetailOutSchema": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "image_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Image Ids",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": ["id", "name"],
+        "title": "PersonDetailOutSchema",
+        "type": "object"
+      },
       "PersonInImageSchemaOut": {
         "description": "Schema for representing a PersonInImage instance.\nDetails a specific person's bounding box in an image.",
         "properties": {
@@ -356,6 +389,37 @@
         },
         "required": ["id", "center_x", "center_y", "height", "width", "person_id", "name"],
         "title": "PersonInImageSchemaOut",
+        "type": "object"
+      },
+      "PersonReadOutSchema": {
+        "description": "Schema when reading a person",
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "image_count": {
+            "title": "Image Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": ["name", "id", "image_count"],
+        "title": "PersonReadOutSchema",
         "type": "object"
       },
       "PetInImageSchemaOut": {
@@ -1334,6 +1398,60 @@
         ],
         "summary": "Get Image Thumbnail Info",
         "tags": ["images"]
+      }
+    },
+    "/api/person/": {
+      "get": {
+        "operationId": "get_all_people",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PersonReadOutSchema"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get All People",
+        "tags": ["people"]
+      }
+    },
+    "/api/person/{person_id}/": {
+      "get": {
+        "operationId": "get_person_detail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "person_id",
+            "required": true,
+            "schema": {
+              "title": "Person Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonDetailOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Person Detail",
+        "tags": ["people"]
       }
     },
     "/api/user/create/": {

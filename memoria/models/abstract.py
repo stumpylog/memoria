@@ -1,12 +1,16 @@
 from typing import TYPE_CHECKING
+from typing import Self
 
 from django.contrib.auth.models import Group
+from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F
 from django.db.models import FloatField
 from django.db.models import GeneratedField
+from django.db.models import Q
+from django.db.models.query import QuerySet
 
 if TYPE_CHECKING:
     from memoria.models.image import Image  # noqa: F401
@@ -158,3 +162,48 @@ class ObjectPermissionModelMixin(models.Model):
 
     class Meta:
         abstract = True
+
+
+class PermittedQueryset(QuerySet):
+    def permitted(self, user: User) -> Self:
+        """
+        Filters objects to only include those the user has permission to view or edit.
+        """
+        if user.is_superuser:
+            return self  # Superusers can see everything
+
+        if not user.groups.exists():
+            # User has no groups, so they can't view anything via group permissions
+            return self.none()  # Return an empty queryset
+
+        # Filter objects where *any* of the user's group IDs are in the image's view_groups OR edit_groups
+        # Use Q objects for OR logic and __in lookup for efficiency
+        return self.filter(
+            Q(view_groups__in=user.groups.all()) | Q(edit_groups__in=user.groups.all()),
+        ).distinct()  # Use distinct in case an image is in multiple relevant groups
+
+    @classmethod
+    def get_permitted_filter_q(cls, user: User) -> Q | None:
+        """
+        Returns the Q object representing the 'permitted' filter for a user.
+        This can be used in annotations or other filtering operations.
+        Returns None for superusers (indicating no filter needed).
+        Returns Q(pk__in=[]) for users with no groups (indicating no objects match).
+
+        Note: This method assumes the model fields 'view_groups' and 'edit_groups'
+        exist on the model this QuerySet is used for (e.g., your Image model).
+        """
+        if user.is_superuser:
+            # No specific filter is needed for superusers; they see everything.
+            # Returning None signals that no filter should be applied in Count.
+            return Q()
+        if not user.groups.exists():
+            # If the user has no groups, the group-based filter will match nothing.
+            # We represent this with a Q object that guarantees no match.
+            # Assuming the model has a primary key named 'pk'.
+            return Q(pk__in=[])
+        # Construct the Q object based on user's group memberships.
+        # The field names 'view_groups' and 'edit_groups' refer to fields
+        # on the model this QuerySet is applied to (e.g., Image model).
+        user_groups = user.groups.all()
+        return Q(view_groups__in=user_groups) | Q(edit_groups__in=user_groups)

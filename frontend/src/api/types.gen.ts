@@ -78,6 +78,13 @@ export type ImageThumbnailSchema = {
 
 export type ImagesPerPageChoices = 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 100;
 
+export type PersonDetailOutSchema = {
+    description?: string | null;
+    id: number;
+    image_ids?: Array<number>;
+    name: string;
+};
+
 /**
  * Schema for representing a PersonInImage instance.
  * Details a specific person's bounding box in an image.
@@ -90,6 +97,16 @@ export type PersonInImageSchemaOut = {
     name: string;
     person_id: number;
     width: number;
+};
+
+/**
+ * Schema when reading a person
+ */
+export type PersonReadOutSchema = {
+    description?: string | null;
+    id: number;
+    image_count: number;
+    name: string;
 };
 
 /**
@@ -415,6 +432,40 @@ export type ImageGetThumbInfoResponses = {
 };
 
 export type ImageGetThumbInfoResponse = ImageGetThumbInfoResponses[keyof ImageGetThumbInfoResponses];
+
+export type GetAllPeopleData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/person/';
+};
+
+export type GetAllPeopleResponses = {
+    /**
+     * OK
+     */
+    200: Array<PersonReadOutSchema>;
+};
+
+export type GetAllPeopleResponse = GetAllPeopleResponses[keyof GetAllPeopleResponses];
+
+export type GetPersonDetailData = {
+    body?: never;
+    path: {
+        person_id: number;
+    };
+    query?: never;
+    url: '/api/person/{person_id}/';
+};
+
+export type GetPersonDetailResponses = {
+    /**
+     * OK
+     */
+    200: PersonDetailOutSchema;
+};
+
+export type GetPersonDetailResponse = GetPersonDetailResponses[keyof GetPersonDetailResponses];
 
 export type UserCreateData = {
     body: UserInCreateSchemaWritable;

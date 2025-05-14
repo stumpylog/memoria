@@ -6,12 +6,11 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import Q
-from django.db.models.query import QuerySet
 from exifmwg.models import RotationEnum
 
 from memoria.models.abstract import AbstractTimestampMixin
 from memoria.models.abstract import ObjectPermissionModelMixin
+from memoria.models.abstract import PermittedQueryset
 from memoria.models.metadata import ImageFolder
 from memoria.models.metadata import ImageSource
 from memoria.models.metadata import Person
@@ -29,24 +28,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-class ImageQuerySet(QuerySet):
-    def permitted(self, user: UserModelT) -> ImageQuerySet:
-        """
-        Filters images to only include those the user has permission to view.
-        """
-        if user.is_superuser:
-            return self  # Superusers can see everything
-
-        if not user.grousp.exists():
-            # User has no groups, so they can't view anything via group permissions
-            return self.none()  # Return an empty queryset
-
-        # Filter images where *any* of the user's group IDs are in the image's view_groups OR edit_groups
-        # Use Q objects for OR logic and __in lookup for efficiency
-        return self.filter(
-            Q(view_groups__in=user.groups.all()) | Q(edit_groups__in=user.groups.all()),
-        ).distinct()  # Use distinct in case an image is in multiple relevant groups
-
+class ImageQuerySet(PermittedQueryset):
     def with_location(self) -> ImageQuerySet:
         return self.select_related("location")
 
@@ -209,7 +191,7 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         help_text="The folder this image belongs to",
     )
 
-    objects = ImageQuerySet.as_manager()
+    objects: ImageQuerySet = ImageQuerySet.as_manager()
 
     class Meta:
         ordering: Sequence[str] = ["pk"]

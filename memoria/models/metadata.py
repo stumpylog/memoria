@@ -15,6 +15,7 @@ from memoria.models.abstract import AbstractBoxInImage
 from memoria.models.abstract import AbstractSimpleNamedModelMixin
 from memoria.models.abstract import AbstractTimestampMixin
 from memoria.models.abstract import ObjectPermissionModelMixin
+from memoria.models.abstract import PermittedQueryset
 
 
 class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, TreeNodeModel):
@@ -56,10 +57,22 @@ class TagOnImage(models.Model):  # noqa: DJ008
     applied = models.BooleanField(default=False, help_text="This tag is applied to this image")
 
 
+class PersonQuerySet(PermittedQueryset):
+    def with_images(self) -> PersonQuerySet:
+        """
+        Fetches the person with Images
+        """
+        return self.prefetch_related(
+            "images",
+        )
+
+
 class Person(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     """
     Holds the information about a single person
     """
+
+    objects: PersonQuerySet = PersonQuerySet.as_manager()
 
     def __str__(self) -> str:
         return f"Person {self.name}"
@@ -104,6 +117,8 @@ class Pet(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, ObjectPermissio
         help_text="The type of pet this is",
     )
 
+    objects = PermittedQueryset.as_manager()
+
     def __str__(self) -> str:
         return f"Pet {self.name}"
 
@@ -127,6 +142,8 @@ class PetInImage(AbstractBoxInImage):
 class ImageSource(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, ObjectPermissionModelMixin, models.Model):
     """ """
 
+    objects = PermittedQueryset.as_manager()
+
     def __str__(self) -> str:
         return f"Source {self.name}"
 
@@ -149,6 +166,8 @@ class RoughDate(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model
         default=False,
         help_text="Is the day of this date valid?",
     )
+
+    objects = PermittedQueryset.as_manager()
 
     class Meta:
         ordering: Sequence = ["date"]
@@ -206,6 +225,8 @@ class RoughLocation(AbstractTimestampMixin, ObjectPermissionModelMixin, models.M
         blank=True,
         help_text="Detailed location within a city or Town",
     )
+
+    objects = PermittedQueryset.as_manager()
 
     class Meta:
         ordering: Sequence = [
@@ -278,6 +299,8 @@ class RoughLocation(AbstractTimestampMixin, ObjectPermissionModelMixin, models.M
 class ImageFolder(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, ObjectPermissionModelMixin, TreeNodeModel):
     # Required TreeNodeModel attributes
     treenode_display_field = "name"
+
+    objects: PermittedQueryset = PermittedQueryset.as_manager()
 
     class Meta:
         verbose_name = "Folder"

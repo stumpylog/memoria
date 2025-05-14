@@ -169,7 +169,6 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
            <ImageWall
              images={imageThumbs} // Pass the fetched image thumbnail data
              onImageClick={(imageId) => {
-                 // Navigate to a dedicated image detail page, assuming imageId is passed
                  navigate(`/images/${imageId}`);
              }}
              columns={4}

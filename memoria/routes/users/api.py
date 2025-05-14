@@ -90,6 +90,9 @@ def set_user_info(
             raise HttpNotAuthorizedError("Only a superuser may designate another super user")
         data.is_superuser = data.is_superuser
     user.save()
+    if data.password:
+        user.set_password(data.password.get_secret_value())
+        user.save()
     return user
 
 
