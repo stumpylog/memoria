@@ -277,7 +277,7 @@ class UserUpdateInScheme(UserInCreateSchema):
     first_name: str | None = None
     last_name: str | None = None
     email: EmailStr | None = None
-    # TODO: Password
+    # TODO: Password change functionality
 
 
 class UserProfileUpdateSchema(Schema):

@@ -17,7 +17,6 @@ from memoria.routes.users.schemas import UserInCreateSchema
 from memoria.routes.users.schemas import UserOutSchema
 from memoria.routes.users.schemas import UserProfileOutSchema
 from memoria.routes.users.schemas import UserProfileUpdateSchema
-from memoria.routes.users.schemas import UserUpdateInScheme
 
 router = Router(tags=["users"])
 logger = logging.getLogger(__name__)
@@ -25,14 +24,25 @@ logger = logging.getLogger(__name__)
 UserModelT = get_user_model()
 
 
-@router.get("/profile/", response=UserProfileOutSchema, auth=active_user_auth, operation_id="user_get_profile")
+@router.get(
+    "/{user_id}/profile/",
+    response=UserProfileOutSchema,
+    auth=active_user_auth,
+    operation_id="user_get_profile",
+)
 def get_profile(
     request: HttpRequest,
+    user_id: int,
 ):
     return request.user.profile
 
 
-@router.post("/profile/edit/", response=UserProfileOutSchema, auth=active_user_auth, operation_id="user_edit_profile")
+@router.post(
+    "/{user_id}/profile/edit/",
+    response=UserProfileOutSchema,
+    auth=active_user_auth,
+    operation_id="user_edit_profile",
+)
 def edit_profile(
     request: HttpRequest,
     data: UserProfileUpdateSchema,
@@ -41,23 +51,7 @@ def edit_profile(
     return request.user
 
 
-@router.get("/me/", response=UserOutSchema, auth=active_user_auth, operation_id="user_get_info")
-def get_user_info(
-    request: HttpRequest,
-):
-    return request.user
-
-
-@router.post("/me/edit/", response=UserOutSchema, auth=active_user_auth, operation_id="user_edit_info")
-def edit_user_info(
-    request: HttpRequest,
-    data: UserUpdateInScheme,
-):
-    # TODO: Update a user details if it is them or a staff member
-    return request.user
-
-
-@router.get("/{user_id}/groups", response=list[GroupOut], auth=active_user_auth, operation_id="user_get_groups")
+@router.get("/{user_id}/groups/", response=list[GroupOut], auth=active_user_auth, operation_id="user_get_groups")
 def get_user_groups(request: HttpRequest, user_id: int):
     user = get_object_or_404(UserModelT.objects.prefetch_related("groups"), id=user_id)
     groups = user.groups.all()
@@ -65,7 +59,7 @@ def get_user_groups(request: HttpRequest, user_id: int):
 
 
 @router.post(
-    "/{user_id}/groups",
+    "/{user_id}/groups/",
     response=list[GroupOut],
     auth=active_staff_or_superuser_auth,
     operation_id="user_set_groups",

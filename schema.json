@@ -818,67 +818,6 @@
         },
         "title": "UserProfileUpdateSchema",
         "type": "object"
-      },
-      "UserUpdateInScheme": {
-        "properties": {
-          "email": {
-            "anyOf": [
-              {
-                "format": "email",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Email"
-          },
-          "first_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "First Name"
-          },
-          "is_staff": {
-            "default": false,
-            "title": "Is Staff",
-            "type": "boolean"
-          },
-          "is_superuser": {
-            "default": false,
-            "title": "Is Superuser",
-            "type": "boolean"
-          },
-          "last_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Last Name"
-          },
-          "password": {
-            "format": "password",
-            "title": "Password",
-            "type": "string",
-            "writeOnly": true
-          },
-          "username": {
-            "title": "Username",
-            "type": "string"
-          }
-        },
-        "required": ["username", "password"],
-        "title": "UserUpdateInScheme",
-        "type": "object"
       }
     },
     "securitySchemes": {
@@ -1295,127 +1234,7 @@
         "tags": ["users"]
       }
     },
-    "/api/user/me/": {
-      "get": {
-        "operationId": "user_get_info",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserOutSchema"
-                }
-              }
-            },
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "SessionAuthIsActive": []
-          }
-        ],
-        "summary": "Get User Info",
-        "tags": ["users"]
-      }
-    },
-    "/api/user/me/edit/": {
-      "post": {
-        "operationId": "user_edit_info",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserUpdateInScheme"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserOutSchema"
-                }
-              }
-            },
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "SessionAuthIsActive": []
-          }
-        ],
-        "summary": "Edit User Info",
-        "tags": ["users"]
-      }
-    },
-    "/api/user/profile/": {
-      "get": {
-        "operationId": "user_get_profile",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserProfileOutSchema"
-                }
-              }
-            },
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "SessionAuthIsActive": []
-          }
-        ],
-        "summary": "Get Profile",
-        "tags": ["users"]
-      }
-    },
-    "/api/user/profile/edit/": {
-      "post": {
-        "operationId": "user_edit_profile",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserProfileUpdateSchema"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserProfileOutSchema"
-                }
-              }
-            },
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "SessionAuthIsActive": []
-          }
-        ],
-        "summary": "Edit Profile",
-        "tags": ["users"]
-      }
-    },
-    "/api/user/{user_id}/groups": {
+    "/api/user/{user_id}/groups/": {
       "get": {
         "operationId": "user_get_groups",
         "parameters": [
@@ -1501,6 +1320,76 @@
           }
         ],
         "summary": "Set User Groups",
+        "tags": ["users"]
+      }
+    },
+    "/api/user/{user_id}/profile/": {
+      "get": {
+        "operationId": "user_get_profile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Get Profile",
+        "tags": ["users"]
+      }
+    },
+    "/api/user/{user_id}/profile/edit/": {
+      "post": {
+        "operationId": "user_edit_profile",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfileUpdateSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Edit Profile",
         "tags": ["users"]
       }
     }
