@@ -15,6 +15,7 @@ import type { ImageMetadataSchema } from "../api";
 import type { ImageLocationSchema } from "../api";
 import type { ImageDateSchema } from "../api";
 import type { PetInImageSchemaOut } from "../api";
+import { Helmet } from 'react-helmet-async';
 
 const ImageDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -162,6 +163,9 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
 
   return (
     <Container fluid className="py-4">
+      <Helmet>
+              <title>Memoria - Image: {title}</title>
+            </Helmet>
       <Row className="mb-4">
         {/* Image Section (Left Column) */}
         <Col md={8}>
@@ -246,13 +250,7 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
               <h5 className="mb-0">Image Info</h5>
             </Card.Header>
             <Card.Body>
-              <h5 className="card-title">{title || 'Untitled Image'}</h5>
-
-              {title ? (
-                <p className="card-text">{title}</p>
-              ) : (
-                <p className="text-muted small">No title available.</p>
-              )}
+              <h5 className="card-title">Title: {title || 'Untitled Image'}</h5>
 
               {description ? (
                 <p className="card-text">{description}</p>
@@ -261,7 +259,7 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
               )}
 
               <p className="mb-1">
-                <strong>Date:</strong>
+                <strong>Date: </strong>
                 {dateInfo ? (
                   <span className="text-muted">
                     {" "}{formatImageDate(dateInfo)}
@@ -272,7 +270,7 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
               </p>
 
               <p className="mb-1">
-                <strong>Location:</strong>
+                <strong>Location: </strong>
                 {location ? (
                   <span className="text-muted">
                     {location.sub_location && `${location.sub_location}, `}

@@ -165,45 +165,89 @@ class ObjectPermissionModelMixin(models.Model):
 
 
 class PermittedQueryset(QuerySet):
-    def permitted(self, user: User) -> Self:
-        """
-        Filters objects to only include those the user has permission to view or edit.
-        """
-        if user.is_superuser:
-            return self  # Superusers can see everything
-
-        if not user.groups.exists():
-            # User has no groups, so they can't view anything via group permissions
-            return self.none()  # Return an empty queryset
-
-        # Filter objects where *any* of the user's group IDs are in the image's view_groups OR edit_groups
-        # Use Q objects for OR logic and __in lookup for efficiency
-        return self.filter(
-            Q(view_groups__in=user.groups.all()) | Q(edit_groups__in=user.groups.all()),
-        ).distinct()  # Use distinct in case an image is in multiple relevant groups
+    """
+    A queryset mixin providing methods to filter objects based on user permissions
+    defined by 'view_groups' and 'edit_groups' ManyToManyField fields on a model.
+    """
 
     @classmethod
-    def get_permitted_filter_q(cls, user: User) -> Q | None:
+    def _get_base_permission_q_for_groups(cls, user_groups: QuerySet[Group], group_field_name: str) -> Q:
         """
-        Returns the Q object representing the 'permitted' filter for a user.
-        This can be used in annotations or other filtering operations.
-        Returns None for superusers (indicating no filter needed).
-        Returns Q(pk__in=[]) for users with no groups (indicating no objects match).
+        Helper method to generate the base Q object for a given permission type
+        based on a pre-fetched set of user groups.
+        """
+        return Q(**{f"{group_field_name}__in": user_groups})
 
-        Note: This method assumes the model fields 'view_groups' and 'edit_groups'
-        exist on the model this QuerySet is used for (e.g., your Image model).
+    @classmethod
+    def get_viewable_filter_q(cls, user: User) -> Q:
         """
+        Returns a Q object for filtering objects viewable by the user.
+        An object is viewable if the user is in its 'view_groups' OR 'edit_groups'.
+        """
+        if not user.is_authenticated:
+            return Q(pk__in=[])  # Matches nothing for unauthenticated users
+
         if user.is_superuser:
-            # No specific filter is needed for superusers; they see everything.
-            # Returning None signals that no filter should be applied in Count.
-            return Q()
-        if not user.groups.exists():
-            # If the user has no groups, the group-based filter will match nothing.
-            # We represent this with a Q object that guarantees no match.
-            # Assuming the model has a primary key named 'pk'.
-            return Q(pk__in=[])
-        # Construct the Q object based on user's group memberships.
-        # The field names 'view_groups' and 'edit_groups' refer to fields
-        # on the model this QuerySet is applied to (e.g., Image model).
+            return Q()  # Superuser can view anything
+
         user_groups = user.groups.all()
-        return Q(view_groups__in=user_groups) | Q(edit_groups__in=user_groups)
+        if not user_groups.exists():
+            # User has no groups, so they can't view anything via group permissions
+            return Q(pk__in=[])  # Matches nothing
+
+        view_q = cls._get_base_permission_q_for_groups(user_groups, "view_groups")
+        edit_q_for_view = cls._get_base_permission_q_for_groups(user_groups, "edit_groups")
+
+        # Users can view if they are in view_groups OR if they are in edit_groups
+        return view_q | edit_q_for_view
+
+    @classmethod
+    def get_editable_filter_q(cls, user: User) -> Q:
+        """
+        Returns a Q object for filtering objects editable by the user.
+        An object is editable ONLY if the user is in its 'edit_groups'.
+        """
+        if not user.is_authenticated:
+            return Q(pk__in=[])
+
+        if user.is_superuser:
+            return Q()  # Superuser can edit anything
+
+        user_groups = user.groups.all()
+        if not user_groups.exists():
+            # User has no groups, so they can't edit anything via group permissions
+            return Q(pk__in=[])
+
+        return cls._get_base_permission_q_for_groups(user_groups, "edit_groups")
+
+    @classmethod
+    def get_permitted_filter_q(cls, user: User) -> Q:
+        """
+        Returns the Q object representing the general 'permitted to access' filter
+        (i.e., view access) for a user.
+        An object is permitted if the user can view it (either via view_groups or edit_groups).
+        """
+        # "Permitted to access" means "can view".
+        # get_viewable_filter_q already correctly combines view_groups and edit_groups for visibility.
+        return cls.get_viewable_filter_q(user)
+
+    def viewable_by(self, user: User) -> Self:
+        """
+        Filters the queryset to objects viewable by the given user.
+        (User is in view_groups OR edit_groups)
+        """
+        return self.filter(self.get_viewable_filter_q(user)).distinct()
+
+    def editable_by(self, user: User) -> Self:
+        """
+        Filters the queryset to objects editable by the given user.
+        (User is in edit_groups)
+        """
+        return self.filter(self.get_editable_filter_q(user)).distinct()
+
+    def permitted(self, user: User) -> Self:
+        """
+        Filters objects to only include those the user has general permission to access (view).
+        This relies on viewable_by, which correctly checks if user is in view_groups OR edit_groups.
+        """
+        return self.viewable_by(user)

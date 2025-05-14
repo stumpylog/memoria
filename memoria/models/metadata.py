@@ -46,12 +46,13 @@ class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, TreeNodeModel):
 
 
 class TagOnImage(models.Model):  # noqa: DJ008
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, help_text="Tag is on this Image")
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, help_text="Tag is on this Image", related_name="image_links")
 
     image = models.ForeignKey(
         "Image",
         on_delete=models.CASCADE,
         help_text="A Tag is on this Image",
+        related_name="applied_tags",
     )
 
     applied = models.BooleanField(default=False, help_text="This tag is applied to this image")
@@ -63,7 +64,7 @@ class PersonQuerySet(PermittedQueryset):
         Fetches the person with Images
         """
         return self.prefetch_related(
-            "images",
+            "images_featured_in",
         )
 
 
@@ -83,7 +84,7 @@ class PersonInImage(AbstractBoxInImage):
         Person,
         # TODO: This would need to update if we allow boxes without a name/person attached
         on_delete=models.CASCADE,
-        related_name="images",
+        related_name="person_appearances",
         help_text="Person is in this Image at the given location",
     )
 
@@ -127,7 +128,7 @@ class PetInImage(AbstractBoxInImage):
     pet = models.ForeignKey(
         Pet,
         on_delete=models.CASCADE,
-        related_name="images",
+        related_name="pet_appearances",
         help_text="Pet is in this Image at the given location",
         null=True,
     )

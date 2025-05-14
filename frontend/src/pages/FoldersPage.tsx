@@ -3,7 +3,8 @@ import { Container, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import FolderWall from '../components/folder/FolderWall';
 import type { RootFolderSchema } from '../api';
-import { folderListRoots } from '../api'; // Adjust import path as needed
+import { folderListRoots } from '../api';
+import { Helmet } from 'react-helmet-async';
 
 interface FoldersPageProps {
   onFolderClick?: (id: number) => void;
@@ -76,6 +77,9 @@ const FoldersPage: React.FC<FoldersPageProps> = ({
 
   return (
     <Container fluid>
+      <Helmet>
+              <title>Memoria - All Folders</title>
+            </Helmet>
       <h2 className="mb-4">Folders</h2>
       <FolderWall
         folders={folders}

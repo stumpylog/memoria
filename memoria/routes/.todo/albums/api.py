@@ -15,17 +15,18 @@ from django.utils.text import slugify
 from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
-from scansteward.common.errors import HttpBadRequestError
-from scansteward.models import Album
-from scansteward.models import Image
-from scansteward.models import ImageInAlbum
-from scansteward.routes.albums.schemas import AlbumAddImageInSchema
-from scansteward.routes.albums.schemas import AlbumBasicReadOutSchema
-from scansteward.routes.albums.schemas import AlbumCreateInSchema
-from scansteward.routes.albums.schemas import AlbumRemoveImageInSchema
-from scansteward.routes.albums.schemas import AlbumSortUpdateInSchema
-from scansteward.routes.albums.schemas import AlbumUpdateInSchema
-from scansteward.routes.albums.schemas import AlbumWithImagesReadInSchema
+
+from memoria.common.errors import HttpBadRequestError
+from memoria.models import Album
+from memoria.models import Image
+from memoria.models import ImageInAlbum
+from memoria.routes.albums.schemas import AlbumAddImageInSchema
+from memoria.routes.albums.schemas import AlbumBasicReadOutSchema
+from memoria.routes.albums.schemas import AlbumCreateInSchema
+from memoria.routes.albums.schemas import AlbumRemoveImageInSchema
+from memoria.routes.albums.schemas import AlbumSortUpdateInSchema
+from memoria.routes.albums.schemas import AlbumUpdateInSchema
+from memoria.routes.albums.schemas import AlbumWithImagesReadInSchema
 
 router = Router(tags=["albums"])
 

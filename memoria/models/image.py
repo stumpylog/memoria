@@ -47,7 +47,14 @@ class ImageQuerySet(PermittedQueryset):
         """
         return self.prefetch_related(
             "people",
-            "personinimage_set__person",
+        )
+
+    def with_people_and_boxes(self) -> ImageQuerySet:
+        return self.prefetch_related(
+            models.Prefetch(
+                "personinimage_set",
+                queryset=PersonInImage.objects.select_related("person"),
+            ),
         )
 
     def with_pets(self) -> ImageQuerySet:
@@ -57,6 +64,14 @@ class ImageQuerySet(PermittedQueryset):
         return self.prefetch_related(
             "pets",
             "petinimage_set__pet",
+        )
+
+    def with_pets_and_boxes(self) -> ImageQuerySet:
+        return self.prefetch_related(
+            models.Prefetch(
+                "petinimage_set",
+                queryset=PetInImage.objects.select_related("pet"),
+            ),
         )
 
 
@@ -170,12 +185,14 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         Person,
         through=PersonInImage,
         help_text="These people are in the image",
+        related_name="images_featured_in",
     )
 
     pets = models.ManyToManyField(
         Pet,
         through=PetInImage,
         help_text="These pets are in the image",
+        related_name="images_featured_in",
     )
 
     tags = models.ManyToManyField(

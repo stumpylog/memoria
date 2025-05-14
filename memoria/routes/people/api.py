@@ -25,7 +25,7 @@ def get_all_people(
     permitted_people_queryset = Person.objects.permitted(user)
 
     return permitted_people_queryset.annotate(
-        image_count=Count("images", filter=permitted_image_filter),
+        image_count=Count("images_featured_in", filter=permitted_image_filter),
     )
 
 
@@ -37,11 +37,11 @@ def get_person_detail(
     person: Person = get_object_or_404(Person.objects.permitted(request.user).with_images(), pk=person_id)
     permitted_image_filter = PermittedQueryset.get_permitted_filter_q(request.user)
 
-    logger.info(f"{person.name} has {person.image_set.count()} images")
+    logger.info(f"{person.name} has {person.images_featured_in.count()} images")
 
     return {
         "id": person.pk,
         "name": person.name,
         "description": person.description,
-        "image_ids": person.image_set.filter(permitted_image_filter).distinct().values_list("pk", flat=True),
+        "image_ids": person.images_featured_in.filter(permitted_image_filter).distinct().values_list("pk", flat=True),
     }

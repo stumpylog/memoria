@@ -5,7 +5,7 @@ import FolderWall from '../components/folder/FolderWall';
 import ImageWall from '../components/image/ImageWall';
 import { folderGetDetails, imageGetThumbInfo } from '../api';
 import type { FolderDetailSchema, ImageThumbnailSchema } from '../api';
-
+import { Helmet } from 'react-helmet-async';
 
 interface FolderDetailProps {}
 
@@ -114,6 +114,9 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
 
   return (
      <Container fluid>
+      <Helmet>
+              <title>Memoria - Folder: {folderDetail.name}</title>
+        </Helmet>
        {/* Breadcrumb navigation */}
        <Breadcrumb className="mt-3 mb-4">
          <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/folders" }}>Home</Breadcrumb.Item>
