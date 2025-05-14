@@ -102,7 +102,7 @@
         "title": "GroupAssignSchema",
         "type": "object"
       },
-      "GroupOut": {
+      "GroupOutSchema": {
         "properties": {
           "id": {
             "title": "Id",
@@ -114,7 +114,7 @@
           }
         },
         "required": ["name", "id"],
-        "title": "GroupOut",
+        "title": "GroupOutSchema",
         "type": "object"
       },
       "ImageDateSchema": {
@@ -205,6 +205,11 @@
       },
       "ImageMetadataSchema": {
         "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
           "description": {
             "anyOf": [
               {
@@ -228,19 +233,41 @@
             "title": "Id",
             "type": "integer"
           },
+          "image_fs_id": {
+            "title": "Image Fs Id",
+            "type": "string"
+          },
           "orientation": {
             "$ref": "#/components/schemas/RotationEnum"
+          },
+          "original_checksum": {
+            "title": "Original Checksum",
+            "type": "string"
           },
           "original_height": {
             "title": "Original Height",
             "type": "integer"
           },
+          "original_path": {
+            "format": "file-path",
+            "title": "Original Path",
+            "type": "string"
+          },
           "original_width": {
             "title": "Original Width",
             "type": "integer"
           },
+          "phash": {
+            "title": "Phash",
+            "type": "string"
+          },
           "title": {
             "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
             "type": "string"
           }
         },
@@ -252,7 +279,13 @@
           "original_width",
           "title",
           "file_size",
-          "description"
+          "description",
+          "created_at",
+          "updated_at",
+          "original_checksum",
+          "phash",
+          "original_path",
+          "image_fs_id"
         ],
         "title": "ImageMetadataSchema",
         "type": "object"
@@ -667,8 +700,20 @@
             "title": "Email"
           },
           "first_name": {
-            "title": "First Name",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name"
+          },
+          "is_active": {
+            "default": false,
+            "title": "Is Active",
+            "type": "boolean"
           },
           "is_staff": {
             "default": false,
@@ -681,8 +726,15 @@
             "type": "boolean"
           },
           "last_name": {
-            "title": "Last Name",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
           },
           "password": {
             "format": "password",
@@ -695,7 +747,7 @@
             "type": "string"
           }
         },
-        "required": ["first_name", "last_name", "username", "password"],
+        "required": ["username", "password"],
         "title": "UserInCreateSchema",
         "type": "object"
       },
@@ -723,6 +775,11 @@
           "id": {
             "title": "Id",
             "type": "integer"
+          },
+          "is_active": {
+            "default": false,
+            "title": "Is Active",
+            "type": "boolean"
           },
           "is_staff": {
             "default": false,
@@ -811,6 +868,92 @@
           }
         },
         "title": "UserProfileUpdateSchema",
+        "type": "object"
+      },
+      "UserUpdateInScheme": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "format": "email",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "is_staff": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Staff"
+          },
+          "is_superuser": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Superuser"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          }
+        },
+        "title": "UserUpdateInScheme",
         "type": "object"
       }
     },
@@ -1228,6 +1371,35 @@
         "tags": ["users"]
       }
     },
+    "/api/user/groups/": {
+      "get": {
+        "operationId": "group_get_all",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupOutSchema"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActiveSuperUserOrStaff": []
+          }
+        ],
+        "summary": "Get All Groups",
+        "tags": ["users"]
+      }
+    },
     "/api/user/me/": {
       "get": {
         "operationId": "user_get_me",
@@ -1278,6 +1450,35 @@
         "tags": ["users"]
       }
     },
+    "/api/user/users/": {
+      "get": {
+        "operationId": "user_get_all",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserOutSchema"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActiveSuperUserOrStaff": []
+          }
+        ],
+        "summary": "Get All Users",
+        "tags": ["users"]
+      }
+    },
     "/api/user/{user_id}/groups/": {
       "get": {
         "operationId": "user_get_groups",
@@ -1298,7 +1499,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/GroupOut"
+                    "$ref": "#/components/schemas/GroupOutSchema"
                   },
                   "title": "Response",
                   "type": "array"
@@ -1333,7 +1534,11 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GroupAssignSchema"
+                "items": {
+                  "$ref": "#/components/schemas/GroupAssignSchema"
+                },
+                "title": "Data",
+                "type": "array"
               }
             }
           },
@@ -1345,7 +1550,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/GroupOut"
+                    "$ref": "#/components/schemas/GroupOutSchema"
                   },
                   "title": "Response",
                   "type": "array"
@@ -1399,6 +1604,49 @@
           }
         ],
         "summary": "Get User Info",
+        "tags": ["users"]
+      },
+      "post": {
+        "operationId": "user_set_info",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateInScheme"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActiveSuperUserOrStaff": []
+          }
+        ],
+        "summary": "Set User Info",
         "tags": ["users"]
       }
     },

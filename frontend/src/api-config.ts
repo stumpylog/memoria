@@ -32,16 +32,11 @@ client.instance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> => {
     const isMutatingMethod = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method?.toUpperCase() || '');
 
-    console.log(`Interceptor: Request method is ${config.method?.toUpperCase()}. Is mutating: ${isMutatingMethod}`);
-
     if (isMutatingMethod) {
       // Use the getCookie helper function instead of Cookies.get()
       const csrfToken = getCookie('csrftoken'); // Read the cookie right before the check
 
-      console.log('Interceptor: csrfToken read from cookie:', csrfToken);
-
       if (csrfToken) {
-        console.log('Interceptor: Adding X-CSRFToken header.');
         config.headers['X-CSRFToken'] = csrfToken;
       } else {
         console.warn('Interceptor: CSRF cookie value is undefined. X-CSRFToken header not added.');
@@ -63,9 +58,6 @@ export const initializeCsrfToken = async (): Promise<void> => {
     const response = await client.instance.get<AuthGetCsrfTokenResponse>('/auth/csrf/', { withCredentials: true });
     if (response.data && response.data.csrf_token) {
       csrfToken = response.data.csrf_token;
-      console.log('CSRF token initialized from response:', csrfToken);
-    } else {
-      console.log('CSRF token initialized (cookie might have been set, no token in response body).');
     }
   } catch (error) {
     const axiosError = error as AxiosError<{ detail?: string }>;

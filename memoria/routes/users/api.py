@@ -12,11 +12,12 @@ from memoria.common.auth import active_user_auth
 from memoria.common.errors import HttpBadRequestError
 from memoria.common.errors import HttpNotAuthorizedError
 from memoria.routes.users.schemas import GroupAssignSchema
-from memoria.routes.users.schemas import GroupOut
+from memoria.routes.users.schemas import GroupOutSchema
 from memoria.routes.users.schemas import UserInCreateSchema
 from memoria.routes.users.schemas import UserOutSchema
 from memoria.routes.users.schemas import UserProfileOutSchema
 from memoria.routes.users.schemas import UserProfileUpdateSchema
+from memoria.routes.users.schemas import UserUpdateInScheme
 
 router = Router(tags=["users"])
 logger = logging.getLogger(__name__)
@@ -62,6 +63,60 @@ def get_user_info(
     return user
 
 
+@router.post(
+    "/{user_id}/info/",
+    response=UserOutSchema,
+    auth=active_staff_or_superuser_auth,
+    operation_id="user_set_info",
+)
+def set_user_info(
+    request: HttpRequest,
+    user_id: int,
+    data: UserUpdateInScheme,
+):
+    user: UserModelT = get_object_or_404(UserModelT, pk=user_id)
+    if data.first_name:
+        user.first_name = data.first_name
+    if data.last_name:
+        user.last_name = data.last_name
+    if data.email:
+        user.email = data.email
+    if data.is_active is not None:
+        user.is_active = data.is_active
+    if data.is_staff is not None:
+        user.is_staff = data.is_staff
+    if data.is_superuser is not None:
+        if data.is_superuser and not request.user.is_superuser:
+            raise HttpNotAuthorizedError("Only a superuser may designate another super user")
+        data.is_superuser = data.is_superuser
+    user.save()
+    return user
+
+
+@router.get(
+    "/users/",
+    response=list[UserOutSchema],
+    auth=active_staff_or_superuser_auth,
+    operation_id="user_get_all",
+)
+def get_all_users(
+    request: HttpRequest,
+):
+    return UserModelT.objects.all()
+
+
+@router.get(
+    "/groups/",
+    response=list[GroupOutSchema],
+    auth=active_staff_or_superuser_auth,
+    operation_id="group_get_all",
+)
+def get_all_groups(
+    request: HttpRequest,
+):
+    return Group.objects.all()
+
+
 @router.get(
     "/{user_id}/profile/",
     response=UserProfileOutSchema,
@@ -91,7 +146,7 @@ def edit_profile(
     return request.user
 
 
-@router.get("/{user_id}/groups/", response=list[GroupOut], auth=active_user_auth, operation_id="user_get_groups")
+@router.get("/{user_id}/groups/", response=list[GroupOutSchema], auth=active_user_auth, operation_id="user_get_groups")
 def get_user_groups(request: HttpRequest, user_id: int):
     user = get_object_or_404(UserModelT.objects.prefetch_related("groups"), id=user_id)
     groups = user.groups.all()
@@ -100,7 +155,7 @@ def get_user_groups(request: HttpRequest, user_id: int):
 
 @router.post(
     "/{user_id}/groups/",
-    response=list[GroupOut],
+    response=list[GroupOutSchema],
     auth=active_staff_or_superuser_auth,
     operation_id="user_set_groups",
     openapi_extra={
@@ -111,7 +166,7 @@ def get_user_groups(request: HttpRequest, user_id: int):
         },
     },
 )
-def set_user_groups(request: HttpRequest, user_id: int, data: GroupAssignSchema):
+def set_user_groups(request: HttpRequest, user_id: int, data: list[GroupAssignSchema]):
     user = get_object_or_404(UserModelT.objects.prefetch_related("groups"), id=user_id)
 
     group_ids = [item.id for item in data]
@@ -133,7 +188,7 @@ def set_user_groups(request: HttpRequest, user_id: int, data: GroupAssignSchema)
     auth=active_staff_or_superuser_auth,
     operation_id="user_create",
 )
-async def create_user(
+def create_user(
     request: HttpRequest,
     data: UserInCreateSchema,
 ):
@@ -145,18 +200,25 @@ async def create_user(
         logger.warning("Requested creating a non-staff superuser, overriding")
         data.is_staff = True
     if not data.is_superuser:
-        new_user: UserModelT = await UserModelT.objects.acreate_user(
+        new_user: UserModelT = UserModelT.objects.create_user(
             username=data.username,
             email=data.email,
-            password=data.password,
+            password=data.password.get_secret_value(),
         )
         if data.is_staff:
             new_user.is_staff = True
-            await new_user.asave()
+            new_user.save()
+
     else:
-        new_user = UserModelT.objects.acreate_superuser(
+        new_user = UserModelT.objects.create_superuser(
             username=data.username,
             email=data.email,
-            password=data.password,
+            password=data.password.get_secret_value(),
         )
+
+    if data.first_name:
+        new_user.first_name = data.first_name
+    if data.last_name:
+        new_user.last_name = data.last_name
+
     return new_user

@@ -1,9 +1,11 @@
+import datetime
 from datetime import date
 
+# TODO: use HttpUrl for the URLs, except orjson doesn't serialize them
 from exifmwg.models import RotationEnum
 from ninja import Schema
-
-# TODO: use HttpUrl for the URLs, except orjson doesn't serialize them
+from pydantic import FilePath
+from pydantic import field_serializer
 
 
 class ImageThumbnailSchema(Schema):
@@ -38,6 +40,16 @@ class ImageMetadataSchema(Schema):
     title: str
     file_size: int
     description: str | None
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    original_checksum: str
+    phash: str
+    original_path: FilePath
+    image_fs_id: str
+
+    @field_serializer("original_path")
+    def convert_path_to_str(self, v) -> str:
+        return str(v)
 
 
 class BoxInImageBaseSchema(Schema):

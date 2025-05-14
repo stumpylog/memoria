@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useMemo, useCallback } from 'react';
-import type { UserProfileOutSchema as User, AuthLoginData } from '../api';
+import type { UserOutSchema as User, AuthLoginData } from '../api';
 import type { UserProfileOutSchema as UserProfile } from '../api';
 import {
   authLogin,

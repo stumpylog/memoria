@@ -44,7 +44,7 @@ def get_image_thumbnail_info(request: HttpRequest, image_id: int):
     operation_id="image_get_metadata",
 )
 def get_image_details(request: HttpRequest, image_id: int):
-    img = get_object_or_404(Image.objects.permitted(request.user), pk=image_id)
+    img: Image = get_object_or_404(Image.objects.permitted(request.user), pk=image_id)
     return {
         "id": img.id,
         "orientation": img.orientation,
@@ -53,6 +53,12 @@ def get_image_details(request: HttpRequest, image_id: int):
         "title": img.title,
         "file_size": img.file_size,
         "description": img.description,
+        "created_at": img.created_at,
+        "updated_at": img.updated_at,
+        "original_checksum": img.original_checksum,
+        "phash": img.phash,
+        "original_path": img.original_path,
+        "image_fs_id": img.image_fs_id,
         "full_size_url": request.build_absolute_uri(img.full_size_url),
     }
 

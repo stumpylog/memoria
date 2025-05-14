@@ -259,11 +259,12 @@ class ImagesPerPageChoices(int, enum.Enum):
 
 
 class UserInCreateSchema(Schema):
-    first_name: str
-    last_name: str
     username: str
     password: SecretStr
+    first_name: str | None = None
+    last_name: str | None = None
     email: EmailStr | None = None
+    is_active: bool = False
     is_staff: bool = False
     is_superuser: bool = False
 
@@ -274,15 +275,19 @@ class UserOutSchema(Schema):
     last_name: str
     username: str
     email: EmailStr | str | None = None
+    is_active: bool = False
     is_staff: bool = False
     is_superuser: bool = False
 
 
-class UserUpdateInScheme(UserInCreateSchema):
+class UserUpdateInScheme(Schema):
     first_name: str | None = None
     last_name: str | None = None
     email: EmailStr | None = None
-    # TODO: Password change functionality
+    is_active: bool | None = None
+    is_staff: bool | None = None
+    is_superuser: bool | None = None
+    password: SecretStr | None = None
 
 
 class UserProfileUpdateSchema(Schema):
@@ -301,7 +306,7 @@ class GroupInCreateSchema(Schema):
     name: str
 
 
-class GroupOut(GroupInCreateSchema):
+class GroupOutSchema(GroupInCreateSchema):
     id: int
 
 

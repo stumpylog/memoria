@@ -31,7 +31,7 @@ export type GroupAssignSchema = {
     id: number;
 };
 
-export type GroupOut = {
+export type GroupOutSchema = {
     id: number;
     name: string;
 };
@@ -52,14 +52,20 @@ export type ImageLocationSchema = {
 };
 
 export type ImageMetadataSchema = {
+    created_at: string;
     description: string | null;
     file_size: number;
     full_size_url: string;
     id: number;
+    image_fs_id: string;
     orientation: RotationEnum;
+    original_checksum: string;
     original_height: number;
+    original_path: string;
     original_width: number;
+    phash: string;
     title: string;
+    updated_at: string;
 };
 
 export type ImageThumbnailSchema = {
@@ -117,19 +123,21 @@ export type TimezoneChoices = 'Africa/Abidjan' | 'Africa/Accra' | 'Africa/Addis_
 
 export type UserInCreateSchemaReadable = {
     email?: string | null;
-    first_name: string;
+    first_name?: string | null;
+    is_active?: boolean;
     is_staff?: boolean;
     is_superuser?: boolean;
-    last_name: string;
+    last_name?: string | null;
     username: string;
 };
 
 export type UserInCreateSchemaWritable = {
     email?: string | null;
-    first_name: string;
+    first_name?: string | null;
+    is_active?: boolean;
     is_staff?: boolean;
     is_superuser?: boolean;
-    last_name: string;
+    last_name?: string | null;
     password: string;
     username: string;
 };
@@ -138,6 +146,7 @@ export type UserOutSchema = {
     email?: string | null;
     first_name: string;
     id: number;
+    is_active?: boolean;
     is_staff?: boolean;
     is_superuser?: boolean;
     last_name: string;
@@ -154,6 +163,26 @@ export type UserProfileUpdateSchema = {
     bio?: string | null;
     items_per_page?: ImagesPerPageChoices | null;
     timezone_name?: TimezoneChoices | null;
+};
+
+export type UserUpdateInSchemeReadable = {
+    email?: string | null;
+    first_name?: string | null;
+    is_active?: boolean | null;
+    is_staff?: boolean | null;
+    is_superuser?: boolean | null;
+    last_name?: string | null;
+    password?: string | null;
+};
+
+export type UserUpdateInSchemeWritable = {
+    email?: string | null;
+    first_name?: string | null;
+    is_active?: boolean | null;
+    is_staff?: boolean | null;
+    is_superuser?: boolean | null;
+    last_name?: string | null;
+    password?: string | null;
 };
 
 export type AuthGetCsrfTokenData = {
@@ -403,6 +432,22 @@ export type UserCreateResponses = {
 
 export type UserCreateResponse = UserCreateResponses[keyof UserCreateResponses];
 
+export type GroupGetAllData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/user/groups/';
+};
+
+export type GroupGetAllResponses = {
+    /**
+     * OK
+     */
+    200: Array<GroupOutSchema>;
+};
+
+export type GroupGetAllResponse = GroupGetAllResponses[keyof GroupGetAllResponses];
+
 export type UserGetMeData = {
     body?: never;
     path?: never;
@@ -435,6 +480,22 @@ export type UserGetMyProfileResponses = {
 
 export type UserGetMyProfileResponse = UserGetMyProfileResponses[keyof UserGetMyProfileResponses];
 
+export type UserGetAllData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/user/users/';
+};
+
+export type UserGetAllResponses = {
+    /**
+     * OK
+     */
+    200: Array<UserOutSchema>;
+};
+
+export type UserGetAllResponse = UserGetAllResponses[keyof UserGetAllResponses];
+
 export type UserGetGroupsData = {
     body?: never;
     path: {
@@ -448,13 +509,13 @@ export type UserGetGroupsResponses = {
     /**
      * OK
      */
-    200: Array<GroupOut>;
+    200: Array<GroupOutSchema>;
 };
 
 export type UserGetGroupsResponse = UserGetGroupsResponses[keyof UserGetGroupsResponses];
 
 export type UserSetGroupsData = {
-    body: GroupAssignSchema;
+    body: Array<GroupAssignSchema>;
     path: {
         user_id: number;
     };
@@ -473,7 +534,7 @@ export type UserSetGroupsResponses = {
     /**
      * OK
      */
-    200: Array<GroupOut>;
+    200: Array<GroupOutSchema>;
 };
 
 export type UserSetGroupsResponse = UserSetGroupsResponses[keyof UserSetGroupsResponses];
@@ -495,6 +556,24 @@ export type UserGetInfoResponses = {
 };
 
 export type UserGetInfoResponse = UserGetInfoResponses[keyof UserGetInfoResponses];
+
+export type UserSetInfoData = {
+    body: UserUpdateInSchemeWritable;
+    path: {
+        user_id: number;
+    };
+    query?: never;
+    url: '/api/user/{user_id}/info/';
+};
+
+export type UserSetInfoResponses = {
+    /**
+     * OK
+     */
+    200: UserOutSchema;
+};
+
+export type UserSetInfoResponse = UserSetInfoResponses[keyof UserSetInfoResponses];
 
 export type UserGetProfileData = {
     body?: never;
