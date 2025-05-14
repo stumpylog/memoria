@@ -52,7 +52,7 @@ class AlbumQueryset(PermittedQueryset):  # type: ignore[valid-type] # Ignore if 
         Access the count via the '_image_count' attribute on each album instance.
         """
         # Use the name of the ManyToMany relation ('images') to count
-        return self.annotate(_image_count=Count("images"))
+        return self.annotate(image_count=Count("images"))
 
 
 class Album(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
@@ -72,12 +72,22 @@ class Album(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, ObjectPermiss
         return f"Album: {self.name}"
 
     def image_ids(self) -> list[int]:
+        """
+        The sorted list of image IDs in this album
+        """
         return list(
             self.images.order_by("imageinalbum__sort_order").values_list(
                 "id",
                 flat=True,
             ),
         )
+
+    def view_group_ids(self):
+        return [g.id for g in self.view_groups.all()]
+
+    @property
+    def edit_group_ids(self):
+        return [g.id for g in self.edit_groups.all()]
 
     def get_ordered_images(self) -> models.QuerySet[Image]:
         """

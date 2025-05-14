@@ -13,10 +13,13 @@ else:
 class AlbumCreateInSchema(Schema):
     name: str = Field(description="The name of the album")
     description: str | None = Field(default=None, description="The description of the album")
+    view_group_ids: list[int] = Field(default_factory=list, description="IDs of Groups allowed to view")
+    edit_group_ids: list[int] = Field(default_factory=list, description="IDs of Groups allowed to edit")
 
 
 class AlbumBasicReadOutSchema(AlbumCreateInSchema):
     id: int = Field(description="The id of the album")
+    image_count: int = Field(description="The count of images in this album")
 
 
 class AlbumWithImagesReadInSchema(AlbumBasicReadOutSchema):
@@ -26,6 +29,8 @@ class AlbumWithImagesReadInSchema(AlbumBasicReadOutSchema):
 class AlbumUpdateInSchema(Schema):
     name: str | None = Field(default=None, description="The new name of the album")
     description: str | None = Field(default=None, description="The new description of the album")
+    view_group_ids: list[int] | None = Field(default=None, description="New list of Group IDs allowed to view")
+    edit_group_ids: list[int] | None = Field(default=None, description="New list of Group IDs allowed to edit")
 
     @model_validator(mode="after")
     def check_one_or_other(self) -> Self:
@@ -48,7 +53,7 @@ class AlbumSortUpdateInSchema(Schema):
 
 class AlbumAddImageInSchema(Schema):
     image_ids: list[int] = Field(
-        default=None,
+        default_factory=list,
         description="The id of the image to add to the album",
     )
 
@@ -61,7 +66,7 @@ class AlbumAddImageInSchema(Schema):
 
 class AlbumRemoveImageInSchema(Schema):
     image_ids: list[int] = Field(
-        default=None,
+        default_factory=list,
         description="The id of the image to remove from the album",
     )
 
