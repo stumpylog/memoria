@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from concurrent_log_handler.queue import setup_logging_queues
 from django_jinja.builtins import DEFAULT_EXTENSIONS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -249,6 +250,8 @@ CACHES = {
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db" if REDIS_URL else "django.contrib.sessions.backends.db"
 
+
+setup_logging_queues()
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -272,8 +275,7 @@ LOGGING = {
             "level": "INFO",
         },
         "file_catchall": {
-            "class": "logging.handlers.RotatingFileHandler",
-            # Use pathlib.Path object for the filename
+            "class": "concurrent_log_handler.ConcurrentRotatingFileHandler",
             "filename": LOGS_DIR / "catchall.log",
             "maxBytes": 1024 * 1024 * 5,
             "backupCount": 5,
@@ -281,8 +283,7 @@ LOGGING = {
             "level": "DEBUG",
         },
         "file_django": {
-            "class": "logging.handlers.RotatingFileHandler",
-            # Use pathlib.Path object for the filename
+            "class": "concurrent_log_handler.ConcurrentRotatingFileHandler",
             "filename": LOGS_DIR / "django.log",
             "maxBytes": 1024 * 1024 * 5,
             "backupCount": 5,
@@ -290,8 +291,7 @@ LOGGING = {
             "level": "DEBUG",
         },
         "file_memoria": {
-            "class": "logging.handlers.RotatingFileHandler",
-            # Use pathlib.Path object for the filename
+            "class": "concurrent_log_handler.ConcurrentRotatingFileHandler",
             "filename": LOGS_DIR / "memoria.log",
             "maxBytes": 1024 * 1024 * 5,
             "backupCount": 5,

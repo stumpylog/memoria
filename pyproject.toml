@@ -13,6 +13,7 @@ classifiers = [
 ]
 dependencies = [
   "blake3>=0.4.1",
+  "concurrent-log-handler~=0.9.6",
   "django~=5.2",
   "django-bootstrap5[jinja]~=25.1",
   "django-cors-headers~=4.7",

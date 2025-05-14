@@ -738,18 +738,12 @@
             "title": "Last Name",
             "type": "string"
           },
-          "password": {
-            "format": "password",
-            "title": "Password",
-            "type": "string",
-            "writeOnly": true
-          },
           "username": {
             "title": "Username",
             "type": "string"
           }
         },
-        "required": ["first_name", "last_name", "username", "password", "id"],
+        "required": ["id", "first_name", "last_name", "username"],
         "title": "UserOutSchema",
         "type": "object"
       },
@@ -774,11 +768,11 @@
             ],
             "default": 30
           },
-          "timezone": {
+          "timezone_name": {
             "$ref": "#/components/schemas/TimezoneChoices"
           }
         },
-        "required": ["bio", "timezone"],
+        "required": ["bio", "timezone_name"],
         "title": "UserProfileOutSchema",
         "type": "object"
       },
@@ -805,7 +799,7 @@
               }
             ]
           },
-          "timezone": {
+          "timezone_name": {
             "anyOf": [
               {
                 "$ref": "#/components/schemas/TimezoneChoices"
@@ -1234,6 +1228,56 @@
         "tags": ["users"]
       }
     },
+    "/api/user/me/": {
+      "get": {
+        "operationId": "user_get_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Get User Me Info",
+        "tags": ["users"]
+      }
+    },
+    "/api/user/me/profile/": {
+      "get": {
+        "operationId": "user_get_my_profile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Get My Profile",
+        "tags": ["users"]
+      }
+    },
     "/api/user/{user_id}/groups/": {
       "get": {
         "operationId": "user_get_groups",
@@ -1323,6 +1367,41 @@
         "tags": ["users"]
       }
     },
+    "/api/user/{user_id}/info/": {
+      "get": {
+        "operationId": "user_get_info",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Get User Info",
+        "tags": ["users"]
+      }
+    },
     "/api/user/{user_id}/profile/": {
       "get": {
         "operationId": "user_get_profile",
@@ -1361,7 +1440,17 @@
     "/api/user/{user_id}/profile/edit/": {
       "post": {
         "operationId": "user_edit_profile",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "integer"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {

@@ -25,6 +25,44 @@ UserModelT = get_user_model()
 
 
 @router.get(
+    "/me/",
+    response=UserOutSchema,
+    auth=active_user_auth,
+    operation_id="user_get_me",
+)
+def get_user_me_info(
+    request: HttpRequest,
+):
+    return request.user
+
+
+@router.get(
+    "/me/profile/",
+    response=UserProfileOutSchema,
+    auth=active_user_auth,
+    operation_id="user_get_my_profile",
+)
+def get_my_profile(
+    request: HttpRequest,
+):
+    return request.user.profile
+
+
+@router.get(
+    "/{user_id}/info/",
+    response=UserOutSchema,
+    auth=active_user_auth,
+    operation_id="user_get_info",
+)
+def get_user_info(
+    request: HttpRequest,
+    user_id: int,
+):
+    user = get_object_or_404(UserModelT, pk=user_id)
+    return user
+
+
+@router.get(
     "/{user_id}/profile/",
     response=UserProfileOutSchema,
     auth=active_user_auth,
@@ -34,7 +72,8 @@ def get_profile(
     request: HttpRequest,
     user_id: int,
 ):
-    return request.user.profile
+    user = get_object_or_404(UserModelT.objects.select_related("profile"), pk=user_id)
+    return user.profile
 
 
 @router.post(
@@ -45,6 +84,7 @@ def get_profile(
 )
 def edit_profile(
     request: HttpRequest,
+    user_id: int,
     data: UserProfileUpdateSchema,
 ):
     # TODO: Update a user profile if it is them or a staff member

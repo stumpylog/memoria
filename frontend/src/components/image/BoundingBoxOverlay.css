@@ -1,0 +1,45 @@
+/* Styles for the bounding box container */
+.bounding-box {
+  /* Existing styles from the component's style prop */
+  /* position: absolute; */
+  /* left, top, width, height are set by inline styles */
+  /* border, background-color, opacity are set by inline styles */
+
+  position: relative; /* Important: Allows absolute positioning of children */
+  /* pointer-events: none; - Ensure this is NOT set here */
+
+  /* Optional: Add a transition for a smoother hover effect on the box itself */
+  /* transition: opacity 0.2s ease-in-out; */
+}
+
+/* Styles for the name display */
+.box-name {
+  position: absolute;
+  bottom: 100%; /* Position the name above the box */
+  left: 0;
+  /* right: 0; Remove right if you want it aligned left */
+  /* text-align: center; /* Optional: Center the text above the box */
+
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent dark background */
+  color: white;
+  padding: 2px 5px;
+  white-space: nowrap; /* Prevent the name from wrapping */
+  border-radius: 3px; /* Optional: Rounded corners */
+  font-size: 0.8em; /* Optional: Smaller font size */
+
+  visibility: hidden; /* Hide by default */
+  opacity: 0; /* Start fully transparent */
+  transition:
+    opacity 0.2s ease-in-out,
+    transform 0.2s ease-in-out; /* Smooth transition */
+  transform: translateY(5px); /* Start slightly below final position */
+  pointer-events: none; /* Ensures the name text doesn't block clicks *behind* it */
+  z-index: 10; /* Ensure the name appears above other elements */
+}
+
+/* Show the name when the bounding-box is hovered */
+.bounding-box:hover .box-name {
+  visibility: visible;
+  opacity: 1; /* Fade in */
+  transform: translateY(0); /* Move to final position */
+}

@@ -2,6 +2,7 @@ import React from "react";
 import { transformCoordinates } from "../../utils/transformCoordinates";
 
 interface Box {
+  id: number;
   center_x: number;
   center_y: number;
   width: number;
@@ -24,7 +25,7 @@ const BoundingBoxOverlay: React.FC<Props> = ({
 }) => {
   return (
     <>
-      {boxes.map((box, index) => {
+      {boxes.map((box) => {
         // Transform coordinates based on orientation
         const { x, y, w, h } = transformCoordinates(
           box.center_x,
@@ -42,7 +43,7 @@ const BoundingBoxOverlay: React.FC<Props> = ({
 
         return (
           <div
-            key={index} // Using index as key is generally okay if the list is static and items aren't reordered or filtered
+            key={box.id} // Using index as key is generally okay if the list is static and items aren't reordered or filtered
             className="bounding-box"
             style={{
               position: "absolute",
@@ -53,7 +54,6 @@ const BoundingBoxOverlay: React.FC<Props> = ({
               border: `2px solid ${color}`,
               backgroundColor: color,
               opacity: 0.25,
-              pointerEvents: "none", // Prevent the boxes from interfering with mouse events
             }}
             title={box[labelKey]} // Display label on hover
           />

@@ -47,7 +47,11 @@ def get_csrf_token(request: HttpRequest):
     operation_id="auth_login",
 )
 async def login(request: HttpRequest, data: AuthLoginSchema):
-    user: UserModelT | None = await aauthenticate(request, username=data.username, password=data.password)
+    user: UserModelT | None = await aauthenticate(
+        request,
+        username=data.username,
+        password=data.password.get_secret_value(),
+    )
 
     if user is not None:
         await alogin(request, user)

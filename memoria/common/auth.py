@@ -1,8 +1,11 @@
+import logging
 from typing import Any
 
 from django.conf import settings
 from django.http import HttpRequest
 from ninja.security import APIKeyCookie
+
+logger = logging.getLogger(__name__)
 
 
 class SessionAuthIsActive(APIKeyCookie):

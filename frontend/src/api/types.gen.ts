@@ -134,56 +134,26 @@ export type UserInCreateSchemaWritable = {
     username: string;
 };
 
-export type UserOutSchemaReadable = {
+export type UserOutSchema = {
     email?: string | null;
     first_name: string;
     id: number;
     is_staff?: boolean;
     is_superuser?: boolean;
     last_name: string;
-    username: string;
-};
-
-export type UserOutSchemaWritable = {
-    email?: string | null;
-    first_name: string;
-    id: number;
-    is_staff?: boolean;
-    is_superuser?: boolean;
-    last_name: string;
-    password: string;
     username: string;
 };
 
 export type UserProfileOutSchema = {
     bio: string | null;
     items_per_page?: ImagesPerPageChoices;
-    timezone: TimezoneChoices;
+    timezone_name: TimezoneChoices;
 };
 
 export type UserProfileUpdateSchema = {
     bio?: string | null;
     items_per_page?: ImagesPerPageChoices | null;
-    timezone?: TimezoneChoices | null;
-};
-
-export type UserUpdateInSchemeReadable = {
-    email?: string | null;
-    first_name?: string | null;
-    is_staff?: boolean;
-    is_superuser?: boolean;
-    last_name?: string | null;
-    username: string;
-};
-
-export type UserUpdateInSchemeWritable = {
-    email?: string | null;
-    first_name?: string | null;
-    is_staff?: boolean;
-    is_superuser?: boolean;
-    last_name?: string | null;
-    password: string;
-    username: string;
+    timezone_name?: TimezoneChoices | null;
 };
 
 export type AuthGetCsrfTokenData = {
@@ -428,74 +398,42 @@ export type UserCreateResponses = {
     /**
      * OK
      */
-    200: UserOutSchemaReadable;
+    200: UserOutSchema;
 };
 
 export type UserCreateResponse = UserCreateResponses[keyof UserCreateResponses];
 
-export type UserGetInfoData = {
+export type UserGetMeData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/user/me/';
 };
 
-export type UserGetInfoResponses = {
+export type UserGetMeResponses = {
     /**
      * OK
      */
-    200: UserOutSchemaReadable;
+    200: UserOutSchema;
 };
 
-export type UserGetInfoResponse = UserGetInfoResponses[keyof UserGetInfoResponses];
+export type UserGetMeResponse = UserGetMeResponses[keyof UserGetMeResponses];
 
-export type UserEditInfoData = {
-    body: UserUpdateInSchemeWritable;
-    path?: never;
-    query?: never;
-    url: '/api/user/me/edit/';
-};
-
-export type UserEditInfoResponses = {
-    /**
-     * OK
-     */
-    200: UserOutSchemaReadable;
-};
-
-export type UserEditInfoResponse = UserEditInfoResponses[keyof UserEditInfoResponses];
-
-export type UserGetProfileData = {
+export type UserGetMyProfileData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/user/profile/';
+    url: '/api/user/me/profile/';
 };
 
-export type UserGetProfileResponses = {
+export type UserGetMyProfileResponses = {
     /**
      * OK
      */
     200: UserProfileOutSchema;
 };
 
-export type UserGetProfileResponse = UserGetProfileResponses[keyof UserGetProfileResponses];
-
-export type UserEditProfileData = {
-    body: UserProfileUpdateSchema;
-    path?: never;
-    query?: never;
-    url: '/api/user/profile/edit/';
-};
-
-export type UserEditProfileResponses = {
-    /**
-     * OK
-     */
-    200: UserProfileOutSchema;
-};
-
-export type UserEditProfileResponse = UserEditProfileResponses[keyof UserEditProfileResponses];
+export type UserGetMyProfileResponse = UserGetMyProfileResponses[keyof UserGetMyProfileResponses];
 
 export type UserGetGroupsData = {
     body?: never;
@@ -503,7 +441,7 @@ export type UserGetGroupsData = {
         user_id: number;
     };
     query?: never;
-    url: '/api/user/{user_id}/groups';
+    url: '/api/user/{user_id}/groups/';
 };
 
 export type UserGetGroupsResponses = {
@@ -521,7 +459,7 @@ export type UserSetGroupsData = {
         user_id: number;
     };
     query?: never;
-    url: '/api/user/{user_id}/groups';
+    url: '/api/user/{user_id}/groups/';
 };
 
 export type UserSetGroupsErrors = {
@@ -539,6 +477,60 @@ export type UserSetGroupsResponses = {
 };
 
 export type UserSetGroupsResponse = UserSetGroupsResponses[keyof UserSetGroupsResponses];
+
+export type UserGetInfoData = {
+    body?: never;
+    path: {
+        user_id: number;
+    };
+    query?: never;
+    url: '/api/user/{user_id}/info/';
+};
+
+export type UserGetInfoResponses = {
+    /**
+     * OK
+     */
+    200: UserOutSchema;
+};
+
+export type UserGetInfoResponse = UserGetInfoResponses[keyof UserGetInfoResponses];
+
+export type UserGetProfileData = {
+    body?: never;
+    path: {
+        user_id: number;
+    };
+    query?: never;
+    url: '/api/user/{user_id}/profile/';
+};
+
+export type UserGetProfileResponses = {
+    /**
+     * OK
+     */
+    200: UserProfileOutSchema;
+};
+
+export type UserGetProfileResponse = UserGetProfileResponses[keyof UserGetProfileResponses];
+
+export type UserEditProfileData = {
+    body: UserProfileUpdateSchema;
+    path: {
+        user_id: number;
+    };
+    query?: never;
+    url: '/api/user/{user_id}/profile/edit/';
+};
+
+export type UserEditProfileResponses = {
+    /**
+     * OK
+     */
+    200: UserProfileOutSchema;
+};
+
+export type UserEditProfileResponse = UserEditProfileResponses[keyof UserEditProfileResponses];
 
 export type ClientOptions = {
     baseURL: string;

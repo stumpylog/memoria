@@ -268,9 +268,14 @@ class UserInCreateSchema(Schema):
     is_superuser: bool = False
 
 
-class UserOutSchema(UserInCreateSchema):
+class UserOutSchema(Schema):
     id: int
+    first_name: str
+    last_name: str
+    username: str
     email: EmailStr | str | None = None
+    is_staff: bool = False
+    is_superuser: bool = False
 
 
 class UserUpdateInScheme(UserInCreateSchema):
@@ -283,13 +288,13 @@ class UserUpdateInScheme(UserInCreateSchema):
 class UserProfileUpdateSchema(Schema):
     items_per_page: ImagesPerPageChoices | None = None
     bio: str | None | None = None
-    timezone: TimezoneChoices | None = None
+    timezone_name: TimezoneChoices | None = None
 
 
 class UserProfileOutSchema(Schema):
     items_per_page: ImagesPerPageChoices = ImagesPerPageChoices.THIRTY
     bio: str | None
-    timezone: TimezoneChoices
+    timezone_name: TimezoneChoices
 
 
 class GroupInCreateSchema(Schema):
