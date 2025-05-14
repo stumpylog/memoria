@@ -88,17 +88,17 @@ def get_album(request: HttpRequest, album_id: int):
     operation_id="create_album",
     auth=active_user_auth,
 )
-async def create_album(request: HttpRequest, data: AlbumCreateInSchema):
+def create_album(request: HttpRequest, data: AlbumCreateInSchema):
     """
     Create a new album with optional view/edit groups.
     Only authenticated users may create albums.
     """
-    album = await Album.objects.acreate(name=data.name, description=data.description)
+    album = Album.objects.create(name=data.name, description=data.description)
     if data.view_group_ids:
-        await album.view_groups.aset(data.view_group_ids)
+        album.view_groups.set(data.view_group_ids)
     if data.edit_group_ids:
-        await album.edit_groups.aset(data.edit_group_ids)
-    await album.arefresh_from_db()
+        album.edit_groups.set(data.edit_group_ids)
+    album.refresh_from_db()
     return HTTPStatus.CREATED, (
         Album.objects.filter(id=album.id).with_image_count().prefetch_related(*group_prefetch).first()
     )

@@ -1,6 +1,270 @@
 {
   "components": {
     "schemas": {
+      "AlbumAddImageInSchema": {
+        "properties": {
+          "image_ids": {
+            "description": "The id of the image to add to the album",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Image Ids",
+            "type": "array"
+          }
+        },
+        "title": "AlbumAddImageInSchema",
+        "type": "object"
+      },
+      "AlbumBasicReadOutSchema": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The description of the album",
+            "title": "Description"
+          },
+          "edit_group_ids": {
+            "description": "IDs of Groups allowed to edit",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Edit Group Ids",
+            "type": "array"
+          },
+          "id": {
+            "description": "The id of the album",
+            "title": "Id",
+            "type": "integer"
+          },
+          "image_count": {
+            "description": "The count of images in this album",
+            "title": "Image Count",
+            "type": "integer"
+          },
+          "name": {
+            "description": "The name of the album",
+            "title": "Name",
+            "type": "string"
+          },
+          "view_group_ids": {
+            "description": "IDs of Groups allowed to view",
+            "items": {
+              "type": "integer"
+            },
+            "title": "View Group Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "id",
+          "image_count"
+        ],
+        "title": "AlbumBasicReadOutSchema",
+        "type": "object"
+      },
+      "AlbumCreateInSchema": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The description of the album",
+            "title": "Description"
+          },
+          "edit_group_ids": {
+            "description": "IDs of Groups allowed to edit",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Edit Group Ids",
+            "type": "array"
+          },
+          "name": {
+            "description": "The name of the album",
+            "title": "Name",
+            "type": "string"
+          },
+          "view_group_ids": {
+            "description": "IDs of Groups allowed to view",
+            "items": {
+              "type": "integer"
+            },
+            "title": "View Group Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "AlbumCreateInSchema",
+        "type": "object"
+      },
+      "AlbumRemoveImageInSchema": {
+        "properties": {
+          "image_ids": {
+            "description": "The id of the image to remove from the album",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Image Ids",
+            "type": "array"
+          }
+        },
+        "title": "AlbumRemoveImageInSchema",
+        "type": "object"
+      },
+      "AlbumSortUpdateInSchema": {
+        "properties": {
+          "sorting": {
+            "description": "The new order of the images, with the index being the new position in the album",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Sorting",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sorting"
+        ],
+        "title": "AlbumSortUpdateInSchema",
+        "type": "object"
+      },
+      "AlbumUpdateInSchema": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The new description of the album",
+            "title": "Description"
+          },
+          "edit_group_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New list of Group IDs allowed to edit",
+            "title": "Edit Group Ids"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The new name of the album",
+            "title": "Name"
+          },
+          "view_group_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New list of Group IDs allowed to view",
+            "title": "View Group Ids"
+          }
+        },
+        "title": "AlbumUpdateInSchema",
+        "type": "object"
+      },
+      "AlbumWithImagesReadInSchema": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The description of the album",
+            "title": "Description"
+          },
+          "edit_group_ids": {
+            "description": "IDs of Groups allowed to edit",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Edit Group Ids",
+            "type": "array"
+          },
+          "id": {
+            "description": "The id of the album",
+            "title": "Id",
+            "type": "integer"
+          },
+          "image_count": {
+            "description": "The count of images in this album",
+            "title": "Image Count",
+            "type": "integer"
+          },
+          "image_ids": {
+            "description": "The ids of the images in this album in sorted order",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Image Ids",
+            "type": "array"
+          },
+          "name": {
+            "description": "The name of the album",
+            "title": "Name",
+            "type": "string"
+          },
+          "view_group_ids": {
+            "description": "IDs of Groups allowed to view",
+            "items": {
+              "type": "integer"
+            },
+            "title": "View Group Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "id",
+          "image_count",
+          "image_ids"
+        ],
+        "title": "AlbumWithImagesReadInSchema",
+        "type": "object"
+      },
       "AuthLoginSchema": {
         "properties": {
           "password": {
@@ -14,7 +278,10 @@
             "type": "string"
           }
         },
-        "required": ["username", "password"],
+        "required": [
+          "username",
+          "password"
+        ],
         "title": "AuthLoginSchema",
         "type": "object"
       },
@@ -29,7 +296,10 @@
             "type": "string"
           }
         },
-        "required": ["name", "id"],
+        "required": [
+          "name",
+          "id"
+        ],
         "title": "BreadcrumbSchema",
         "type": "object"
       },
@@ -40,7 +310,9 @@
             "type": "string"
           }
         },
-        "required": ["csrf_token"],
+        "required": [
+          "csrf_token"
+        ],
         "title": "CsrfTokenOutSchema",
         "type": "object"
       },
@@ -98,7 +370,9 @@
             "type": "integer"
           }
         },
-        "required": ["id"],
+        "required": [
+          "id"
+        ],
         "title": "GroupAssignSchema",
         "type": "object"
       },
@@ -113,7 +387,10 @@
             "type": "string"
           }
         },
-        "required": ["name", "id"],
+        "required": [
+          "name",
+          "id"
+        ],
         "title": "GroupOutSchema",
         "type": "object"
       },
@@ -133,7 +410,11 @@
             "type": "boolean"
           }
         },
-        "required": ["date", "month_valid", "day_valid"],
+        "required": [
+          "date",
+          "month_valid",
+          "day_valid"
+        ],
         "title": "ImageDateSchema",
         "type": "object"
       },
@@ -313,12 +594,29 @@
             "type": "string"
           }
         },
-        "required": ["id", "title", "thumbnail_url", "thumbnail_height", "thumbnail_width"],
+        "required": [
+          "id",
+          "title",
+          "thumbnail_url",
+          "thumbnail_height",
+          "thumbnail_width"
+        ],
         "title": "ImageThumbnailSchema",
         "type": "object"
       },
       "ImagesPerPageChoices": {
-        "enum": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+        "enum": [
+          10,
+          20,
+          30,
+          40,
+          50,
+          60,
+          70,
+          80,
+          90,
+          100
+        ],
         "title": "ImagesPerPageChoices",
         "type": "integer"
       },
@@ -351,7 +649,10 @@
             "type": "string"
           }
         },
-        "required": ["id", "name"],
+        "required": [
+          "id",
+          "name"
+        ],
         "title": "PersonDetailOutSchema",
         "type": "object"
       },
@@ -387,7 +688,15 @@
             "type": "number"
           }
         },
-        "required": ["id", "center_x", "center_y", "height", "width", "person_id", "name"],
+        "required": [
+          "id",
+          "center_x",
+          "center_y",
+          "height",
+          "width",
+          "person_id",
+          "name"
+        ],
         "title": "PersonInImageSchemaOut",
         "type": "object"
       },
@@ -418,7 +727,11 @@
             "type": "string"
           }
         },
-        "required": ["name", "id", "image_count"],
+        "required": [
+          "name",
+          "id",
+          "image_count"
+        ],
         "title": "PersonReadOutSchema",
         "type": "object"
       },
@@ -461,7 +774,14 @@
             "type": "number"
           }
         },
-        "required": ["id", "center_x", "center_y", "height", "width", "name"],
+        "required": [
+          "id",
+          "center_x",
+          "center_y",
+          "height",
+          "width",
+          "name"
+        ],
         "title": "PetInImageSchemaOut",
         "type": "object"
       },
@@ -497,13 +817,26 @@
             "type": "string"
           }
         },
-        "required": ["id", "name", "description"],
+        "required": [
+          "id",
+          "name",
+          "description"
+        ],
         "title": "RootFolderSchema",
         "type": "object"
       },
       "RotationEnum": {
         "description": "https://exiftool.org/TagNames/EXIF.html (0x0112)",
-        "enum": [1, 2, 3, 4, 5, 6, 7, 8],
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
         "title": "RotationEnum",
         "type": "integer"
       },
@@ -811,7 +1144,10 @@
             "type": "string"
           }
         },
-        "required": ["username", "password"],
+        "required": [
+          "username",
+          "password"
+        ],
         "title": "UserInCreateSchema",
         "type": "object"
       },
@@ -864,7 +1200,12 @@
             "type": "string"
           }
         },
-        "required": ["id", "first_name", "last_name", "username"],
+        "required": [
+          "id",
+          "first_name",
+          "last_name",
+          "username"
+        ],
         "title": "UserOutSchema",
         "type": "object"
       },
@@ -893,7 +1234,10 @@
             "$ref": "#/components/schemas/TimezoneChoices"
           }
         },
-        "required": ["bio", "timezone_name"],
+        "required": [
+          "bio",
+          "timezone_name"
+        ],
         "title": "UserProfileOutSchema",
         "type": "object"
       },
@@ -1041,6 +1385,381 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/album/": {
+      "get": {
+        "description": "List albums viewable by the current user",
+        "operationId": "get_albums",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AlbumBasicReadOutSchema"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Get Albums",
+        "tags": [
+          "albums"
+        ]
+      },
+      "post": {
+        "description": "Create a new album with optional view/edit groups",
+        "operationId": "create_album",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumCreateInSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumBasicReadOutSchema"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Create Album",
+        "tags": [
+          "albums"
+        ]
+      }
+    },
+    "/api/album/{album_id}/": {
+      "delete": {
+        "operationId": "delete_album",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "required": true,
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Delete Album",
+        "tags": [
+          "albums"
+        ]
+      },
+      "get": {
+        "description": "Retrieve full details of a single album",
+        "operationId": "get_single_album_info",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "required": true,
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumWithImagesReadInSchema"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "description": "Album not found or inaccessible"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Get Album",
+        "tags": [
+          "albums"
+        ]
+      },
+      "patch": {
+        "description": "Update album name, description, and group permissions",
+        "operationId": "update_album_info",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "required": true,
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumUpdateInSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumBasicReadOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "description": "Album not found or inaccessible"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Update Album",
+        "tags": [
+          "albums"
+        ]
+      }
+    },
+    "/api/album/{album_id}/add/": {
+      "patch": {
+        "operationId": "add_image_to_album",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "required": true,
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumAddImageInSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumWithImagesReadInSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Add Image To Album",
+        "tags": [
+          "albums"
+        ]
+      }
+    },
+    "/api/album/{album_id}/download/": {
+      "get": {
+        "description": "Download all images in an album as a ZIP archive.\nYou can choose original or full-size paths. Requires view access.",
+        "operationId": "download_album",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "required": true,
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "zip_originals",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Zip Originals",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Download Album",
+        "tags": [
+          "albums"
+        ]
+      }
+    },
+    "/api/album/{album_id}/remove/": {
+      "patch": {
+        "operationId": "delete_image_from_album",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "required": true,
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumRemoveImageInSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumWithImagesReadInSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Remove Image From Album",
+        "tags": [
+          "albums"
+        ]
+      }
+    },
+    "/api/album/{album_id}/sort/": {
+      "patch": {
+        "description": "Reorder images in the album using a list of image IDs",
+        "operationId": "update_album_sorting",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "required": true,
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumSortUpdateInSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumWithImagesReadInSchema"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "Sorting list mismatch with album contents"
+          },
+          "404": {
+            "description": "Album not found or inaccessible"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Update Album Sorting",
+        "tags": [
+          "albums"
+        ]
+      }
+    },
     "/api/auth/csrf/": {
       "get": {
         "operationId": "auth_get_csrf_token",
@@ -1058,7 +1777,9 @@
           }
         },
         "summary": "Get Csrf Token",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/auth/login/": {
@@ -1087,7 +1808,9 @@
           }
         },
         "summary": "Login",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/auth/logout/": {
@@ -1105,7 +1828,9 @@
           }
         ],
         "summary": "Logout",
-        "tags": ["auth"]
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/folder/": {
@@ -1130,7 +1855,9 @@
           }
         },
         "summary": "List Image Folders",
-        "tags": ["folders"]
+        "tags": [
+          "folders"
+        ]
       }
     },
     "/api/folder/{folder_id}/": {
@@ -1161,7 +1888,9 @@
           }
         },
         "summary": "Get Image Folder",
-        "tags": ["folders"]
+        "tags": [
+          "folders"
+        ]
       }
     },
     "/api/image/{image_id}/date/": {
@@ -1205,7 +1934,9 @@
           }
         ],
         "summary": "Get Image Date",
-        "tags": ["images"]
+        "tags": [
+          "images"
+        ]
       }
     },
     "/api/image/{image_id}/location/": {
@@ -1249,7 +1980,9 @@
           }
         ],
         "summary": "Get Image Location",
-        "tags": ["images"]
+        "tags": [
+          "images"
+        ]
       }
     },
     "/api/image/{image_id}/metadata/": {
@@ -1284,7 +2017,9 @@
           }
         ],
         "summary": "Get Image Details",
-        "tags": ["images"]
+        "tags": [
+          "images"
+        ]
       }
     },
     "/api/image/{image_id}/people/": {
@@ -1323,7 +2058,9 @@
           }
         ],
         "summary": "Get Image People",
-        "tags": ["images"]
+        "tags": [
+          "images"
+        ]
       }
     },
     "/api/image/{image_id}/pets/": {
@@ -1362,7 +2099,9 @@
           }
         ],
         "summary": "Get Image Pets",
-        "tags": ["images"]
+        "tags": [
+          "images"
+        ]
       }
     },
     "/api/image/{image_id}/thumbnail/": {
@@ -1397,7 +2136,9 @@
           }
         ],
         "summary": "Get Image Thumbnail Info",
-        "tags": ["images"]
+        "tags": [
+          "images"
+        ]
       }
     },
     "/api/person/": {
@@ -1421,7 +2162,9 @@
           }
         },
         "summary": "Get All People",
-        "tags": ["people"]
+        "tags": [
+          "people"
+        ]
       }
     },
     "/api/person/{person_id}/": {
@@ -1451,7 +2194,9 @@
           }
         },
         "summary": "Get Person Detail",
-        "tags": ["people"]
+        "tags": [
+          "people"
+        ]
       }
     },
     "/api/user/create/": {
@@ -1486,7 +2231,9 @@
           }
         ],
         "summary": "Create User",
-        "tags": ["users"]
+        "tags": [
+          "users"
+        ]
       }
     },
     "/api/user/groups/": {
@@ -1515,7 +2262,9 @@
           }
         ],
         "summary": "Get All Groups",
-        "tags": ["users"]
+        "tags": [
+          "users"
+        ]
       }
     },
     "/api/user/me/": {
@@ -1540,7 +2289,9 @@
           }
         ],
         "summary": "Get User Me Info",
-        "tags": ["users"]
+        "tags": [
+          "users"
+        ]
       }
     },
     "/api/user/me/profile/": {
@@ -1565,7 +2316,9 @@
           }
         ],
         "summary": "Get My Profile",
-        "tags": ["users"]
+        "tags": [
+          "users"
+        ]
       }
     },
     "/api/user/users/": {
@@ -1594,7 +2347,9 @@
           }
         ],
         "summary": "Get All Users",
-        "tags": ["users"]
+        "tags": [
+          "users"
+        ]
       }
     },
     "/api/user/{user_id}/groups/": {
@@ -1633,7 +2388,9 @@
           }
         ],
         "summary": "Get User Groups",
-        "tags": ["users"]
+        "tags": [
+          "users"
+        ]
       },
       "post": {
         "operationId": "user_set_groups",
@@ -1687,7 +2444,9 @@
           }
         ],
         "summary": "Set User Groups",
-        "tags": ["users"]
+        "tags": [
+          "users"
+        ]
       }
     },
     "/api/user/{user_id}/info/": {
@@ -1722,7 +2481,9 @@
           }
         ],
         "summary": "Get User Info",
-        "tags": ["users"]
+        "tags": [
+          "users"
+        ]
       },
       "post": {
         "operationId": "user_set_info",
@@ -1765,7 +2526,9 @@
           }
         ],
         "summary": "Set User Info",
-        "tags": ["users"]
+        "tags": [
+          "users"
+        ]
       }
     },
     "/api/user/{user_id}/profile/": {
@@ -1800,7 +2563,9 @@
           }
         ],
         "summary": "Get Profile",
-        "tags": ["users"]
+        "tags": [
+          "users"
+        ]
       }
     },
     "/api/user/{user_id}/profile/edit/": {
@@ -1845,7 +2610,9 @@
           }
         ],
         "summary": "Edit Profile",
-        "tags": ["users"]
+        "tags": [
+          "users"
+        ]
       }
     }
   },
