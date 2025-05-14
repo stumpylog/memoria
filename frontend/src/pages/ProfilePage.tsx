@@ -27,7 +27,7 @@ const ProfilePage: React.FC = () => {
           )}
           {profile ? (
             <>
-              <Card.Text><strong>Timezone:</strong> {profile.timezone}</Card.Text>
+              <Card.Text><strong>Timezone:</strong> {profile.timezone_name}</Card.Text>
               <Card.Text><strong>Default Items Per Page:</strong> {profile.items_per_page}</Card.Text>
             </>
           ) : (

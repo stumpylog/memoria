@@ -14,32 +14,18 @@ client.setConfig({
   },
 });
 
-const getCookie = (name: string): string | undefined => {
-  if (typeof document === 'undefined') {
-      // Avoid errors in server-side rendering environments
-      return undefined;
-  }
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    return parts.pop()?.split(';').shift();
-  }
-  return undefined;
-};
-
 
 client.instance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> => {
     const isMutatingMethod = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method?.toUpperCase() || '');
 
     if (isMutatingMethod) {
-      // Use the getCookie helper function instead of Cookies.get()
-      const csrfToken = getCookie('csrftoken'); // Read the cookie right before the check
 
-      if (csrfToken) {
+      if (csrfToken) { // Check the value of the top-level csrfToken
         config.headers['X-CSRFToken'] = csrfToken;
       } else {
-        console.warn('Interceptor: CSRF cookie value is undefined. X-CSRFToken header not added.');
+        console.warn('Interceptor: CSRF token is not yet available. X-CSRFToken header not added.');
+        return Promise.reject(new AxiosError('CSRF token not available', 'CSRF_TOKEN_MISSING'));
       }
     }
 
@@ -57,10 +43,15 @@ export const initializeCsrfToken = async (): Promise<void> => {
     // Use the generated type for the response data
     const response = await client.instance.get<AuthGetCsrfTokenResponse>('/auth/csrf/', { withCredentials: true });
     if (response.data && response.data.csrf_token) {
+      // Assign the fetched token to the top-level csrfToken variable
       csrfToken = response.data.csrf_token;
+      console.log('CSRF token initialized and stored.'); // Optional: Add a log
+    } else {
+        console.warn('CSRF token endpoint did not return a token.');
     }
   } catch (error) {
     const axiosError = error as AxiosError<{ detail?: string }>;
     console.error('Failed to initialize CSRF token:', axiosError.response?.data?.detail || axiosError.message);
+    csrfToken = null;
   }
 };

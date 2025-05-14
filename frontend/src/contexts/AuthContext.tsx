@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
       setIsLoading(true);
-      await initializeCsrfToken(); // KEEP THIS AS IS
+      await initializeCsrfToken();
       await fetchCurrentUser();
       await fetchUserProfile();
       setIsLoading(false);

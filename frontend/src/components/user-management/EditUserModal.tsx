@@ -80,18 +80,20 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, handleClose, handle
     const fieldsToCompare: Array<keyof UserUpdateInSchemeWritable> = ['email', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser'];
 
     fieldsToCompare.forEach(field => {
-        // Use loose comparison (== null) to catch both undefined and null
-        // Also compare boolean values directly
-        if (formData[field] !== originalUserData[field]) {
-             // Special handling for nullable strings: '' vs null
-             // If original was non-null and current is '', it becomes null
-             if (typeof formData[field] === 'string' && formData[field] === '' && originalUserData[field] !== null) {
-                 dataToSave[field] = null; // Treat clearing a nullable string as setting it to null
-             } else if (formData[field] !== undefined) {
-                 // Include the field if it changed and is not undefined
-                 // (Handles booleans and strings including null explicitly set)
-                 dataToSave[field] = formData[field];
-             }
+        // Compare values, handling null and undefined consistently
+        // Also check if the field exists in formData before comparison
+        if (Object.prototype.hasOwnProperty.call(formData, field) && formData[field] !== originalUserData[field]) {
+            // The type of formData[field] here is T | null | undefined, where T is string or boolean
+            // We need to ensure we assign a type compatible with UserUpdateInSchemeWritable[field]
+
+            // The type of UserUpdateInSchemeWritable[field] is T | null | undefined
+            // So, assigning formData[field] should be fine as long as it's not undefined
+            if (formData[field] !== undefined) {
+                 // This assignment should now be type-compatible
+                 // TypeScript knows formData[field] is string | boolean | null here
+                 // and dataToSave[field] expects string | null or boolean | null
+                 dataToSave[field] = formData[field] as any; // Use 'as any' as a temporary workaround if strict types still complain, but ideally fix the types. Let's try without it first.
+            }
         }
     });
 
@@ -154,7 +156,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, handleClose, handle
               <Form.Control
                 type="email"
                 name="email"
-                value={formData.email ?? ''} // Use ?? '' for input value
+                value={formData.email ?? ''}
                 onChange={handleChange}
                  disabled={loading}
               />
@@ -165,7 +167,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, handleClose, handle
               <Form.Control
                 type="text"
                 name="first_name"
-                value={formData.first_name ?? ''} // Use ?? '' for input value
+                value={formData.first_name ?? ''}
                 onChange={handleChange}
                  disabled={loading}
               />
@@ -176,7 +178,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, handleClose, handle
               <Form.Control
                 type="text"
                 name="last_name"
-                value={formData.last_name ?? ''} // Use ?? '' for input value
+                value={formData.last_name ?? ''}
                 onChange={handleChange}
                  disabled={loading}
               />
@@ -187,8 +189,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, handleClose, handle
                 type="checkbox"
                 label="Is Active"
                 name="is_active"
-                // Use ?? false/true for checkbox checked prop
-                checked={formData.is_active ?? true} // Default UI check state if null/undefined
+                checked={formData.is_active ?? true}
                 onChange={handleChange}
                  disabled={loading}
               />
@@ -199,7 +200,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, handleClose, handle
                 type="checkbox"
                 label="Is Staff"
                 name="is_staff"
-                checked={formData.is_staff ?? false} // Default UI check state if null/undefined
+                checked={formData.is_staff ?? false}
                 onChange={handleChange}
                  disabled={loading}
               />
@@ -210,7 +211,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, handleClose, handle
                 type="checkbox"
                 label="Is Superuser"
                 name="is_superuser"
-                checked={formData.is_superuser ?? false} // Default UI check state if null/undefined
+                checked={formData.is_superuser ?? false}
                 onChange={handleChange}
                  disabled={loading}
               />

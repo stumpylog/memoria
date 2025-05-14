@@ -53,7 +53,7 @@ const PersonDetailsPage: React.FC = () => {
         setPerson(personData.data || null);
 
         // Fetch images if image_ids exist
-        if (personData.data.image_ids && personData.data.image_ids.length > 0) {
+        if (personData.data && personData.data.image_ids && personData.data.image_ids.length > 0) {
             const imagePromises = personData.data.image_ids.map(imageId =>
                 imageGetThumbInfo({path: {image_id: imageId}})
                 .then(response => response.data)
