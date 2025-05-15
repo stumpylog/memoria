@@ -13,9 +13,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
-from concurrent_log_handler.queue import setup_logging_queues
-from django_jinja.builtins import DEFAULT_EXTENSIONS
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -49,22 +46,23 @@ LOGIN_URL = "/login/"
 MEDIA_URL = "/media/"
 
 # CSRF settings
+CSRF_COOKIE_HTTPONLY = False  # Maybe need to fix this later
+CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SAMESITE = "Lax"  # or 'None' if using HTTPS with different domains
-CSRF_COOKIE_HTTPONLY = False  # False to allow JavaScript access to the cookie
-CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
 
 # Session settings
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = "Lax"  # or 'None' if using different domains
 
 # React is served from a different domain than Django
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React development server
     "http://localhost:5173",  # Vite development server
 ]
 CORS_ALLOW_CREDENTIALS = True  # Important for sending cookies
-CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://localhost:5173"]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",  # Vite development server
+]
 
 
 # Application definition
@@ -77,11 +75,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "corsheaders",
-    "django_jinja",
-    "django_jinja.contrib._humanize",
     "treenode",
     "timezone_field",
-    "django_bootstrap5",
     "memoria",
 ]
 
@@ -101,50 +96,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "memoria.urls"
-
-TEMPLATES = [
-    {
-        "BACKEND": "django_jinja.jinja2.Jinja2",
-        "DIRS": [BASE_DIR / "memoria" / "templates"],
-        "APP_DIRS": False,
-        "OPTIONS": {
-            "match_extension": ".jinja",
-            "match_regex": r"^(?!admin/).*",
-            "context_processors": [
-                "django.contrib.auth.context_processors.auth",
-                "django.template.context_processors.debug",
-                "django.template.context_processors.i18n",
-                "django.template.context_processors.media",
-                "django.template.context_processors.static",
-                "django.template.context_processors.tz",
-                "django.contrib.messages.context_processors.messages",
-            ],
-            "extensions": [*DEFAULT_EXTENSIONS, "django_bootstrap5.jinja2.BootstrapTags"],
-            "bytecode_cache": {
-                "name": "default",
-                "backend": "django_jinja.cache.BytecodeCache",
-                "enabled": True,
-            },
-        },
-    },
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.contrib.auth.context_processors.auth",
-                "django.template.context_processors.debug",
-                "django.template.context_processors.i18n",
-                "django.template.context_processors.media",
-                "django.template.context_processors.static",
-                "django.template.context_processors.tz",
-                "django.contrib.messages.context_processors.messages",
-                "django.template.context_processors.request",
-            ],
-        },
-    },
-]
 
 WSGI_APPLICATION = "memoria.wsgi.application"
 
@@ -251,7 +202,6 @@ CACHES = {
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db" if REDIS_URL else "django.contrib.sessions.backends.db"
 
 
-setup_logging_queues()
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

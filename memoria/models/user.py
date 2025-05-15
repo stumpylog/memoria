@@ -30,9 +30,9 @@ class UserProfile(AbstractTimestampMixin, models.Model):
 
     timezone = TimeZoneField(default="America/Los_Angeles", use_pytz=False)
 
+    def __str__(self):
+        return f"{self.user.username}'s profile"
+
     @property
     def timezone_name(self) -> str:
         return str(self.timezone)
-
-    def __str__(self):
-        return f"{self.user.username}'s profile"
