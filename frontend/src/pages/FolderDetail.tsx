@@ -9,11 +9,13 @@ import type { FolderDetailSchema, ImageThumbnailSchema } from "../api";
 import { folderGetDetails, imageGetThumbInfo } from "../api";
 import FolderWall from "../components/folder/FolderWall";
 import ImageWall from "../components/image/ImageWall";
-
+import { useAuth } from "../hooks/useAuth";
+import { getGridColumns } from "../utils/getGridColums";
 interface FolderDetailProps {}
 
 const FolderDetail: React.FC<FolderDetailProps> = () => {
   const { id } = useParams<{ id: string }>();
+  const { profile } = useAuth();
   const folderId = parseInt(id || "0", 10);
   const navigate = useNavigate();
 
@@ -163,7 +165,7 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
             onImageClick={(imageId) => {
               navigate(`/images/${imageId}`);
             }}
-            columns={4}
+            columns={getGridColumns(profile?.items_per_page || 30)}
           />
         ) : (
           <Alert variant="info">This folder contains no images.</Alert>

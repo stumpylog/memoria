@@ -173,7 +173,7 @@ const ImageDetailPage: React.FC = () => {
       <Row className="mb-4">
         {/* Image Section (Left Column) */}
         <Col md={8}>
-          {metadata.full_size_url ? (
+          {metadata.larger_size_url ? (
             <Card>
               <Card.Body className="p-1 text-center">
                 <div
@@ -183,7 +183,7 @@ const ImageDetailPage: React.FC = () => {
                 >
                   <img
                     id="mainImage"
-                    src={metadata.full_size_url}
+                    src={metadata.larger_size_url}
                     alt={metadata.title || "Image"}
                     className="img-fluid rounded"
                     style={{ maxHeight: "70vh", width: "auto" }}

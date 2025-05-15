@@ -16,6 +16,7 @@ import type {
 import { getPersonDetail, getPersonImages, imageGetThumbInfo } from "../api";
 import ImageWall from "../components/image/ImageWall";
 import { useAuth } from "../hooks/useAuth";
+import { getGridColumns } from "../utils/getGridColums";
 
 const PersonDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -218,7 +219,7 @@ const PersonDetailsPage: React.FC = () => {
           <ImageWall
             images={images} // `images` is guaranteed non-null/undefined here
             onImageClick={(imgId) => navigate(`/images/${imgId}`)}
-            columns={4}
+            columns={getGridColumns(profile?.items_per_page || 30)}
           />
           {/* Only show pagination if totalImageCount is known and there's more than one page */}
           {totalImageCount !== undefined && totalImageCount > limit && (

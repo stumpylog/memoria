@@ -176,7 +176,7 @@ export type ImageMetadataSchema = {
   created_at: string;
   description: string | null;
   file_size: number;
-  full_size_url: string;
+  larger_size_url: string;
   id: number;
   image_fs_id: string;
   orientation: RotationEnum;
