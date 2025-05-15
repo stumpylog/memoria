@@ -241,11 +241,11 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     @property
     def full_size_path(self) -> Path:
         if TYPE_CHECKING:
-            assert isinstance(settings.FULL_SIZE_DIR, Path)
-        return (settings.FULL_SIZE_DIR / self.image_fs_id).with_suffix(".webp").resolve()
+            assert isinstance(settings.LARGE_SIZE_DIR, Path)
+        return (settings.LARGE_SIZE_DIR / self.image_fs_id).with_suffix(".webp").resolve()
 
     @property
-    def full_size_url(self) -> str | None:
+    def larger_size_url(self) -> str | None:
         """
         Constructs the full URL for the full size image.
         """

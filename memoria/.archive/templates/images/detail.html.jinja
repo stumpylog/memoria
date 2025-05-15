@@ -10,7 +10,7 @@
     <div class="row mb-4">
         {# Image Section (Left Column) #}
         <div class="col-md-8">
-            {% if image.full_size_url %}
+            {% if image.larger_size_url %}
                 <div class="card">
                     <div class="card-body p-1 text-center">
                         {# Center image within card-body #}
@@ -24,7 +24,7 @@
                             {# Apply max-height to limit image size in full screen #}
                             {# We no longer need original_width/height set here for positioning, but they are fine for initial render #}
                             <img id="mainImage"
-                                src="{{ image.full_size_url }}"
+                                src="{{ image.larger_size_url }}"
                                 height="{{ image.original_height }}"
                                 width="{{ image.original_width }}
                                 class="img-fluid rounded"

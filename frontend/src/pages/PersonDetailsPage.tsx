@@ -4,9 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { Button, Col, Container, Row, Spinner } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import type {
+  ImagesPerPageChoices,
   ImageThumbnailSchema,
   PagedPersonImageOutSchema,
   PersonDetailOutSchema,
@@ -26,17 +27,41 @@ const PersonDetailsPage: React.FC = () => {
   const personId = id ? parseInt(id, 10) : undefined;
   const isValidId = personId !== undefined && !isNaN(personId);
 
-  const [offset, setOffset] = useState<number>(0);
-  const [limit, setLimit] = useState<number>(profile?.items_per_page || 30);
-  // Initialize totalImageCount to undefined to distinguish between 'not yet loaded' and 'zero'
+  // Use useSearchParams to manage offset and limit in the URL
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Derive offset and limit from URL search params, with fallbacks
+  // Use parseInt with radix 10 and provide default values
+  const offset = parseInt(searchParams.get("offset") || "0", 10);
+  const limit = parseInt(searchParams.get("limit") || String(profile?.items_per_page || 30), 10);
+
+  // totalImageCount still needs useState as it's data from the API, not UI state directly
   const [totalImageCount, setTotalImageCount] = useState<number | undefined>(undefined);
 
+  // Refined Effect to sync URL 'limit' parameter with user profile's items_per_page
+  // This ensures the URL reflects the user's preference on load or preference change
   useEffect(() => {
-    if (profile?.items_per_page) {
-      setLimit(profile.items_per_page);
-      setOffset(0);
+    // Only proceed if profile is loaded or we have a default value to apply
+    const profileLimit = profile?.items_per_page || 30;
+    const urlLimitParam = searchParams.get("limit"); // Get the raw parameter string
+
+    // Check if the URL parameter is missing OR if it exists but doesn't match the profile/default limit
+    if (urlLimitParam === null || parseInt(urlLimitParam, 10) !== profileLimit) {
+      // Use setSearchParams to update the URL
+      setSearchParams(
+        (prevParams) => {
+          const newParams = new URLSearchParams(prevParams);
+          newParams.set("limit", String(profileLimit));
+          // We keep { replace: true } here because setting the default limit on load
+          // or profile change shouldn't add an extra history entry.
+          return newParams;
+        },
+        { replace: true },
+      );
     }
-  }, [profile]);
+    // Depend on profile (as it loads asynchronously) and searchParams (in case limit is changed externally)
+    // Add setSearchParams as per React hook best practices
+  }, [profile, searchParams, setSearchParams]);
 
   // 1. Query for Person Details (includes image_count)
   const {
@@ -66,8 +91,8 @@ const PersonDetailsPage: React.FC = () => {
       // Set count to 0 in this case
       setTotalImageCount(0);
     } else if (isErrorPerson) {
-      // Optionally handle error state for count display, e.g., set to undefined or show error indicator
-      setTotalImageCount(undefined); // Revert to undefined on error or loading, shows "Loading..."
+      // Optionally handle error state for count display
+      setTotalImageCount(undefined); // Revert to undefined on error or loading
     }
   }, [person, isLoadingPerson, isErrorPerson, isValidId]); // Depend on person data and query states
 
@@ -78,6 +103,7 @@ const PersonDetailsPage: React.FC = () => {
     isError: isErrorPaginatedImageObjects,
     error: paginatedImageObjectsError,
   } = useQuery<PersonImageOutSchema[], Error, PersonImageOutSchema[], readonly unknown[]>({
+    // queryKey depends on personId, limit, and offset (derived from URL)
     queryKey: ["person-image-ids", personId, limit, offset],
     queryFn: async (): Promise<PersonImageOutSchema[]> => {
       const response = await getPersonImages({
@@ -113,7 +139,8 @@ const PersonDetailsPage: React.FC = () => {
     isError: isErrorImages,
     error: imagesError,
   } = useQuery<ImageThumbnailSchema[] | null, Error>({
-    queryKey: ["person-images-thumbnails", currentImageIds.join(",")], // Key depends on the current set of IDs
+    // Key depends on the current set of IDs
+    queryKey: ["person-images-thumbnails", currentImageIds.join(",")],
     queryFn: async () => {
       if (currentImageIds.length === 0) {
         return [];
@@ -170,18 +197,27 @@ const PersonDetailsPage: React.FC = () => {
   // If person data is still loading but we have cached data, proceed to render with cached data
   // The `person` variable will hold the cached data in this case.
 
-  // Pagination handlers
+  // Pagination handlers - update URL search params, pushing to history
   const handleNextPage = () => {
-    // Only proceed if totalImageCount is defined (meaning person data has loaded)
+    // Only proceed if totalImageCount is defined and there's a next page
     if (totalImageCount !== undefined && offset + limit < totalImageCount) {
-      setOffset(offset + limit);
+      setSearchParams((prevParams) => {
+        const newParams = new URLSearchParams(prevParams);
+        newParams.set("offset", String(offset + limit));
+        return newParams;
+      }); // No { replace: true } - push new history entry
     }
   };
 
   const handlePreviousPage = () => {
-    // Only proceed if totalImageCount is defined
+    // Only proceed if totalImageCount is defined and not already on the first page
     if (totalImageCount !== undefined) {
-      setOffset(Math.max(0, offset - limit));
+      const newOffset = Math.max(0, offset - limit);
+      setSearchParams((prevParams) => {
+        const newParams = new URLSearchParams(prevParams);
+        newParams.set("offset", String(newOffset));
+        return newParams;
+      }); // No { replace: true } - push new history entry
     }
   };
 
@@ -189,42 +225,42 @@ const PersonDetailsPage: React.FC = () => {
   const isErrorAnyImageData = isErrorPaginatedImageObjects || isErrorImages;
   const anyImageError = paginatedImageObjectsError || imagesError;
 
+  // Calculate current page number
+  const currentPage = Math.floor(offset / limit) + 1;
+  // Calculate total pages, guarding against division by zero or undefined totalImageCount
+  const totalPages =
+    totalImageCount !== undefined && limit > 0 ? Math.ceil(totalImageCount / limit) : 0;
+
   return (
     <Container className="mt-4">
       <Helmet>
-        <title>Memoria - {person?.name || "Loading..."}</title>{" "}
-        {/* Use optional chaining for title */}
+        <title>Memoria - {person?.name || "Loading..."}</title>
       </Helmet>
-      <h2>{person?.name || "Loading..."}</h2> {/* Use optional chaining for name */}
-      {person?.description && <p>{person.description}</p>}{" "}
-      {/* Use optional chaining for description */}
+      <h2>{person?.name || "Loading..."}</h2>
+      {person?.description && <p>{person.description}</p>}
       <hr className="my-4" />
-      {/* Show loading indicator for count until totalImageCount is defined */}
       <h3>Images ({totalImageCount !== undefined ? totalImageCount : "Loading..."})</h3>
-      {/* Conditional rendering for image display area */}
-      {isLoadingAnyImageData && !images ? ( // Show spinner if image data is loading and no images are currently displayed
+      {isLoadingAnyImageData && !images ? (
         <Container className="mt-4 text-center">
           <Spinner animation="border" role="status">
             <span className="visually-hidden">Loading images...</span>
           </Spinner>
           <p>Loading images...</p>
         </Container>
-      ) : isErrorAnyImageData ? ( // Show error if image data failed to load
+      ) : isErrorAnyImageData ? (
         <p className="text-warning">
           Could not load images.
           {anyImageError?.message}
         </p>
-      ) : images && images.length > 0 ? ( // Render ImageWall if images array has data
+      ) : images && images.length > 0 ? (
         <>
           <ImageWall
-            images={images} // `images` is guaranteed non-null/undefined here
+            images={images}
             onImageClick={(imgId) => navigate(`/images/${imgId}`)}
-            columns={getGridColumns(profile?.items_per_page || 30)}
+            columns={getGridColumns(limit as ImagesPerPageChoices)}
           />
-          {/* Only show pagination if totalImageCount is known and there's more than one page */}
           {totalImageCount !== undefined && totalImageCount > limit && (
             <Row className="mt-4 mb-4 justify-content-center">
-              {/* Pagination buttons */}
               <Col xs="auto">
                 <Button
                   onClick={handlePreviousPage}
@@ -235,7 +271,7 @@ const PersonDetailsPage: React.FC = () => {
               </Col>
               <Col xs="auto" className="d-flex align-items-center">
                 <span>
-                  Page {Math.floor(offset / limit) + 1} of {Math.ceil(totalImageCount / limit)}
+                  Page {currentPage} of {totalPages}
                 </span>
               </Col>
               <Col xs="auto">
@@ -257,11 +293,8 @@ const PersonDetailsPage: React.FC = () => {
         totalImageCount === 0 &&
         !isLoadingAnyImageData &&
         !isErrorAnyImageData ? (
-        // Show "No images" message ONLY if total count is known to be 0, loading is complete, and no error
         <p>No images found for this person.</p>
       ) : (
-        // Fallback case: totalImageCount might be undefined or other unexpected state after initial load attempt
-        // This indicates image information is still pending or could not be determined.
         <p>Loading image information...</p>
       )}
     </Container>

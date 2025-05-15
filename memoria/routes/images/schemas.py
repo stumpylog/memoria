@@ -33,7 +33,7 @@ class ImageLocationSchema(Schema):
 
 class ImageMetadataSchema(Schema):
     id: int
-    full_size_url: str
+    larger_size_url: str
     orientation: RotationEnum
     original_height: int
     original_width: int

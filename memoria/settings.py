@@ -29,8 +29,8 @@ MEDIA_ROOT = BASE_DIR / "media"
 THUMBNAIL_DIR = MEDIA_ROOT / "thumbnails"
 THUMBNAIL_DIR.mkdir(exist_ok=True, parents=True)
 
-FULL_SIZE_DIR = MEDIA_ROOT / "fullsize"
-FULL_SIZE_DIR.mkdir(exist_ok=True, parents=True)
+LARGE_SIZE_DIR = MEDIA_ROOT / "larger-size"
+LARGE_SIZE_DIR.mkdir(exist_ok=True, parents=True)
 
 SECRET_KEY = os.environ.get("MEMORIA_SECRET_KEY", "AuxBXBU1JzzFn1evKoVD818m4uRUqN0dJxCIDda0Op7L4NR7ftvZpF6uxp0xuoOU")
 
@@ -68,7 +68,6 @@ CSRF_TRUSTED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",

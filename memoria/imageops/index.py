@@ -102,8 +102,9 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
         new_img.thumbnail_path,
         new_img.full_size_path,
         pkg.logger,
-        thumbnail_size=500,
-        webp_quality=90,
+        thumbnail_size=pkg.thumbnail_size,
+        webp_quality=pkg.large_image_quality,
+        scaled_image_side_max=pkg.large_image_size,
     )
 
     # Update the file hashes, now that the files exist

@@ -13,6 +13,9 @@ class ImageIndexTaskModel:
     image_path: Path
     hash_threads: int
     original_hash: str
+    thumbnail_size: int
+    large_image_size: int
+    large_image_quality: int
 
     logger: Logger | None = None
     overwrite: bool = False

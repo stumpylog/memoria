@@ -11,6 +11,7 @@ from memoria.models.metadata import RoughDate
 from memoria.models.metadata import RoughLocation
 from memoria.models.metadata import Tag
 from memoria.models.metadata import TagOnImage
+from memoria.models.settings import SiteSettings
 from memoria.models.user import UserProfile
 
 __all__ = [
@@ -25,6 +26,7 @@ __all__ = [
     "PetInImage",
     "RoughDate",
     "RoughLocation",
+    "SiteSettings",
     "Tag",
     "TagOnImage",
     "UserProfile",

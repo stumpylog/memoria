@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -11,6 +13,7 @@ from memoria.models import RoughDate
 from memoria.models import RoughLocation
 from memoria.models import UserProfile
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 _has_run_post_migrate_once = False

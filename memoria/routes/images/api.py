@@ -59,7 +59,7 @@ def get_image_details(request: HttpRequest, image_id: int):
         "phash": img.phash,
         "original_path": img.original_path,
         "image_fs_id": img.image_fs_id,
-        "full_size_url": request.build_absolute_uri(img.full_size_url),
+        "larger_size_url": request.build_absolute_uri(img.larger_size_url),
     }
 
 

@@ -487,16 +487,16 @@
             "title": "File Size",
             "type": "integer"
           },
-          "full_size_url": {
-            "title": "Full Size Url",
-            "type": "string"
-          },
           "id": {
             "title": "Id",
             "type": "integer"
           },
           "image_fs_id": {
             "title": "Image Fs Id",
+            "type": "string"
+          },
+          "larger_size_url": {
+            "title": "Larger Size Url",
             "type": "string"
           },
           "orientation": {
@@ -535,7 +535,7 @@
         },
         "required": [
           "id",
-          "full_size_url",
+          "larger_size_url",
           "orientation",
           "original_height",
           "original_width",
@@ -618,6 +618,24 @@
         },
         "required": ["items", "count"],
         "title": "PagedPersonImageOutSchema",
+        "type": "object"
+      },
+      "PagedPersonReadOutSchema": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PersonReadOutSchema"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": ["items", "count"],
+        "title": "PagedPersonReadOutSchema",
         "type": "object"
       },
       "PersonDetailOutSchema": {
@@ -2255,17 +2273,36 @@
     "/api/person/": {
       "get": {
         "operationId": "get_all_people",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/PersonReadOutSchema"
-                  },
-                  "title": "Response",
-                  "type": "array"
+                  "$ref": "#/components/schemas/PagedPersonReadOutSchema"
                 }
               }
             },

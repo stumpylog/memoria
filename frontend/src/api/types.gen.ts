@@ -176,9 +176,9 @@ export type ImageMetadataSchema = {
   created_at: string;
   description: string | null;
   file_size: number;
-  larger_size_url: string;
   id: number;
   image_fs_id: string;
+  larger_size_url: string;
   orientation: RotationEnum;
   original_checksum: string;
   original_height: number;
@@ -207,6 +207,11 @@ export type Input = {
 export type PagedPersonImageOutSchema = {
   count: number;
   items: Array<PersonImageOutSchema>;
+};
+
+export type PagedPersonReadOutSchema = {
+  count: number;
+  items: Array<PersonReadOutSchema>;
 };
 
 export type PersonDetailOutSchema = {
@@ -1089,7 +1094,10 @@ export type ImageGetThumbInfoResponse =
 export type GetAllPeopleData = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: {
+    limit?: number;
+    offset?: number;
+  };
   url: "/api/person/";
 };
 
@@ -1097,7 +1105,7 @@ export type GetAllPeopleResponses = {
   /**
    * OK
    */
-  200: Array<PersonReadOutSchema>;
+  200: PagedPersonReadOutSchema;
 };
 
 export type GetAllPeopleResponse = GetAllPeopleResponses[keyof GetAllPeopleResponses];

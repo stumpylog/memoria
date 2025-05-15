@@ -1,6 +1,7 @@
 import dataclasses
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Annotated
 from typing import Optional
 
@@ -16,6 +17,7 @@ from typer import Argument
 from typer import Option
 
 from memoria.models import Image
+from memoria.models import SiteSettings
 from memoria.tasks.images import index_image_batch
 from memoria.tasks.images import index_update_existing_images
 from memoria.tasks.models import ImageIndexTaskModel
@@ -137,6 +139,9 @@ class Command(TyperCommand):
 
         logger.info(f"Found {len(self.new_images)} images to index")
         logger.info(f"Found {len(self.existing_images)} images to check for modifications")
+        site_settings = SiteSettings.objects.first()
+        if TYPE_CHECKING:
+            assert site_settings is not None
 
         # Process new images in batches
         for i in range(0, len(self.new_images), BATCH_SIZE):
@@ -152,6 +157,9 @@ class Command(TyperCommand):
                     view_groups=view_groups,
                     edit_groups=edit_groups,
                     hash_threads=hash_threads,
+                    thumbnail_size=site_settings.thumbnail_max_size,
+                    large_image_size=site_settings.large_image_max_size,
+                    large_image_quality=site_settings.large_image_quality,
                 )
                 batch_packages.append(pkg)
 
