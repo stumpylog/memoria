@@ -1,11 +1,11 @@
-import React from 'react';
-import { Container, Spinner, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import FolderWall from '../components/folder/FolderWall';
-import type { RootFolderSchema } from '../api';
-import { folderListRoots } from '../api';
-import { Helmet } from 'react-helmet-async';
+import React from "react";
+import { Container, Spinner, Alert } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import FolderWall from "../components/folder/FolderWall";
+import type { RootFolderSchema } from "../api";
+import { folderListRoots } from "../api";
+import { Helmet } from "react-helmet-async";
 
 interface FoldersPageProps {
   onFolderClick?: (id: number) => void;
@@ -16,20 +16,20 @@ interface FoldersPageProps {
 const FoldersPage: React.FC<FoldersPageProps> = ({
   onFolderClick,
   buttonText = "View Folder",
-  truncateDescription = 100
+  truncateDescription = 100,
 }) => {
   const navigate = useNavigate();
 
   const {
     data: folders = [],
     isLoading,
-    error
+    error,
   } = useQuery<RootFolderSchema[]>({
-    queryKey: ['folders', 'roots'],
+    queryKey: ["folders", "roots"],
     queryFn: async () => {
       const response = await folderListRoots();
       return response.data || [];
-    }
+    },
   });
 
   const handleFolderClick = (id: number) => {
@@ -43,7 +43,10 @@ const FoldersPage: React.FC<FoldersPageProps> = ({
 
   if (isLoading) {
     return (
-      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '200px' }}>
+      <Container
+        className="d-flex justify-content-center align-items-center"
+        style={{ minHeight: "200px" }}
+      >
         <Spinner animation="border" role="status">
           <span className="visually-hidden">Loading...</span>
         </Spinner>

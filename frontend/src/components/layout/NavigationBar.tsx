@@ -1,9 +1,9 @@
 // src/components/layout/NavigationBar.tsx
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Navbar, Nav, NavDropdown, Container, Image } from 'react-bootstrap';
-import { useAuth } from '../../hooks/useAuth';
-import ThemeToggler from '../theme/ThemeToggler';
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Navbar, Nav, NavDropdown, Container, Image } from "react-bootstrap";
+import { useAuth } from "../../hooks/useAuth";
+import ThemeToggler from "../theme/ThemeToggler";
 
 const NavigationBar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -11,7 +11,7 @@ const NavigationBar: React.FC = () => {
 
   const handleLogout = async (): Promise<void> => {
     await logout();
-    navigate('/logout'); // Redirect to logout page after logout logic completes
+    navigate("/logout"); // Redirect to logout page after logout logic completes
   };
 
   return (
@@ -21,7 +21,7 @@ const NavigationBar: React.FC = () => {
           <Image
             src="/brand.svg" // Vite serves from public/ at the root
             alt="Memoria"
-            style={{ height: '30px', marginRight: '10px' }} // Adjust scaling as needed
+            style={{ height: "30px", marginRight: "10px" }} // Adjust scaling as needed
           />
           Memoria
         </Navbar.Brand>
@@ -46,8 +46,10 @@ const NavigationBar: React.FC = () => {
             )}
           </Nav>
           <Nav className="ms-auto align-items-center">
-            <div className="me-2"> {/* Wrapper for Toggler to ensure proper spacing */}
-                 <ThemeToggler />
+            <div className="me-2">
+              {" "}
+              {/* Wrapper for Toggler to ensure proper spacing */}
+              <ThemeToggler />
             </div>
             {isAuthenticated && user ? (
               <NavDropdown

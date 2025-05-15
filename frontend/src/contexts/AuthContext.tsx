@@ -1,17 +1,11 @@
-import React, { createContext, useState, useEffect, useMemo, useCallback } from 'react';
-import type { UserOutSchema as User, AuthLoginData } from '../api';
-import type { UserProfileOutSchema as UserProfile } from '../api';
-import {
-  authLogin,
-  authLogout,
-  userGetMe,
-  userGetMyProfile,
-} from '../api'
+import React, { createContext, useState, useEffect, useMemo, useCallback } from "react";
+import type { UserOutSchema as User, AuthLoginData } from "../api";
+import type { UserProfileOutSchema as UserProfile } from "../api";
+import { authLogin, authLogout, userGetMe, userGetMyProfile } from "../api";
 
-import { initializeCsrfToken } from '../api-config';
+import { initializeCsrfToken } from "../api-config";
 
-import { AxiosError } from 'axios';
-
+import { AxiosError } from "axios";
 
 interface AuthContextType {
   user: User | null;
@@ -22,7 +16,7 @@ interface AuthContextType {
   generalApiError: string | null;
   setGeneralApiError: (message: string | null) => void;
   // Use the generated type for login credentials if available, otherwise 'any' or an interface
-  login: (credentials: AuthLoginData['body']) => Promise<boolean>;
+  login: (credentials: AuthLoginData["body"]) => Promise<boolean>;
   logout: () => Promise<void>;
   fetchCurrentUser: () => Promise<void>;
   fetchUserProfile: () => Promise<void>;
@@ -43,14 +37,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Adapted handleApiError for more general error logging
   const handleApiError = useCallback((err: unknown, context?: string): string => {
-    const contextMessage = context ? ` ${context}` : '';
+    const contextMessage = context ? ` ${context}` : "";
     console.error(`API Error${contextMessage}:`, err); // Log the full error object
 
     let userFacingMessage = `An unexpected error occurred${contextMessage}.`;
 
     if (err instanceof AxiosError) {
       // Log Axios specific info
-      console.error('Axios Error Details:', {
+      console.error("Axios Error Details:", {
         message: err.message,
         status: err.response?.status,
         statusText: err.response?.statusText,
@@ -59,14 +53,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Provide a slightly more informative message if status or status text is available
       if (err.response) {
-          userFacingMessage = `Request failed with status ${err.response.status}${err.response.statusText ? `: ${err.response.statusText}` : ''}${contextMessage}.`;
-          // If there's a 'detail' field or similar in your common error response, you could check for it here,
-          // but without a specific type, you'd need to access it generally (e.g., `(err.response.data as any)?.detail`)
-          // and add checks. For now, we'll keep it simple.
+        userFacingMessage = `Request failed with status ${err.response.status}${err.response.statusText ? `: ${err.response.statusText}` : ""}${contextMessage}.`;
+        // If there's a 'detail' field or similar in your common error response, you could check for it here,
+        // but without a specific type, you'd need to access it generally (e.g., `(err.response.data as any)?.detail`)
+        // and add checks. For now, we'll keep it simple.
       } else {
-         userFacingMessage = `Request failed: ${err.message}${contextMessage}.`;
+        userFacingMessage = `Request failed: ${err.message}${contextMessage}.`;
       }
-
     } else if (err instanceof Error) {
       userFacingMessage = `An error occurred: ${err.message}${contextMessage}.`;
     }
@@ -85,7 +78,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(null);
       }
     } catch (err) {
-      console.error("Failed to fetch current user:", handleApiError(err, 'when fetching current user'));
+      console.error(
+        "Failed to fetch current user:",
+        handleApiError(err, "when fetching current user"),
+      );
       setUser(null);
     }
   }, [handleApiError]);
@@ -99,7 +95,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setProfile(null);
       }
     } catch (err) {
-      console.error("Failed to fetch user profile:", handleApiError(err, 'when fetching user profile'));
+      console.error(
+        "Failed to fetch user profile:",
+        handleApiError(err, "when fetching user profile"),
+      );
       setProfile(null);
     }
   }, [handleApiError]);
@@ -113,31 +112,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
     };
     initAuth();
-  }, [fetchCurrentUser,fetchUserProfile]);
+  }, [fetchCurrentUser, fetchUserProfile]);
 
-  const login = useCallback(async (credentials: AuthLoginData['body']): Promise<boolean> => {
-    setIsLoading(true);
-    setError(null);
-    setGeneralApiErrorState(null);
-    try {
-      await authLogin({
-         headers: {
-             'Content-Type': 'application/json',
-         },
-         body: credentials
-      });
-      await fetchCurrentUser();
-      setIsLoading(false);
-      return true;
-    } catch (err) {
-      const errorMessage = handleApiError(err, 'during login attempt');
-      setError(errorMessage);
-      setGeneralApiErrorState(errorMessage);
-      setUser(null);
-      setIsLoading(false);
-      return false;
-    }
-  }, [handleApiError, fetchCurrentUser]);
+  const login = useCallback(
+    async (credentials: AuthLoginData["body"]): Promise<boolean> => {
+      setIsLoading(true);
+      setError(null);
+      setGeneralApiErrorState(null);
+      try {
+        await authLogin({
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: credentials,
+        });
+        await fetchCurrentUser();
+        setIsLoading(false);
+        return true;
+      } catch (err) {
+        const errorMessage = handleApiError(err, "during login attempt");
+        setError(errorMessage);
+        setGeneralApiErrorState(errorMessage);
+        setUser(null);
+        setIsLoading(false);
+        return false;
+      }
+    },
+    [handleApiError, fetchCurrentUser],
+  );
 
   const logout = useCallback(async (): Promise<void> => {
     setIsLoading(true);
@@ -145,7 +147,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await authLogout();
     } catch (err) {
-      const errorMessage = handleApiError(err, 'during logout');
+      const errorMessage = handleApiError(err, "during logout");
       setGeneralApiErrorState(errorMessage);
       console.error("Logout failed:", errorMessage);
     } finally {
@@ -158,34 +160,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setGeneralApiErrorState(message);
   }, []);
 
-  const contextValue = useMemo(() => ({
-    user,
-    profile,
-    isAuthenticated: !!user,
-    isLoading,
-    error,
-    generalApiError,
-    setGeneralApiError,
-    login,
-    logout,
-    fetchCurrentUser,
-    fetchUserProfile,
-  }), [
-    user,
-    profile,
-    isLoading,
-    error,
-    generalApiError,
-    setGeneralApiError,
-    login,
-    logout,
-    fetchCurrentUser,
-    fetchUserProfile
-  ]);
-
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+  const contextValue = useMemo(
+    () => ({
+      user,
+      profile,
+      isAuthenticated: !!user,
+      isLoading,
+      error,
+      generalApiError,
+      setGeneralApiError,
+      login,
+      logout,
+      fetchCurrentUser,
+      fetchUserProfile,
+    }),
+    [
+      user,
+      profile,
+      isLoading,
+      error,
+      generalApiError,
+      setGeneralApiError,
+      login,
+      logout,
+      fetchCurrentUser,
+      fetchUserProfile,
+    ],
   );
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };

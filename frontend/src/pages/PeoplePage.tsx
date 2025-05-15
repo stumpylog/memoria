@@ -1,10 +1,10 @@
 // src/pages/PeoplePage.tsx
 
-import React, { useEffect, useState } from 'react';
-import type { PersonReadOutSchema } from '../api';
-import { getAllPeople } from '../api';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom'; // Assuming you are using react-router-dom
+import React, { useEffect, useState } from "react";
+import type { PersonReadOutSchema } from "../api";
+import { getAllPeople } from "../api";
+import { Container, Row, Col, Card, Button } from "react-bootstrap";
+import { useNavigate } from "react-router-dom"; // Assuming you are using react-router-dom
 
 const PeoplePage: React.FC = () => {
   const [people, setPeople] = useState<PersonReadOutSchema[] | null>(null);
@@ -69,7 +69,9 @@ const PeoplePage: React.FC = () => {
   return (
     <Container className="mt-4">
       <h2>People List</h2>
-      <Row xs={1} md={2} lg={3} className="g-4"> {/* Responsive grid */}
+      <Row xs={1} md={2} lg={3} className="g-4">
+        {" "}
+        {/* Responsive grid */}
         {people.map((person) => (
           <Col key={person.id}>
             <Card>
@@ -77,13 +79,9 @@ const PeoplePage: React.FC = () => {
               <Card.Body>
                 <Card.Title>{person.name}</Card.Title>
                 {person.description && ( // Conditionally render description
-                  <Card.Text>
-                    {person.description}
-                  </Card.Text>
+                  <Card.Text>{person.description}</Card.Text>
                 )}
-                 <Card.Text className="text-muted">
-                    Image Count: {person.image_count}
-                 </Card.Text>
+                <Card.Text className="text-muted">Image Count: {person.image_count}</Card.Text>
                 <Button variant="primary" onClick={() => handleViewDetails(person.id)}>
                   View Details
                 </Button>

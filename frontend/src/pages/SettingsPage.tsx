@@ -1,21 +1,21 @@
 // src/pages/SettingsPage.tsx
-import React, { useState } from 'react';
-import { Container, Card, Alert, Button, Table, Spinner } from 'react-bootstrap';
-import { useAuth } from '../hooks/useAuth';
-import { Navigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState } from "react";
+import { Container, Card, Alert, Button, Table, Spinner } from "react-bootstrap";
+import { useAuth } from "../hooks/useAuth";
+import { Navigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 // Types
 import type {
   UserOutSchema,
   UserUpdateInSchemeWritable,
   GroupOutSchema,
   GroupAssignSchema,
-  UserInCreateSchemaWritable
-} from '../api';
+  UserInCreateSchemaWritable,
+} from "../api";
 // Components
-import CreateUserModal from '../components/user-management/CreateUserModal';
-import EditUserModal from '../components/user-management/EditUserModal';
-import ManageGroupsModal from '../components/user-management/ManageGroupsModal';
+import CreateUserModal from "../components/user-management/CreateUserModal";
+import EditUserModal from "../components/user-management/EditUserModal";
+import ManageGroupsModal from "../components/user-management/ManageGroupsModal";
 // API functions
 import {
   userGetAll,
@@ -23,8 +23,8 @@ import {
   userCreate,
   userSetInfo,
   userSetGroups,
-  userGetGroups
-} from '../api';
+  userGetGroups,
+} from "../api";
 
 const SettingsPage: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -41,34 +41,29 @@ const SettingsPage: React.FC = () => {
   const {
     data: users = [],
     isLoading: usersLoading,
-    error: usersError
+    error: usersError,
   } = useQuery({
-    queryKey: ['users'],
+    queryKey: ["users"],
     queryFn: async () => {
       const response = await userGetAll();
       return response?.data || [];
-    }
+    },
   });
 
-  const {
-    data: allGroups = []
-  } = useQuery({
-    queryKey: ['groups'],
+  const { data: allGroups = [] } = useQuery({
+    queryKey: ["groups"],
     queryFn: async () => {
       const response = await groupGetAll();
       return response?.data || [];
-    }
+    },
   });
 
-  const {
-    data: userGroupIds = [],
-    isLoading: userGroupsLoading
-  } = useQuery({
-    queryKey: ['userGroups', selectedUser?.id],
+  const { data: userGroupIds = [], isLoading: userGroupsLoading } = useQuery({
+    queryKey: ["userGroups", selectedUser?.id],
     queryFn: async () => {
       if (!selectedUser) return [];
       const response = await userGetGroups({ path: { user_id: selectedUser.id } });
-      return response?.data?.map(group => group.id) || [];
+      return response?.data?.map((group) => group.id) || [];
     },
     enabled: !!selectedUser && showGroupsModal,
   });
@@ -77,37 +72,37 @@ const SettingsPage: React.FC = () => {
   const createUserMutation = useMutation({
     mutationFn: (userData: UserInCreateSchemaWritable) => userCreate({ body: userData }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       handleCloseCreateModal();
     },
     onError: (err: any) => {
       setError(err.message || "Failed to create user.");
-    }
+    },
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ userId, userData }: { userId: number, userData: UserUpdateInSchemeWritable }) =>
+    mutationFn: ({ userId, userData }: { userId: number; userData: UserUpdateInSchemeWritable }) =>
       userSetInfo({ path: { user_id: userId }, body: userData }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       handleCloseEditModal();
     },
     onError: (err: any) => {
       setError(err.message || `Failed to update user.`);
-    }
+    },
   });
 
   const updateUserGroupsMutation = useMutation({
-    mutationFn: ({ userId, groupIds }: { userId: number, groupIds: GroupAssignSchema[] }) =>
+    mutationFn: ({ userId, groupIds }: { userId: number; groupIds: GroupAssignSchema[] }) =>
       userSetGroups({ path: { user_id: userId }, body: groupIds }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['userGroups'] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["userGroups"] });
       handleCloseGroupsModal();
     },
     onError: (err: any) => {
       setError(err.message || `Failed to update user groups.`);
-    }
+    },
   });
 
   // Modal handlers
@@ -123,7 +118,8 @@ const SettingsPage: React.FC = () => {
 
   const handleCreateUser = (userData: UserInCreateSchemaWritable): Promise<void> => {
     setError(null);
-    return createUserMutation.mutateAsync(userData)
+    return createUserMutation
+      .mutateAsync(userData)
       .then(() => {})
       .catch((error) => {
         throw error;
@@ -144,7 +140,8 @@ const SettingsPage: React.FC = () => {
 
   const handleEditUser = (userId: number, userData: UserUpdateInSchemeWritable): Promise<void> => {
     setError(null);
-    return updateUserMutation.mutateAsync({ userId, userData })
+    return updateUserMutation
+      .mutateAsync({ userId, userData })
       .then(() => {})
       .catch((error) => {
         throw error;
@@ -165,7 +162,8 @@ const SettingsPage: React.FC = () => {
 
   const handleSetUserGroups = (userId: number, groupIds: GroupAssignSchema[]): Promise<void> => {
     setError(null);
-    return updateUserGroupsMutation.mutateAsync({ userId, groupIds })
+    return updateUserGroupsMutation
+      .mutateAsync({ userId, groupIds })
       .then(() => {})
       .catch((error) => {
         throw error;
@@ -182,15 +180,20 @@ const SettingsPage: React.FC = () => {
   }
 
   // Determine if we're loading anything
-  const isLoading = usersLoading ||
-                   createUserMutation.isPending ||
-                   updateUserMutation.isPending ||
-                   updateUserGroupsMutation.isPending;
+  const isLoading =
+    usersLoading ||
+    createUserMutation.isPending ||
+    updateUserMutation.isPending ||
+    updateUserGroupsMutation.isPending;
 
   // Determine if there's an error to display
-  const displayError = error ||
-                      (usersError instanceof Error ? usersError.message :
-                      usersError ? "Failed to load users." : null);
+  const displayError =
+    error ||
+    (usersError instanceof Error
+      ? usersError.message
+      : usersError
+        ? "Failed to load users."
+        : null);
 
   return (
     <Container fluid className="p-4">
@@ -235,9 +238,9 @@ const SettingsPage: React.FC = () => {
                     <td>{user.first_name}</td>
                     <td>{user.last_name}</td>
                     <td>{user.email}</td>
-                    <td>{user.is_active ?? true ? 'Yes' : 'No'}</td>
-                    <td>{user.is_staff ?? false ? 'Yes' : 'No'}</td>
-                    <td>{user.is_superuser ?? false ? 'Yes' : 'No'}</td>
+                    <td>{(user.is_active ?? true) ? "Yes" : "No"}</td>
+                    <td>{(user.is_staff ?? false) ? "Yes" : "No"}</td>
+                    <td>{(user.is_superuser ?? false) ? "Yes" : "No"}</td>
                     <td>
                       {(currentUser.is_staff || currentUser.is_superuser) && (
                         <>
@@ -263,7 +266,9 @@ const SettingsPage: React.FC = () => {
                 ))}
                 {users.length === 0 && !usersLoading && !displayError && (
                   <tr>
-                    <td colSpan={9} className="text-center">No users found.</td>
+                    <td colSpan={9} className="text-center">
+                      No users found.
+                    </td>
                   </tr>
                 )}
               </tbody>

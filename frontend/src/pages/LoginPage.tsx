@@ -1,18 +1,18 @@
 // src/pages/LoginPage.tsx
-import React, { useState, useEffect } from 'react';
-import type { FormEvent } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { Container, Form, Button, Card, Alert, Spinner } from 'react-bootstrap';
+import React, { useState, useEffect } from "react";
+import type { FormEvent } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { Container, Form, Button, Card, Alert, Spinner } from "react-bootstrap";
 
 const LoginPage: React.FC = () => {
-  const [username, setUsername] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const { login, error, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/';
+  const from = location.state?.from?.pathname || "/";
 
   // useEffect to handle redirection based on authentication status and loading state
   useEffect(() => {
@@ -30,8 +30,11 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
-      <Card style={{ width: '100%', maxWidth: '400px' }}>
+    <Container
+      className="d-flex align-items-center justify-content-center"
+      style={{ minHeight: "100vh" }}
+    >
+      <Card style={{ width: "100%", maxWidth: "400px" }}>
         <Card.Body>
           <Card.Title className="text-center mb-4">Login</Card.Title>
           {/* Display login-specific errors from AuthContext */}
@@ -64,11 +67,17 @@ const LoginPage: React.FC = () => {
             <Button variant="primary" type="submit" className="w-100" disabled={isLoading}>
               {isLoading ? (
                 <>
-                  <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
                   <span className="ms-2">Logging in...</span>
                 </>
               ) : (
-                'Login'
+                "Login"
               )}
             </Button>
           </Form>

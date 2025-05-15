@@ -1,7 +1,7 @@
 // components/LinkButton.tsx
-import React from 'react';
-import { Link,} from 'react-router-dom';
-import type { LinkProps } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
+import type { LinkProps } from "react-router-dom";
 
 type LinkButtonProps = LinkProps & {
   children: React.ReactNode;
@@ -11,8 +11,8 @@ type LinkButtonProps = LinkProps & {
 
 const LinkButton: React.FC<LinkButtonProps> = ({
   children,
-  variant = 'primary',
-  className = '',
+  variant = "primary",
+  className = "",
   ...props
 }) => {
   return (

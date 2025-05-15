@@ -1,7 +1,7 @@
 // src/components/UserManagement/ManageGroupsModal.tsx
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Alert, ListGroup } from 'react-bootstrap';
-import type { UserOutSchema, GroupOutSchema, GroupAssignSchema } from '../../api';
+import React, { useState, useEffect } from "react";
+import { Modal, Button, Form, Alert, ListGroup } from "react-bootstrap";
+import type { UserOutSchema, GroupOutSchema, GroupAssignSchema } from "../../api";
 
 interface ManageGroupsModalProps {
   show: boolean;
@@ -32,14 +32,14 @@ const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
   }, [userGroupIds, user]);
 
   const handleGroupChange = (groupId: number, isChecked: boolean) => {
-    setSelectedGroupIds(prevIds =>
-      isChecked ? [...prevIds, groupId] : prevIds.filter(id => id !== groupId)
+    setSelectedGroupIds((prevIds) =>
+      isChecked ? [...prevIds, groupId] : prevIds.filter((id) => id !== groupId),
     );
   };
 
   const handleSubmit = async () => {
     if (!user) return;
-    const groupAssignments: GroupAssignSchema[] = selectedGroupIds.map(id => ({ id }));
+    const groupAssignments: GroupAssignSchema[] = selectedGroupIds.map((id) => ({ id }));
     await handleSave(user.id, groupAssignments);
   };
 
@@ -52,8 +52,8 @@ const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
         {error && <Alert variant="danger">{error}</Alert>}
         <Form>
           <Form.Label>Select Groups</Form.Label>
-          <ListGroup style={{ maxHeight: '300px', overflowY: 'auto' }}>
-            {allGroups.map(group => (
+          <ListGroup style={{ maxHeight: "300px", overflowY: "auto" }}>
+            {allGroups.map((group) => (
               <ListGroup.Item key={group.id}>
                 <Form.Check
                   type="checkbox"
@@ -74,7 +74,7 @@ const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
           Close
         </Button>
         <Button variant="primary" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Saving...' : 'Save Changes'}
+          {loading ? "Saving..." : "Save Changes"}
         </Button>
       </Modal.Footer>
     </Modal>

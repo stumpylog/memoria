@@ -1,8 +1,8 @@
 // src/components/common/ProtectedRoute.tsx
-import React from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import { Spinner } from 'react-bootstrap'; // For loading state
+import React from "react";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import { Spinner } from "react-bootstrap"; // For loading state
 
 interface ProtectedRouteProps {
   // Future: Add role/permission checks here
@@ -16,7 +16,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = (/* { allowedRoles } */) =
   if (isLoading) {
     // Show a loading spinner or a blank page while auth state is being determined
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "100vh" }}
+      >
         <Spinner animation="border" role="status">
           <span className="visually-hidden">Loading...</span>
         </Spinner>

@@ -1,7 +1,7 @@
 // src/components/common/ErrorToast.tsx
-import React, { useEffect, useState } from 'react';
-import { Toast, ToastContainer } from 'react-bootstrap';
-import { useAuth } from '../../hooks/useAuth';
+import React, { useEffect, useState } from "react";
+import { Toast, ToastContainer } from "react-bootstrap";
+import { useAuth } from "../../hooks/useAuth";
 
 const GlobalErrorToast: React.FC = () => {
   const { generalApiError, setGeneralApiError } = useAuth();
@@ -19,7 +19,7 @@ const GlobalErrorToast: React.FC = () => {
     setShow(false);
     // Optionally clear the error from context after a delay or on close
     setTimeout(() => {
-        setGeneralApiError(null);
+      setGeneralApiError(null);
     }, 300); // Delay to allow fade out animation
   };
 

@@ -1,8 +1,8 @@
 // src/pages/ProfilePage.tsx
-import React from 'react';
-import { Container, Card } from 'react-bootstrap';
-import { useAuth } from '../hooks/useAuth';
-import { Helmet } from 'react-helmet-async';
+import React from "react";
+import { Container, Card } from "react-bootstrap";
+import { useAuth } from "../hooks/useAuth";
+import { Helmet } from "react-helmet-async";
 
 const ProfilePage: React.FC = () => {
   const { user, profile } = useAuth();
@@ -17,18 +17,30 @@ const ProfilePage: React.FC = () => {
         <Card.Body>
           {user ? (
             <>
-              <Card.Text><strong>Username:</strong> {user.username}</Card.Text>
-              <Card.Text><strong>Email:</strong> {user.email}</Card.Text>
-              <Card.Text><strong>First Name:</strong> {user.first_name}</Card.Text>
-              <Card.Text><strong>Last Name:</strong> {user.last_name}</Card.Text>
+              <Card.Text>
+                <strong>Username:</strong> {user.username}
+              </Card.Text>
+              <Card.Text>
+                <strong>Email:</strong> {user.email}
+              </Card.Text>
+              <Card.Text>
+                <strong>First Name:</strong> {user.first_name}
+              </Card.Text>
+              <Card.Text>
+                <strong>Last Name:</strong> {user.last_name}
+              </Card.Text>
             </>
           ) : (
             <Card.Text>Loading user info...</Card.Text>
           )}
           {profile ? (
             <>
-              <Card.Text><strong>Timezone:</strong> {profile.timezone_name}</Card.Text>
-              <Card.Text><strong>Default Items Per Page:</strong> {profile.items_per_page}</Card.Text>
+              <Card.Text>
+                <strong>Timezone:</strong> {profile.timezone_name}
+              </Card.Text>
+              <Card.Text>
+                <strong>Default Items Per Page:</strong> {profile.items_per_page}
+              </Card.Text>
             </>
           ) : (
             <Card.Text>Loading user profile...</Card.Text>

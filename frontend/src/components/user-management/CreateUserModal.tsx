@@ -1,7 +1,7 @@
 // src/components/UserManagement/CreateUserModal.tsx
-import React, { useState } from 'react';
-import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import type { UserInCreateSchemaWritable } from '../../api';
+import React, { useState } from "react";
+import { Modal, Button, Form, Alert } from "react-bootstrap";
+import type { UserInCreateSchemaWritable } from "../../api";
 
 interface CreateUserModalProps {
   show: boolean;
@@ -11,10 +11,16 @@ interface CreateUserModalProps {
   error: string | null;
 }
 
-const CreateUserModal: React.FC<CreateUserModalProps> = ({ show, handleClose, handleSave, loading, error }) => {
+const CreateUserModal: React.FC<CreateUserModalProps> = ({
+  show,
+  handleClose,
+  handleSave,
+  loading,
+  error,
+}) => {
   const [formData, setFormData] = useState<UserInCreateSchemaWritable>({
-    username: '',
-    password: '',
+    username: "",
+    password: "",
     email: null,
     first_name: null,
     last_name: null,
@@ -27,14 +33,14 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ show, handleClose, ha
     const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
   const handleSubmit = async () => {
     // Basic validation
     if (!formData.username || !formData.password) {
-      alert('Username and Password are required.');
+      alert("Username and Password are required.");
       return;
     }
     await handleSave(formData);
@@ -77,7 +83,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ show, handleClose, ha
             <Form.Control
               type="email"
               name="email"
-              value={formData.email || ''}
+              value={formData.email || ""}
               onChange={handleChange}
             />
           </Form.Group>
@@ -87,7 +93,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ show, handleClose, ha
             <Form.Control
               type="text"
               name="first_name"
-              value={formData.first_name || ''}
+              value={formData.first_name || ""}
               onChange={handleChange}
             />
           </Form.Group>
@@ -97,7 +103,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ show, handleClose, ha
             <Form.Control
               type="text"
               name="last_name"
-              value={formData.last_name || ''}
+              value={formData.last_name || ""}
               onChange={handleChange}
             />
           </Form.Group>
@@ -131,7 +137,6 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ show, handleClose, ha
               onChange={handleChange}
             />
           </Form.Group>
-
         </Form>
       </Modal.Body>
       <Modal.Footer>
@@ -139,7 +144,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ show, handleClose, ha
           Close
         </Button>
         <Button variant="primary" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Saving...' : 'Create User'}
+          {loading ? "Saving..." : "Create User"}
         </Button>
       </Modal.Footer>
     </Modal>

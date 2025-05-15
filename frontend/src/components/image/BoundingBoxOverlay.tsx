@@ -17,12 +17,7 @@ interface Props {
   labelKey: string;
 }
 
-const BoundingBoxOverlay: React.FC<Props> = ({
-  boxes,
-  orientation,
-  color,
-  labelKey,
-}) => {
+const BoundingBoxOverlay: React.FC<Props> = ({ boxes, orientation, color, labelKey }) => {
   return (
     <>
       {boxes.map((box) => {
@@ -32,7 +27,7 @@ const BoundingBoxOverlay: React.FC<Props> = ({
           box.center_y,
           box.width,
           box.height,
-          orientation
+          orientation,
         );
 
         // Calculate CSS styles for absolute positioning

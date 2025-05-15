@@ -15,11 +15,11 @@ import type { ImageMetadataSchema } from "../api";
 import type { ImageLocationSchema } from "../api";
 import type { ImageDateSchema } from "../api";
 import type { PetInImageSchemaOut } from "../api";
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from "react-helmet-async";
 
 const ImageDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const imageId = parseInt(id || '0', 10);
+  const imageId = parseInt(id || "0", 10);
   const { profile } = useAuth(); // Get user profile with timezone
 
   const [metadata, setMetadata] = useState<ImageMetadataSchema | null>(null);
@@ -40,11 +40,11 @@ const ImageDetailPage: React.FC = () => {
       try {
         const id = +imageId;
         const [meta, loc, date, ppl, pets] = await Promise.all([
-          imageGetMetadata({"path": {"image_id": id}}),
-          imageGetLocation({"path": {"image_id": id}}),
-          imageGetDate({"path": {"image_id": id}}),
-          imageGetPeople({"path": {"image_id": id}}),
-          imageGetPets({"path": {"image_id": id}}),
+          imageGetMetadata({ path: { image_id: id } }),
+          imageGetLocation({ path: { image_id: id } }),
+          imageGetDate({ path: { image_id: id } }),
+          imageGetPeople({ path: { image_id: id } }),
+          imageGetPets({ path: { image_id: id } }),
         ]);
 
         setMetadata(meta.data === undefined ? null : meta.data);
@@ -67,30 +67,30 @@ const ImageDetailPage: React.FC = () => {
 
   // Helper function to format file size
   const formatBytes = (bytes: number, decimals = 2): string => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
   };
 
   // Format date helper with timezone support
   const formatDate = (dateString: string | null | undefined): string => {
-    if (!dateString) return 'Not available';
+    if (!dateString) return "Not available";
     try {
       const date = new Date(dateString);
 
       // Use the user's timezone if available
       if (profile?.timezone_name) {
-        return date.toLocaleString('en-US', {
+        return date.toLocaleString("en-US", {
           timeZone: profile.timezone_name,
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-          hour12: true
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+          hour12: true,
         });
       }
 
@@ -101,31 +101,31 @@ const ImageDetailPage: React.FC = () => {
     }
   };
 
-const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
-  if (!dateInfo.date) return <span className="fst-italic">Not available</span>;
+  const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
+    if (!dateInfo.date) return <span className="fst-italic">Not available</span>;
 
-  try {
-    // Parse the original date
-    const dateParts = dateInfo.date.split('-');
-    if (dateParts.length !== 3) return dateInfo.date;
+    try {
+      // Parse the original date
+      const dateParts = dateInfo.date.split("-");
+      if (dateParts.length !== 3) return dateInfo.date;
 
-    let [year, month, day] = dateParts;
+      let [year, month, day] = dateParts;
 
-    // Replace month with XX if invalid
-    if (!dateInfo.month_valid) {
-      month = "XX";
+      // Replace month with XX if invalid
+      if (!dateInfo.month_valid) {
+        month = "XX";
+      }
+
+      // Replace day with YY if invalid
+      if (!dateInfo.day_valid) {
+        day = "YY";
+      }
+
+      return `${year}-${month}-${day}`;
+    } catch (e) {
+      return dateInfo.date;
     }
-
-    // Replace day with YY if invalid
-    if (!dateInfo.day_valid) {
-      day = "YY";
-    }
-
-    return `${year}-${month}-${day}`;
-  } catch (e) {
-    return dateInfo.date;
-  }
-};
+  };
 
   if (loading) {
     return (
@@ -138,9 +138,7 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
   if (!metadata) {
     return (
       <Container className="mt-5">
-        <div className="alert alert-warning">
-          Image data not available or could not be loaded.
-        </div>
+        <div className="alert alert-warning">Image data not available or could not be loaded.</div>
       </Container>
     );
   }
@@ -164,8 +162,8 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
   return (
     <Container fluid className="py-4">
       <Helmet>
-              <title>Memoria - Image: {title}</title>
-            </Helmet>
+        <title>Memoria - Image: {title}</title>
+      </Helmet>
       <Row className="mb-4">
         {/* Image Section (Left Column) */}
         <Col md={8}>
@@ -180,7 +178,7 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
                   <img
                     id="mainImage"
                     src={full_size_url}
-                    alt={title || 'Image'}
+                    alt={title || "Image"}
                     className="img-fluid rounded"
                     style={{ maxHeight: "70vh", width: "auto" }}
                   />
@@ -203,8 +201,10 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
                 </div>
               </Card.Body>
               <Card.Footer className="d-flex justify-content-between flex-wrap">
-                <span>{original_width}x{original_height} px</span>
-                <span>{file_size ? formatBytes(file_size) : 'Unknown size'}</span>
+                <span>
+                  {original_width}x{original_height} px
+                </span>
+                <span>{file_size ? formatBytes(file_size) : "Unknown size"}</span>
                 <div className="d-flex">
                   {/* Toggle for People bounding boxes */}
                   <div className="form-check form-switch ms-3">
@@ -238,7 +238,9 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
               </Card.Footer>
             </Card>
           ) : (
-            <div className="alert alert-warning" role="alert">Full image not available.</div>
+            <div className="alert alert-warning" role="alert">
+              Full image not available.
+            </div>
           )}
         </Col>
 
@@ -250,7 +252,7 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
               <h5 className="mb-0">Image Info</h5>
             </Card.Header>
             <Card.Body>
-              <h5 className="card-title">Title: {title || 'Untitled Image'}</h5>
+              <h5 className="card-title">Title: {title || "Untitled Image"}</h5>
 
               {description ? (
                 <p className="card-text">{description}</p>
@@ -261,9 +263,7 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
               <p className="mb-1">
                 <strong>Date: </strong>
                 {dateInfo ? (
-                  <span className="text-muted">
-                    {" "}{formatImageDate(dateInfo)}
-                  </span>
+                  <span className="text-muted"> {formatImageDate(dateInfo)}</span>
                 ) : (
                   <span className="text-muted fst-italic"> Not available</span>
                 )}
@@ -277,8 +277,10 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
                     {location.city && `${location.city}, `}
                     {location.subdivision_name && `${location.subdivision_name}, `}
                     {location.country_name && location.country_name}
-                    {!location.sub_location && !location.city && !location.subdivision_name && !location.country_name &&
-                      <span className="fst-italic">Not available</span>}
+                    {!location.sub_location &&
+                      !location.city &&
+                      !location.subdivision_name &&
+                      !location.country_name && <span className="fst-italic">Not available</span>}
                   </span>
                 ) : (
                   <span className="text-muted fst-italic"> Not available</span>
@@ -307,7 +309,10 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
               </Card.Header>
               <ListGroup variant="flush">
                 {people.map((personInImage, index) => (
-                  <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                  <ListGroup.Item
+                    key={index}
+                    className="d-flex justify-content-between align-items-center"
+                  >
                     {personInImage.name}
                   </ListGroup.Item>
                 ))}
@@ -323,7 +328,10 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
               </Card.Header>
               <ListGroup variant="flush">
                 {pets.map((petInImage, index) => (
-                  <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                  <ListGroup.Item
+                    key={index}
+                    className="d-flex justify-content-between align-items-center"
+                  >
                     {petInImage.name}
                   </ListGroup.Item>
                 ))}
@@ -356,29 +364,48 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
                 <Col md={6}>
                   <p className="small mb-1">
                     <strong>Original Checksum:</strong>
-                    <span className="text-monospace text-muted"> {original_checksum ? `${original_checksum.slice(0, 16)}...` : 'Not available'}</span>
+                    <span className="text-monospace text-muted">
+                      {" "}
+                      {original_checksum
+                        ? `${original_checksum.slice(0, 16)}...`
+                        : "Not available"}
+                    </span>
                   </p>
                   <p className="small mb-1">
                     <strong>Perceptual Hash:</strong>
-                    <span className="text-monospace text-muted"> {phash || 'Not available'}</span>
+                    <span className="text-monospace text-muted"> {phash || "Not available"}</span>
                   </p>
                   <p className="small mb-1">
                     <strong>Orientation:</strong>
-                    <span className="text-muted"> {getOrientationDisplay(orientation)} ({orientation})</span>
+                    <span className="text-muted">
+                      {" "}
+                      {getOrientationDisplay(orientation)} ({orientation})
+                    </span>
                   </p>
                 </Col>
                 <Col md={6}>
                   <p className="small mb-1">
                     <strong>File Size:</strong>
-                    <span className="text-muted"> {file_size ? formatBytes(file_size) : 'Not available'}</span>
+                    <span className="text-muted">
+                      {" "}
+                      {file_size ? formatBytes(file_size) : "Not available"}
+                    </span>
                   </p>
                   <p className="small mb-1">
                     <strong>Dimensions:</strong>
-                    <span className="text-muted"> {original_width && original_height ? `${original_width}x${original_height} pixels` : 'Not available'}</span>
+                    <span className="text-muted">
+                      {" "}
+                      {original_width && original_height
+                        ? `${original_width}x${original_height} pixels`
+                        : "Not available"}
+                    </span>
                   </p>
                   <p className="small mb-1">
                     <strong>ID:</strong>
-                    <span className="text-monospace text-muted"> {image_fs_id || 'Not available'}</span>
+                    <span className="text-monospace text-muted">
+                      {" "}
+                      {image_fs_id || "Not available"}
+                    </span>
                   </p>
                   <p className="small mb-1">
                     <strong>Original File:</strong>{" "}
@@ -386,7 +413,7 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
                       className="text-monospace text-muted text-truncate d-inline-block align-baseline"
                       style={{ maxWidth: "100%" }}
                     >
-                      {original_path || 'Not available'}
+                      {original_path || "Not available"}
                     </span>
                   </p>
                 </Col>
@@ -401,17 +428,17 @@ const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
 
 // Helper function to convert orientation number to display string
 function getOrientationDisplay(orientation: number | null | undefined): string {
-  if (orientation === null || orientation === undefined) return 'Unknown';
+  if (orientation === null || orientation === undefined) return "Unknown";
 
   const orientationMap: Record<number, string> = {
-    1: 'Normal',
-    2: 'Mirror horizontal',
-    3: 'Rotate 180',
-    4: 'Mirror vertical',
-    5: 'Mirror horizontal and rotate 270 CW',
-    6: 'Rotate 90 CW',
-    7: 'Mirror horizontal and rotate 90 CW',
-    8: 'Rotate 270 CW'
+    1: "Normal",
+    2: "Mirror horizontal",
+    3: "Rotate 180",
+    4: "Mirror vertical",
+    5: "Mirror horizontal and rotate 270 CW",
+    6: "Rotate 90 CW",
+    7: "Mirror horizontal and rotate 90 CW",
+    8: "Rotate 270 CW",
   };
 
   return orientationMap[orientation] || `Orientation ${orientation}`;

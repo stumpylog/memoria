@@ -3,7 +3,7 @@ export function transformCoordinates(
   centerY: number,
   width: number,
   height: number,
-  orientation: number
+  orientation: number,
 ) {
   let xPrime, yPrime;
   const dimensionsSwapped = [5, 6, 7, 8].includes(orientation);
