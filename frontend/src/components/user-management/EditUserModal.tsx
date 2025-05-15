@@ -1,6 +1,7 @@
 // src/components/UserManagement/EditUserModal.tsx
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Alert } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Alert, Button, Form, Modal } from "react-bootstrap";
+
 import type { UserOutSchema, UserUpdateInSchemeWritable } from "../../api";
 
 interface EditUserModalProps {

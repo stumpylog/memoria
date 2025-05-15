@@ -1,8 +1,10 @@
 // src/components/theme/ThemeToggler.tsx
 import React from "react";
 import { Dropdown } from "react-bootstrap";
-import { useTheme } from "../../hooks/useTheme"; // Ensure Theme type is exported
+
 import type { Theme } from "../../contexts/ThemeContext";
+
+import { useTheme } from "../../hooks/useTheme"; // Ensure Theme type is exported
 
 const ThemeToggler: React.FC = () => {
   const { theme, effectiveTheme, setTheme } = useTheme();

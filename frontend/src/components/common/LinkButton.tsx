@@ -1,7 +1,8 @@
+import type { LinkProps } from "react-router-dom";
+
 // components/LinkButton.tsx
 import React from "react";
 import { Link } from "react-router-dom";
-import type { LinkProps } from "react-router-dom";
 
 type LinkButtonProps = LinkProps & {
   children: React.ReactNode;

@@ -1,7 +1,9 @@
 import React from "react";
 import { Container, Row } from "react-bootstrap";
-import FolderCard from "./FolderCard";
+
 import type { RootFolderSchema } from "../../api";
+
+import FolderCard from "./FolderCard";
 
 interface FolderWallProps {
   folders: RootFolderSchema[];

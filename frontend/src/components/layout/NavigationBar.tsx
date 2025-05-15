@@ -1,7 +1,8 @@
 // src/components/layout/NavigationBar.tsx
 import React from "react";
+import { Container, Image, Nav, Navbar, NavDropdown } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import { Navbar, Nav, NavDropdown, Container, Image } from "react-bootstrap";
+
 import { useAuth } from "../../hooks/useAuth";
 import ThemeToggler from "../theme/ThemeToggler";
 

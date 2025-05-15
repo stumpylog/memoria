@@ -1,6 +1,6 @@
 // src/components/group-management/DeleteGroupModal.tsx
 import React, { useEffect } from "react";
-import { Modal, Button, Alert, Spinner } from "react-bootstrap";
+import { Alert, Button, Modal, Spinner } from "react-bootstrap";
 
 // Assuming GroupOutSchema type exists in your api types
 import type { GroupOutSchema } from "../../api";

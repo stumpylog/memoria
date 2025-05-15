@@ -1,6 +1,6 @@
 // src/components/group-management/CreateGroupModal.tsx
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 
 import type { GroupCreateInSchema } from "../../api";
 

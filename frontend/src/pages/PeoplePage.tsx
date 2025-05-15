@@ -1,11 +1,13 @@
 // src/pages/PeoplePage.tsx
 
 import React, { useEffect, useState } from "react";
-import type { PersonReadOutSchema } from "../api";
-import { getAllPeople } from "../api";
-import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { Button, Card, Col, Container, Row } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
+import { useNavigate } from "react-router-dom";
+
+import type { PersonReadOutSchema } from "../api";
+
+import { getAllPeople } from "../api";
 
 const PeoplePage: React.FC = () => {
   const [people, setPeople] = useState<PersonReadOutSchema[] | null>(null);

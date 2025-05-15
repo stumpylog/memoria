@@ -3,6 +3,7 @@ import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
+import perfectionist from "eslint-plugin-perfectionist";
 
 export default tseslint.config(
   { ignores: ["dist", "node_modules", "build"] },
@@ -16,10 +17,25 @@ export default tseslint.config(
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
+      perfectionist,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "perfectionist/sort-imports": [
+        "error",
+        {
+          type: "natural",
+          order: "asc",
+        },
+      ],
+      "perfectionist/sort-named-imports": [
+        "error",
+        {
+          type: "alphabetical",
+          order: "asc",
+        },
+      ],
     },
   },
 );

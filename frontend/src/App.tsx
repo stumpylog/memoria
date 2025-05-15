@@ -1,15 +1,15 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // src/App.tsx
 import React, { Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
-import { Spinner, Container } from "react-bootstrap";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Container, Spinner } from "react-bootstrap";
+import { Outlet, Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { Link } from "react-router-dom";
+
+import GlobalErrorToast from "./components/common/ErrorToast";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import NavigationBar from "./components/layout/NavigationBar";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
-
-import ProtectedRoute from "./components/common/ProtectedRoute";
-import GlobalErrorToast from "./components/common/ErrorToast";
-import NavigationBar from "./components/layout/NavigationBar";
-import { Link } from "react-router-dom";
 
 // Lazy load pages for better initial load time
 const LoginPage = React.lazy(() => import("./pages/LoginPage"));

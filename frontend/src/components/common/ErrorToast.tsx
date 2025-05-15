@@ -1,6 +1,7 @@
 // src/components/common/ErrorToast.tsx
 import React, { useEffect, useState } from "react";
 import { Toast, ToastContainer } from "react-bootstrap";
+
 import { useAuth } from "../../hooks/useAuth";
 
 const GlobalErrorToast: React.FC = () => {

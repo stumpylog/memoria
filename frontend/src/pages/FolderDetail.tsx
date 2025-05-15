@@ -1,12 +1,14 @@
-import React from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { Container, Breadcrumb, Spinner, Alert } from "react-bootstrap";
 import { useQuery } from "@tanstack/react-query";
+import React from "react";
+import { Alert, Breadcrumb, Container, Spinner } from "react-bootstrap";
+import { Helmet } from "react-helmet-async";
+import { Link, useNavigate, useParams } from "react-router-dom";
+
+import type { FolderDetailSchema, ImageThumbnailSchema } from "../api";
+
+import { folderGetDetails, imageGetThumbInfo } from "../api";
 import FolderWall from "../components/folder/FolderWall";
 import ImageWall from "../components/image/ImageWall";
-import { folderGetDetails, imageGetThumbInfo } from "../api";
-import type { FolderDetailSchema, ImageThumbnailSchema } from "../api";
-import { Helmet } from "react-helmet-async";
 
 interface FolderDetailProps {}
 

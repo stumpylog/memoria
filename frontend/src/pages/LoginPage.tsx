@@ -1,9 +1,11 @@
-// src/pages/LoginPage.tsx
-import React, { useState, useEffect } from "react";
 import type { FormEvent } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+
+// src/pages/LoginPage.tsx
+import React, { useEffect, useState } from "react";
+import { Alert, Button, Card, Container, Form, Spinner } from "react-bootstrap";
+import { useLocation, useNavigate } from "react-router-dom";
+
 import { useAuth } from "../hooks/useAuth";
-import { Container, Form, Button, Card, Alert, Spinner } from "react-bootstrap";
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState<string>("");

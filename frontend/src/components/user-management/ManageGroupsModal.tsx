@@ -1,12 +1,13 @@
 // src/components/UserManagement/ManageGroupsModal.tsx
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Alert, ListGroup } from "react-bootstrap";
-import type { UserOutSchema, GroupOutSchema, GroupAssignSchema } from "../../api";
+import React, { useEffect, useState } from "react";
+import { Alert, Button, Form, ListGroup, Modal } from "react-bootstrap";
+
+import type { GroupOutSchema, UserGroupAssignInSchema, UserOutSchema } from "../../api";
 
 interface ManageGroupsModalProps {
   show: boolean;
   handleClose: () => void;
-  handleSave: (userId: number, groupIds: GroupAssignSchema[]) => Promise<void>;
+  handleSave: (userId: number, groupIds: UserGroupAssignInSchema[]) => Promise<void>;
   user: UserOutSchema | null;
   loading: boolean;
   error: string | null;
@@ -39,7 +40,7 @@ const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
 
   const handleSubmit = async () => {
     if (!user) return;
-    const groupAssignments: GroupAssignSchema[] = selectedGroupIds.map((id) => ({ id }));
+    const groupAssignments: UserGroupAssignInSchema[] = selectedGroupIds.map((id) => ({ id }));
     await handleSave(user.id, groupAssignments);
   };
 

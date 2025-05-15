@@ -1,7 +1,9 @@
 import React from "react";
-import { Container, Row, Col } from "react-bootstrap";
-import ImageCard from "./ImageCard";
+import { Col, Container, Row } from "react-bootstrap";
+
 import type { ImageThumbnailSchema } from "../../api";
+
+import ImageCard from "./ImageCard";
 
 interface ImageWallProps {
   images: ImageThumbnailSchema[];

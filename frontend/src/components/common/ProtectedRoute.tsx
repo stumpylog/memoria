@@ -1,8 +1,9 @@
 // src/components/common/ProtectedRoute.tsx
 import React from "react";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
 import { Spinner } from "react-bootstrap"; // For loading state
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+
+import { useAuth } from "../../hooks/useAuth";
 
 interface ProtectedRouteProps {
   // Future: Add role/permission checks here

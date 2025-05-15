@@ -1,18 +1,20 @@
 // src/pages/PersonDetailsPage.tsx
 
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import type {
-  PersonDetailOutSchema,
-  ImageThumbnailSchema,
-  PersonImageOutSchema,
-  PagedPersonImageOutSchema,
-} from "../api";
-import { getPersonDetail, imageGetThumbInfo, getPersonImages } from "../api";
-import { Container, Button, Row, Col, Spinner } from "react-bootstrap";
-import ImageWall from "../components/image/ImageWall";
+import React, { useEffect, useState } from "react";
+import { Button, Col, Container, Row, Spinner } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
+import { useNavigate, useParams } from "react-router-dom";
+
+import type {
+  ImageThumbnailSchema,
+  PagedPersonImageOutSchema,
+  PersonDetailOutSchema,
+  PersonImageOutSchema,
+} from "../api";
+
+import { getPersonDetail, getPersonImages, imageGetThumbInfo } from "../api";
+import ImageWall from "../components/image/ImageWall";
 import { useAuth } from "../hooks/useAuth";
 
 const PersonDetailsPage: React.FC = () => {

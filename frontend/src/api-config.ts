@@ -1,7 +1,10 @@
-import { client } from "./api/client.gen"; // Adjust the import path
 import type { InternalAxiosRequestConfig } from "axios";
+
 import { AxiosError } from "axios";
+
 import type { AuthGetCsrfTokenResponse } from "./api/types.gen";
+
+import { client } from "./api/client.gen";
 
 let csrfToken: string | null = null;
 

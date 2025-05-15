@@ -1,8 +1,17 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
-import { Container, Spinner, Row, Col, Card, Button, ListGroup } from "react-bootstrap";
 import { useQueries } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { Button, Card, Col, Container, ListGroup, Row, Spinner } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
+import { useParams } from "react-router-dom";
+
+import type {
+  ImageDateSchema,
+  ImageLocationSchema,
+  ImageMetadataSchema,
+  PersonInImageSchemaOut,
+  PetInImageSchemaOut,
+  UserProfileOutSchema,
+} from "../api";
 
 import {
   imageGetDate,
@@ -11,17 +20,8 @@ import {
   imageGetPeople,
   imageGetPets,
 } from "../api";
-
-import { useAuth } from "../hooks/useAuth";
 import BoundingBoxOverlay from "../components/image/BoundingBoxOverlay";
-import type {
-  PersonInImageSchemaOut,
-  ImageMetadataSchema,
-  ImageLocationSchema,
-  ImageDateSchema,
-  PetInImageSchemaOut,
-  UserProfileOutSchema,
-} from "../api";
+import { useAuth } from "../hooks/useAuth";
 
 function getOrientationDisplay(orientation: number | null | undefined): string {
   const map: Record<number, string> = {

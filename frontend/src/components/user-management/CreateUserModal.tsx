@@ -1,6 +1,7 @@
 // src/components/UserManagement/CreateUserModal.tsx
 import React, { useState } from "react";
-import { Modal, Button, Form, Alert } from "react-bootstrap";
+import { Alert, Button, Form, Modal } from "react-bootstrap";
+
 import type { UserInCreateSchemaWritable } from "../../api";
 
 interface CreateUserModalProps {

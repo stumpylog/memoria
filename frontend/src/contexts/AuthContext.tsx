@@ -1,11 +1,11 @@
-import React, { createContext, useState, useEffect, useMemo, useCallback } from "react";
-import type { UserOutSchema as User, AuthLoginData } from "../api";
-import type { UserProfileOutSchema as UserProfile } from "../api";
-import { authLogin, authLogout, userGetMe, userGetMyProfile } from "../api";
-
-import { initializeCsrfToken } from "../api-config";
-
 import { AxiosError } from "axios";
+import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
+
+import type { AuthLoginData, UserOutSchema as User } from "../api";
+import type { UserProfileOutSchema as UserProfile } from "../api";
+
+import { authLogin, authLogout, userGetMe, userGetMyProfile } from "../api";
+import { initializeCsrfToken } from "../api-config";
 
 interface AuthContextType {
   user: User | null;

@@ -1,5 +1,6 @@
 // src/pages/LogoutPage.tsx
-import { Container, Card } from "react-bootstrap";
+import { Card, Container } from "react-bootstrap";
+
 import LinkButton from "../components/common/LinkButton";
 
 const LogoutPage: React.FC = () => {

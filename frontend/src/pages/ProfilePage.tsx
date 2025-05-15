@@ -1,8 +1,9 @@
 // src/pages/ProfilePage.tsx
 import React from "react";
-import { Container, Card } from "react-bootstrap";
-import { useAuth } from "../hooks/useAuth";
+import { Card, Container } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
+
+import { useAuth } from "../hooks/useAuth";
 
 const ProfilePage: React.FC = () => {
   const { user, profile } = useAuth();

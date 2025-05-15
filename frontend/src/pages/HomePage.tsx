@@ -1,7 +1,8 @@
 // src/pages/HomePage.tsx
 import React from "react";
+import { Card, Col, Container, Row } from "react-bootstrap";
+
 import { useAuth } from "../hooks/useAuth";
-import { Container, Row, Col, Card } from "react-bootstrap";
 
 const HomePage: React.FC = () => {
   const { user } = useAuth();

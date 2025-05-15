@@ -1,6 +1,6 @@
 // src/components/group-management/EditGroupModal.tsx
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 
 // Assuming GroupOutSchema and GroupUpdateInSchema types exist in your api types
 import type { GroupOutSchema, GroupUpdateInSchema } from "../../api";

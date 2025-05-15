@@ -1,11 +1,13 @@
-import React from "react";
-import { Container, Spinner, Alert } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import FolderWall from "../components/folder/FolderWall";
-import type { RootFolderSchema } from "../api";
-import { folderListRoots } from "../api";
+import React from "react";
+import { Alert, Container, Spinner } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
+import { useNavigate } from "react-router-dom";
+
+import type { RootFolderSchema } from "../api";
+
+import { folderListRoots } from "../api";
+import FolderWall from "../components/folder/FolderWall";
 
 interface FoldersPageProps {
   onFolderClick?: (id: number) => void;

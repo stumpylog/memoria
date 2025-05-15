@@ -1,44 +1,43 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 // src/pages/SettingsPage.tsx
 import React, { useState } from "react";
-import { Container, Card, Alert, Button, Table, Spinner } from "react-bootstrap";
-import { useAuth } from "../hooks/useAuth";
+import { Alert, Button, Card, Container, Spinner, Table } from "react-bootstrap";
 import { Navigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // Types
 import type {
-  UserOutSchema,
-  UserUpdateInSchemeWritable,
+  GroupCreateInSchema,
+  GroupOutSchema,
+  GroupUpdateInSchema,
   UserGroupAssignInSchema,
   UserInCreateSchemaWritable,
-  GroupOutSchema,
-  GroupCreateInSchema,
-  GroupUpdateInSchema,
+  UserOutSchema,
+  UserUpdateInSchemeWritable,
 } from "../api";
 
+// API functions
+import {
+  groupDeleteSingle, // Assuming this function exists
+  groupGetAll, // Already exists and used
+  // New API functions for group management
+  groupsCreate, // Assuming this function exists
+  groupUpdateSingle, // Assuming this function exists
+  userCreate,
+  userGetAll,
+  userGetGroups,
+  userSetGroups,
+  userSetInfo,
+  // groupGetSingle, // Not strictly needed for this implementation but available
+} from "../api";
+// We will need new modals for group management:
+import CreateGroupModal from "../components/group-management/CreateGroupModal"; // Placeholder - need to create
+import DeleteGroupModal from "../components/group-management/DeleteGroupModal"; // Placeholder - need to create
+import EditGroupModal from "../components/group-management/EditGroupModal"; // Placeholder - need to create
 // Components
 import CreateUserModal from "../components/user-management/CreateUserModal";
 import EditUserModal from "../components/user-management/EditUserModal";
 import ManageGroupsModal from "../components/user-management/ManageGroupsModal"; // This is for user group assignment
-// We will need new modals for group management:
-import CreateGroupModal from "../components/group-management/CreateGroupModal"; // Placeholder - need to create
-import EditGroupModal from "../components/group-management/EditGroupModal"; // Placeholder - need to create
-import DeleteGroupModal from "../components/group-management/DeleteGroupModal"; // Placeholder - need to create
-
-// API functions
-import {
-  userGetAll,
-  groupGetAll, // Already exists and used
-  userCreate,
-  userSetInfo,
-  userSetGroups,
-  userGetGroups,
-  // New API functions for group management
-  groupsCreate, // Assuming this function exists
-  groupDeleteSingle, // Assuming this function exists
-  groupUpdateSingle, // Assuming this function exists
-  // groupGetSingle, // Not strictly needed for this implementation but available
-} from "../api";
+import { useAuth } from "../hooks/useAuth";
 
 const SettingsPage: React.FC = () => {
   const { user: currentUser } = useAuth();
