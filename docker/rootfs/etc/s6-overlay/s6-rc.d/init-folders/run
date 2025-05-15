@@ -1,0 +1,45 @@
+#!/command/with-contenv /bin/ash
+# shellcheck shell=bash
+
+log_prefix="[init-folders]"
+
+main_dirs=(
+	"/app/data/"
+	"/app/data/logs/"
+	"/app/media/"
+)
+
+nginx_dirs=(
+	"/app/data/nginx/"
+	"/app/data/nginx/run/"
+	"/app/data/nginx/logs/"
+	"/app/data/nginx/client_body_temp/",
+	/app/data/nginx/proxy_temp/
+	"/app/data/nginx/fastcgi_temp/"
+	"/app/data/nginx/uwsgi_temp/"
+	"/app/data/nginx/scgi_temp/"
+    "/var/lib/nginx/logs"
+    "/var/log/nginx"
+)
+
+echo "${log_prefix} Running with root privileges, adjusting directories and permissions"
+
+# First create directories
+for dir in "${main_dirs[@]}"; do
+    if [[ ! -d "${dir}" ]]; then
+        mkdir --parents --verbose "${dir}"
+    fi
+done
+for dir in "${nginx_dirs[@]}"; do
+    if [[ ! -d "${dir}" ]]; then
+        mkdir --parents --verbose "${dir}"
+    fi
+done
+
+# Then fix permissions on all directories
+for dir in "${main_dirs[@]}"; do
+    find "${dir}" -not \( -user memoria -and -group memoria \) -exec chown --changes memoria:memoria {} +
+done
+for dir in "${nginx_dirs[@]}"; do
+    find "${dir}" -not \( -user memoria -and -group memoria \) -exec chown --changes memoria:memoria {} +
+done

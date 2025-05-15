@@ -111,7 +111,6 @@ RUN set -eux \
     && mkdir --parents --verbose /app/data/ \
     && mkdir --parents --verbose /app/data/logs/ \
     && mkdir --parents --verbose /app/data/nginx/ \
-    && mkdir --parents --verbose /app/data/nginx/ \
     && mkdir --parents --verbose /app/static/ \
     && mkdir --parents --verbose /app/media/ \
     && chown --changes --recursive memoria:memoria /app/ \
