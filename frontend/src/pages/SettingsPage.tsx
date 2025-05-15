@@ -8,7 +8,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   UserOutSchema,
   UserUpdateInSchemeWritable,
-  GroupOutSchema,
   GroupAssignSchema,
   UserInCreateSchemaWritable,
 } from "../api";
@@ -178,13 +177,6 @@ const SettingsPage: React.FC = () => {
   if (currentUser === null || (!currentUser.is_staff && !currentUser.is_superuser)) {
     return <Navigate to="/" replace />;
   }
-
-  // Determine if we're loading anything
-  const isLoading =
-    usersLoading ||
-    createUserMutation.isPending ||
-    updateUserMutation.isPending ||
-    updateUserGroupsMutation.isPending;
 
   // Determine if there's an error to display
   const displayError =

@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { Container, Row, Col, Button, Spinner, Card, ListGroup } from "react-bootstrap";
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
+import { Container, Spinner, Row, Col, Card, Button, ListGroup } from "react-bootstrap";
+import { useQueries } from "@tanstack/react-query";
+import { Helmet } from "react-helmet-async";
+
 import {
   imageGetDate,
   imageGetLocation,
@@ -7,127 +11,145 @@ import {
   imageGetPeople,
   imageGetPets,
 } from "../api";
-import { useParams } from "react-router-dom";
+
 import { useAuth } from "../hooks/useAuth";
 import BoundingBoxOverlay from "../components/image/BoundingBoxOverlay";
-import type { PersonInImageSchemaOut } from "../api";
-import type { ImageMetadataSchema } from "../api";
-import type { ImageLocationSchema } from "../api";
-import type { ImageDateSchema } from "../api";
-import type { PetInImageSchemaOut } from "../api";
-import { Helmet } from "react-helmet-async";
+import type {
+  PersonInImageSchemaOut,
+  ImageMetadataSchema,
+  ImageLocationSchema,
+  ImageDateSchema,
+  PetInImageSchemaOut,
+  UserProfileOutSchema,
+} from "../api";
+
+function getOrientationDisplay(orientation: number | null | undefined): string {
+  const map: Record<number, string> = {
+    1: "Normal",
+    2: "Mirror horizontal",
+    3: "Rotate 180",
+    4: "Mirror vertical",
+    5: "Mirror horizontal and rotate 270 CW",
+    6: "Rotate 90 CW",
+    7: "Mirror horizontal and rotate 90 CW",
+    8: "Rotate 270 CW",
+  };
+  return orientation == null ? "Unknown" : map[orientation] || `Orientation ${orientation}`;
+}
+
+// Helper function to format file size
+const formatBytes = (bytes: number, decimals = 2): string => {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+};
+
+// Format date helper with timezone support
+const formatDate = (
+  profile: UserProfileOutSchema | null,
+  dateString: string | null | undefined,
+): string => {
+  if (!dateString) return "Not available";
+  if (!profile) return dateString;
+  try {
+    const date = new Date(dateString);
+
+    // Use the user's timezone if available
+    if (profile.timezone_name) {
+      return date.toLocaleString("en-US", {
+        timeZone: profile.timezone_name,
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+    }
+
+    // Fallback format if no timezone
+    return date.toLocaleString();
+  } catch (e) {
+    return dateString;
+  }
+};
+
+const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
+  if (!dateInfo.date) return <span className="fst-italic">Not available</span>;
+
+  try {
+    // Parse the original date
+    const dateParts = dateInfo.date.split("-");
+    if (dateParts.length !== 3) return dateInfo.date;
+
+    let [year, month, day] = dateParts;
+
+    // Replace month with XX if invalid
+    if (!dateInfo.month_valid) {
+      month = "XX";
+    }
+
+    // Replace day with YY if invalid
+    if (!dateInfo.day_valid) {
+      day = "YY";
+    }
+
+    return `${year}-${month}-${day}`;
+  } catch (e) {
+    return dateInfo.date;
+  }
+};
 
 const ImageDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const imageId = parseInt(id || "0", 10);
-  const { profile } = useAuth(); // Get user profile with timezone
+  const { profile } = useAuth();
 
-  const [metadata, setMetadata] = useState<ImageMetadataSchema | null>(null);
-  const [location, setLocation] = useState<ImageLocationSchema | null>(null);
-  const [dateInfo, setDateInfo] = useState<ImageDateSchema | null>(null);
-  const [people, setPeople] = useState<PersonInImageSchemaOut[]>([]);
-  const [pets, setPets] = useState<PetInImageSchemaOut[]>([]);
   const [showPeople, setShowPeople] = useState(false);
   const [showPets, setShowPets] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [canEdit, setCanEdit] = useState(false); // This would be set based on user permissions
 
-  useEffect(() => {
-    if (!imageId) return;
+  const results = useQueries({
+    queries: [
+      {
+        queryKey: ["metadata", imageId],
+        queryFn: () => imageGetMetadata({ path: { image_id: imageId } }),
+      },
+      {
+        queryKey: ["location", imageId],
+        queryFn: () => imageGetLocation({ path: { image_id: imageId } }),
+      },
+      {
+        queryKey: ["date", imageId],
+        queryFn: () => imageGetDate({ path: { image_id: imageId } }),
+      },
+      {
+        queryKey: ["people", imageId],
+        queryFn: () => imageGetPeople({ path: { image_id: imageId } }),
+      },
+      {
+        queryKey: ["pets", imageId],
+        queryFn: () => imageGetPets({ path: { image_id: imageId } }),
+      },
+    ],
+  });
 
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const id = +imageId;
-        const [meta, loc, date, ppl, pets] = await Promise.all([
-          imageGetMetadata({ path: { image_id: id } }),
-          imageGetLocation({ path: { image_id: id } }),
-          imageGetDate({ path: { image_id: id } }),
-          imageGetPeople({ path: { image_id: id } }),
-          imageGetPets({ path: { image_id: id } }),
-        ]);
+  const isLoading = results.some((r) => r.isLoading);
+  const isError = results.some((r) => r.isError);
 
-        setMetadata(meta.data === undefined ? null : meta.data);
-        setLocation(loc.data === undefined ? null : loc.data);
-        setDateInfo(date.data === undefined ? null : date.data);
-        setPeople(ppl.data === undefined ? [] : ppl.data);
-        setPets(pets.data === undefined ? [] : pets.data);
+  const [metadataRes, locationRes, dateRes, peopleRes, petsRes] = results;
 
-        // Check if user has edit permissions (this would be implemented based on your auth system)
-        setCanEdit(true); // Placeholder - replace with actual permission check
-      } catch (error) {
-        console.error("Error loading image data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const metadata: ImageMetadataSchema | null = metadataRes.data?.data ?? null;
+  const location: ImageLocationSchema | null = locationRes.data?.data ?? null;
+  const dateInfo: ImageDateSchema | null = dateRes.data?.data ?? null;
+  const people: PersonInImageSchemaOut[] = peopleRes.data?.data ?? [];
+  const pets: PetInImageSchemaOut[] = petsRes.data?.data ?? [];
 
-    loadData();
-  }, [imageId]);
+  const canEdit = true; // Replace with actual permission check later
 
-  // Helper function to format file size
-  const formatBytes = (bytes: number, decimals = 2): string => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
-  };
-
-  // Format date helper with timezone support
-  const formatDate = (dateString: string | null | undefined): string => {
-    if (!dateString) return "Not available";
-    try {
-      const date = new Date(dateString);
-
-      // Use the user's timezone if available
-      if (profile?.timezone_name) {
-        return date.toLocaleString("en-US", {
-          timeZone: profile.timezone_name,
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "numeric",
-          minute: "numeric",
-          hour12: true,
-        });
-      }
-
-      // Fallback format if no timezone
-      return date.toLocaleString();
-    } catch (e) {
-      return dateString;
-    }
-  };
-
-  const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
-    if (!dateInfo.date) return <span className="fst-italic">Not available</span>;
-
-    try {
-      // Parse the original date
-      const dateParts = dateInfo.date.split("-");
-      if (dateParts.length !== 3) return dateInfo.date;
-
-      let [year, month, day] = dateParts;
-
-      // Replace month with XX if invalid
-      if (!dateInfo.month_valid) {
-        month = "XX";
-      }
-
-      // Replace day with YY if invalid
-      if (!dateInfo.day_valid) {
-        day = "YY";
-      }
-
-      return `${year}-${month}-${day}`;
-    } catch (e) {
-      return dateInfo.date;
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <Container className="text-center mt-5">
         <Spinner animation="border" />
@@ -135,7 +157,7 @@ const ImageDetailPage: React.FC = () => {
     );
   }
 
-  if (!metadata) {
+  if (!metadata || isError) {
     return (
       <Container className="mt-5">
         <div className="alert alert-warning">Image data not available or could not be loaded.</div>
@@ -143,49 +165,33 @@ const ImageDetailPage: React.FC = () => {
     );
   }
 
-  const {
-    full_size_url,
-    orientation,
-    original_height,
-    original_width,
-    title,
-    file_size,
-    description,
-    created_at,
-    updated_at,
-    original_checksum,
-    phash,
-    image_fs_id,
-    original_path,
-  } = metadata;
-
   return (
     <Container fluid className="py-4">
       <Helmet>
-        <title>Memoria - Image: {title}</title>
+        <title>Memoria - Image: {metadata.title}</title>
       </Helmet>
       <Row className="mb-4">
         {/* Image Section (Left Column) */}
         <Col md={8}>
-          {full_size_url ? (
+          {metadata.full_size_url ? (
             <Card>
               <Card.Body className="p-1 text-center">
                 <div
                   id="imageContainer"
                   style={{ position: "relative", display: "inline-block" }}
-                  data-orientation={orientation}
+                  data-orientation={metadata.orientation}
                 >
                   <img
                     id="mainImage"
-                    src={full_size_url}
-                    alt={title || "Image"}
+                    src={metadata.full_size_url}
+                    alt={metadata.title || "Image"}
                     className="img-fluid rounded"
                     style={{ maxHeight: "70vh", width: "auto" }}
                   />
                   {showPeople && people && people.length > 0 && (
                     <BoundingBoxOverlay
                       boxes={people}
-                      orientation={orientation || 1}
+                      orientation={metadata.orientation || 1}
                       color="rgba(0, 123, 255, 0.5)" // Blue with opacity
                       labelKey="name"
                     />
@@ -193,7 +199,7 @@ const ImageDetailPage: React.FC = () => {
                   {showPets && pets && pets.length > 0 && (
                     <BoundingBoxOverlay
                       boxes={pets}
-                      orientation={orientation || 1}
+                      orientation={metadata.orientation || 1}
                       color="rgba(255, 193, 7, 0.5)" // Amber/Yellow with opacity
                       labelKey="name"
                     />
@@ -202,9 +208,11 @@ const ImageDetailPage: React.FC = () => {
               </Card.Body>
               <Card.Footer className="d-flex justify-content-between flex-wrap">
                 <span>
-                  {original_width}x{original_height} px
+                  {metadata.original_width}x{metadata.original_height} px
                 </span>
-                <span>{file_size ? formatBytes(file_size) : "Unknown size"}</span>
+                <span>
+                  {metadata.file_size ? formatBytes(metadata.file_size) : "Unknown size"}
+                </span>
                 <div className="d-flex">
                   {/* Toggle for People bounding boxes */}
                   <div className="form-check form-switch ms-3">
@@ -252,10 +260,10 @@ const ImageDetailPage: React.FC = () => {
               <h5 className="mb-0">Image Info</h5>
             </Card.Header>
             <Card.Body>
-              <h5 className="card-title">Title: {title || "Untitled Image"}</h5>
+              <h5 className="card-title">Title: {metadata.title || "Untitled Image"}</h5>
 
-              {description ? (
-                <p className="card-text">{description}</p>
+              {metadata.description ? (
+                <p className="card-text">{metadata.description}</p>
               ) : (
                 <p className="text-muted small">No description available.</p>
               )}
@@ -291,12 +299,12 @@ const ImageDetailPage: React.FC = () => {
 
               <p className="small mb-1">
                 <strong>Created:</strong>
-                <span className="text-muted"> {formatDate(created_at)}</span>
+                <span className="text-muted"> {formatDate(profile, metadata.created_at)}</span>
               </p>
 
               <p className="small mb-1">
                 <strong>Updated:</strong>
-                <span className="text-muted"> {formatDate(updated_at)}</span>
+                <span className="text-muted"> {formatDate(profile, metadata.updated_at)}</span>
               </p>
             </Card.Body>
           </Card>
@@ -366,20 +374,23 @@ const ImageDetailPage: React.FC = () => {
                     <strong>Original Checksum:</strong>
                     <span className="text-monospace text-muted">
                       {" "}
-                      {original_checksum
-                        ? `${original_checksum.slice(0, 16)}...`
+                      {metadata.original_checksum
+                        ? `${metadata.original_checksum.slice(0, 16)}...`
                         : "Not available"}
                     </span>
                   </p>
                   <p className="small mb-1">
                     <strong>Perceptual Hash:</strong>
-                    <span className="text-monospace text-muted"> {phash || "Not available"}</span>
+                    <span className="text-monospace text-muted">
+                      {" "}
+                      {metadata.phash || "Not available"}
+                    </span>
                   </p>
                   <p className="small mb-1">
                     <strong>Orientation:</strong>
                     <span className="text-muted">
                       {" "}
-                      {getOrientationDisplay(orientation)} ({orientation})
+                      {getOrientationDisplay(metadata.orientation)} ({metadata.orientation})
                     </span>
                   </p>
                 </Col>
@@ -388,15 +399,15 @@ const ImageDetailPage: React.FC = () => {
                     <strong>File Size:</strong>
                     <span className="text-muted">
                       {" "}
-                      {file_size ? formatBytes(file_size) : "Not available"}
+                      {metadata.file_size ? formatBytes(metadata.file_size) : "Not available"}
                     </span>
                   </p>
                   <p className="small mb-1">
                     <strong>Dimensions:</strong>
                     <span className="text-muted">
                       {" "}
-                      {original_width && original_height
-                        ? `${original_width}x${original_height} pixels`
+                      {metadata.original_width && metadata.original_height
+                        ? `${metadata.original_width}x${metadata.original_height} pixels`
                         : "Not available"}
                     </span>
                   </p>
@@ -404,7 +415,7 @@ const ImageDetailPage: React.FC = () => {
                     <strong>ID:</strong>
                     <span className="text-monospace text-muted">
                       {" "}
-                      {image_fs_id || "Not available"}
+                      {metadata.image_fs_id || "Not available"}
                     </span>
                   </p>
                   <p className="small mb-1">
@@ -413,7 +424,7 @@ const ImageDetailPage: React.FC = () => {
                       className="text-monospace text-muted text-truncate d-inline-block align-baseline"
                       style={{ maxWidth: "100%" }}
                     >
-                      {original_path || "Not available"}
+                      {metadata.original_path || "Not available"}
                     </span>
                   </p>
                 </Col>
@@ -425,23 +436,5 @@ const ImageDetailPage: React.FC = () => {
     </Container>
   );
 };
-
-// Helper function to convert orientation number to display string
-function getOrientationDisplay(orientation: number | null | undefined): string {
-  if (orientation === null || orientation === undefined) return "Unknown";
-
-  const orientationMap: Record<number, string> = {
-    1: "Normal",
-    2: "Mirror horizontal",
-    3: "Rotate 180",
-    4: "Mirror vertical",
-    5: "Mirror horizontal and rotate 270 CW",
-    6: "Rotate 90 CW",
-    7: "Mirror horizontal and rotate 90 CW",
-    8: "Rotate 270 CW",
-  };
-
-  return orientationMap[orientation] || `Orientation ${orientation}`;
-}
 
 export default ImageDetailPage;

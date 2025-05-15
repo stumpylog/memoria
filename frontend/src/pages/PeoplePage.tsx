@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import type { PersonReadOutSchema } from "../api";
 import { getAllPeople } from "../api";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom"; // Assuming you are using react-router-dom
+import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 const PeoplePage: React.FC = () => {
   const [people, setPeople] = useState<PersonReadOutSchema[] | null>(null);
@@ -68,6 +69,9 @@ const PeoplePage: React.FC = () => {
 
   return (
     <Container className="mt-4">
+      <Helmet>
+        <title>Memoria - People</title>
+      </Helmet>
       <h2>People List</h2>
       <Row xs={1} md={2} lg={3} className="g-4">
         {" "}
