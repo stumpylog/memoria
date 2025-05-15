@@ -55,6 +55,8 @@ import type {
   GetAllPeopleResponse,
   GetPersonDetailData,
   GetPersonDetailResponse,
+  UpdatePersonDetailData,
+  UpdatePersonDetailResponse,
   GetPersonImagesData,
   GetPersonImagesResponse,
   UserGetAllData,
@@ -628,6 +630,26 @@ export const getPersonDetail = <ThrowOnError extends boolean = false>(
   return (options.client ?? _heyApiClient).get<GetPersonDetailResponse, unknown, ThrowOnError>({
     url: "/api/person/{person_id}/",
     ...options,
+  });
+};
+
+/**
+ * Update Person
+ */
+export const updatePersonDetail = <ThrowOnError extends boolean = false>(
+  options: Options<UpdatePersonDetailData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    UpdatePersonDetailResponse,
+    unknown,
+    ThrowOnError
+  >({
+    url: "/api/person/{person_id}/",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
   });
 };
 

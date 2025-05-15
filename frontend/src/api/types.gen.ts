@@ -118,11 +118,20 @@ export type AlbumWithImagesReadInSchema = {
 };
 
 export type AuthLoginSchemaReadable = {
+  /**
+   * The user's login name.
+   */
   username: string;
 };
 
 export type AuthLoginSchemaWritable = {
+  /**
+   * The user's password (treated as a secret).
+   */
   password: string;
+  /**
+   * The user's login name.
+   */
   username: string;
 };
 
@@ -132,6 +141,9 @@ export type BreadcrumbSchema = {
 };
 
 export type CsrfTokenOutSchema = {
+  /**
+   * The CSRF token used for session verification.
+   */
   csrf_token: string;
 };
 
@@ -250,6 +262,14 @@ export type PersonReadOutSchema = {
   id: number;
   image_count: number;
   name: string;
+};
+
+/**
+ * Schema to update a person
+ */
+export type PersonUpdateInSchema = {
+  description?: string | null;
+  name?: string | null;
 };
 
 /**
@@ -1127,6 +1147,25 @@ export type GetPersonDetailResponses = {
 };
 
 export type GetPersonDetailResponse = GetPersonDetailResponses[keyof GetPersonDetailResponses];
+
+export type UpdatePersonDetailData = {
+  body: PersonUpdateInSchema;
+  path: {
+    person_id: number;
+  };
+  query?: never;
+  url: "/api/person/{person_id}/";
+};
+
+export type UpdatePersonDetailResponses = {
+  /**
+   * OK
+   */
+  200: PersonDetailOutSchema;
+};
+
+export type UpdatePersonDetailResponse =
+  UpdatePersonDetailResponses[keyof UpdatePersonDetailResponses];
 
 export type GetPersonImagesData = {
   body?: never;

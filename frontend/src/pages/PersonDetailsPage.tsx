@@ -1,7 +1,7 @@
 // src/pages/PersonDetailsPage.tsx
 
 import { useQuery } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react"; // Import useRef
 import { Button, Col, Container, Row, Spinner } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -33,35 +33,63 @@ const PersonDetailsPage: React.FC = () => {
   // Derive offset and limit from URL search params, with fallbacks
   // Use parseInt with radix 10 and provide default values
   const offset = parseInt(searchParams.get("offset") || "0", 10);
-  const limit = parseInt(searchParams.get("limit") || String(profile?.items_per_page || 30), 10);
+  // Initialize limit from URL or profile, but don't write to URL initially
+  const initialLimit = parseInt(
+    searchParams.get("limit") || String(profile?.items_per_page || 30),
+    10,
+  );
+  const [limit, setLimit] = useState(initialLimit);
 
   // totalImageCount still needs useState as it's data from the API, not UI state directly
   const [totalImageCount, setTotalImageCount] = useState<number | undefined>(undefined);
 
-  // Refined Effect to sync URL 'limit' parameter with user profile's items_per_page
-  // This ensures the URL reflects the user's preference on load or preference change
-  useEffect(() => {
-    // Only proceed if profile is loaded or we have a default value to apply
-    const profileLimit = profile?.items_per_page || 30;
-    const urlLimitParam = searchParams.get("limit"); // Get the raw parameter string
+  // Ref to track if it's the initial render
+  const isInitialRender = useRef(true);
 
-    // Check if the URL parameter is missing OR if it exists but doesn't match the profile/default limit
-    if (urlLimitParam === null || parseInt(urlLimitParam, 10) !== profileLimit) {
-      // Use setSearchParams to update the URL
+  // Effect to sync component's limit state with user profile's items_per_page
+  // This runs on initial load and when profile or searchParams change.
+  useEffect(() => {
+    const profileLimit = profile?.items_per_page || 30;
+    const urlLimitParam = searchParams.get("limit");
+    const urlLimit = urlLimitParam ? parseInt(urlLimitParam, 10) : undefined;
+
+    // Update component's internal limit state based on profile or URL if present
+    if (profile && profileLimit !== limit) {
+      setLimit(profileLimit);
+    } else if (urlLimit !== undefined && urlLimit !== limit) {
+      setLimit(urlLimit);
+    } else if (urlLimit === undefined && profileLimit !== limit && isInitialRender.current) {
+      // On initial render, if no URL limit and profile limit is different,
+      // set component limit to profile limit but don't write to URL yet.
+      setLimit(profileLimit);
+    }
+
+    // After initial render, if the component's limit (derived from profile/default)
+    // is different from the URL's limit (which might be absent), update the URL
+    // using replace: true to avoid adding to history on subsequent profile loads.
+    if (!isInitialRender.current && profile && profileLimit !== urlLimit) {
       setSearchParams(
         (prevParams) => {
           const newParams = new URLSearchParams(prevParams);
-          newParams.set("limit", String(profileLimit));
-          // We keep { replace: true } here because setting the default limit on load
-          // or profile change shouldn't add an extra history entry.
+          // Only set the limit param if it's different from the default to keep URLs cleaner
+          if (profileLimit !== 30) {
+            // Assuming 30 is the common default
+            newParams.set("limit", String(profileLimit));
+          } else {
+            newParams.delete("limit"); // Remove if it's the default
+          }
           return newParams;
         },
         { replace: true },
       );
     }
-    // Depend on profile (as it loads asynchronously) and searchParams (in case limit is changed externally)
+
+    // Mark initial render as complete
+    isInitialRender.current = false;
+
+    // Depend on profile and searchParams to react to external changes
     // Add setSearchParams as per React hook best practices
-  }, [profile, searchParams, setSearchParams]);
+  }, [profile, searchParams, setSearchParams, limit]); // Added 'limit' to dependencies
 
   // 1. Query for Person Details (includes image_count)
   const {
@@ -204,6 +232,8 @@ const PersonDetailsPage: React.FC = () => {
       setSearchParams((prevParams) => {
         const newParams = new URLSearchParams(prevParams);
         newParams.set("offset", String(offset + limit));
+        // Also ensure the current limit is in the URL when navigating
+        newParams.set("limit", String(limit));
         return newParams;
       }); // No { replace: true } - push new history entry
     }
@@ -216,6 +246,8 @@ const PersonDetailsPage: React.FC = () => {
       setSearchParams((prevParams) => {
         const newParams = new URLSearchParams(prevParams);
         newParams.set("offset", String(newOffset));
+        // Also ensure the current limit is in the URL when navigating
+        newParams.set("limit", String(limit));
         return newParams;
       }); // No { replace: true } - push new history entry
     }
@@ -237,8 +269,23 @@ const PersonDetailsPage: React.FC = () => {
         <title>Memoria - {person?.name || "Loading..."}</title>
       </Helmet>
       <h2>{person?.name || "Loading..."}</h2>
-      {person?.description && <p>{person.description}</p>}
+
+      {/* Display description or "No description" */}
+      {person?.description ? (
+        <p>{person.description}</p>
+      ) : (
+        <p className="text-muted font-italic">No description</p>
+      )}
+
+      {/* Edit button */}
+      {personId && ( // Ensure personId is available before rendering the button
+        <Button onClick={() => navigate(`/people/${personId}/edit`)} className="mb-3">
+          Edit
+        </Button>
+      )}
+
       <hr className="my-4" />
+
       <h3>Images ({totalImageCount !== undefined ? totalImageCount : "Loading..."})</h3>
       {isLoadingAnyImageData && !images ? (
         <Container className="mt-4 text-center">
