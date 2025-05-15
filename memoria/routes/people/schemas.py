@@ -2,12 +2,11 @@ import sys
 
 from ninja import Schema
 from pydantic import Field
-from pydantic import model_validator
 
 if sys.version_info > (3, 11):
-    from typing import Self
+    pass
 else:
-    from typing import Self
+    pass
 
 
 class PersonCreateInSchema(Schema):
@@ -19,13 +18,15 @@ class PersonCreateInSchema(Schema):
     description: str | None = None
 
 
-class PersonReadOutSchema(PersonCreateInSchema):
+class PersonReadOutSchema(Schema):
     """
     Schema when reading a person
     """
 
     id: int
+    name: str
     image_count: int
+    description: str | None = None
 
 
 class PersonDetailOutSchema(Schema):
@@ -46,9 +47,3 @@ class PersonUpdateInSchema(Schema):
 
     name: str | None = None
     description: str | None = None
-
-    @model_validator(mode="after")
-    def check_one_or_other(self) -> Self:
-        if self.name is None and self.description is None:
-            raise ValueError("At least one of name or description must be set")  # noqa: TRY003, EM101
-        return self

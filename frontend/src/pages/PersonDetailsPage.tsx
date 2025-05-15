@@ -15,6 +15,7 @@ import type {
 } from "../api";
 
 import { getPersonDetail, getPersonImages, imageGetThumbInfo } from "../api";
+import EditPersonModal from "../components/EditPersonModal";
 import ImageWall from "../components/image/ImageWall";
 import { useAuth } from "../hooks/useAuth";
 import { getGridColumns } from "../utils/getGridColums";
@@ -26,6 +27,14 @@ const PersonDetailsPage: React.FC = () => {
 
   const personId = id ? parseInt(id, 10) : undefined;
   const isValidId = personId !== undefined && !isNaN(personId);
+
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const handleShowEditModal = () => setShowEditModal(true);
+  const handleCloseEditModal = () => setShowEditModal(false);
+  const handleSaveSuccess = () => {
+    refetchPerson(); // Refetch person data after successful save
+  };
 
   // Use useSearchParams to manage offset and limit in the URL
   const [searchParams, setSearchParams] = useSearchParams();
@@ -97,6 +106,7 @@ const PersonDetailsPage: React.FC = () => {
     isLoading: isLoadingPerson,
     isError: isErrorPerson,
     error: personError,
+    refetch: refetchPerson,
   } = useQuery<PersonDetailOutSchema | null, Error>({
     queryKey: ["person", personId],
     queryFn: async () => {
@@ -279,9 +289,18 @@ const PersonDetailsPage: React.FC = () => {
 
       {/* Edit button */}
       {personId && ( // Ensure personId is available before rendering the button
-        <Button onClick={() => navigate(`/people/${personId}/edit`)} className="mb-3">
+        <Button onClick={handleShowEditModal} className="mb-3">
           Edit
         </Button>
+      )}
+
+      {person && ( // Only render if person data is available
+        <EditPersonModal
+          show={showEditModal}
+          handleClose={handleCloseEditModal}
+          person={person}
+          onSaveSuccess={handleSaveSuccess}
+        />
       )}
 
       <hr className="my-4" />

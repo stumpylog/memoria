@@ -255,12 +255,14 @@
       "AuthLoginSchema": {
         "properties": {
           "password": {
+            "description": "The user's password (treated as a secret).",
             "format": "password",
             "title": "Password",
             "type": "string",
             "writeOnly": true
           },
           "username": {
+            "description": "The user's login name.",
             "title": "Username",
             "type": "string"
           }
@@ -287,6 +289,7 @@
       "CsrfTokenOutSchema": {
         "properties": {
           "csrf_token": {
+            "description": "The CSRF token used for session verification.",
             "title": "Csrf Token",
             "type": "string"
           }
@@ -743,8 +746,37 @@
             "type": "string"
           }
         },
-        "required": ["name", "id", "image_count"],
+        "required": ["id", "name", "image_count"],
         "title": "PersonReadOutSchema",
+        "type": "object"
+      },
+      "PersonUpdateInSchema": {
+        "description": "Schema to update a person",
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "PersonUpdateInSchema",
         "type": "object"
       },
       "PetInImageSchemaOut": {
@@ -2340,6 +2372,44 @@
           }
         },
         "summary": "Get Person Detail",
+        "tags": ["people"]
+      },
+      "patch": {
+        "operationId": "update_person_detail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "person_id",
+            "required": true,
+            "schema": {
+              "title": "Person Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonUpdateInSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonDetailOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Update Person",
         "tags": ["people"]
       }
     },
