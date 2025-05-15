@@ -154,7 +154,6 @@ export type GroupOutSchema = {
 };
 
 export type GroupUpdateInSchema = {
-  id: number;
   name: string;
 };
 
@@ -200,11 +199,28 @@ export type ImageThumbnailSchema = {
 
 export type ImagesPerPageChoices = 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 100;
 
+export type Input = {
+  limit?: number;
+  offset?: number;
+};
+
+export type PagedPersonImageOutSchema = {
+  count: number;
+  items: Array<PersonImageOutSchema>;
+};
+
 export type PersonDetailOutSchema = {
   description?: string | null;
   id: number;
-  image_ids?: Array<number>;
+  image_count: number;
   name: string;
+};
+
+export type PersonImageOutSchema = {
+  /**
+   * One image the person appears in
+   */
+  id: number;
 };
 
 /**
@@ -1103,6 +1119,27 @@ export type GetPersonDetailResponses = {
 };
 
 export type GetPersonDetailResponse = GetPersonDetailResponses[keyof GetPersonDetailResponses];
+
+export type GetPersonImagesData = {
+  body?: never;
+  path: {
+    person_id: number;
+  };
+  query?: {
+    limit?: number;
+    offset?: number;
+  };
+  url: "/api/person/{person_id}/images/";
+};
+
+export type GetPersonImagesResponses = {
+  /**
+   * OK
+   */
+  200: PagedPersonImageOutSchema;
+};
+
+export type GetPersonImagesResponse = GetPersonImagesResponses[keyof GetPersonImagesResponses];
 
 export type UserGetAllData = {
   body?: never;

@@ -195,7 +195,10 @@ const SettingsPage: React.FC = () => {
     setSelectedUser(null);
   };
 
-  const handleEditUser = async (userId: number, userData: UserUpdateInSchemeWritable): Promise<void> => {
+  const handleEditUser = async (
+    userId: number,
+    userData: UserUpdateInSchemeWritable,
+  ): Promise<void> => {
     setUserError(null);
     await updateUserMutation.mutateAsync({ userId, userData });
   };
@@ -250,7 +253,10 @@ const SettingsPage: React.FC = () => {
     setSelectedGroup(null);
   };
 
-  const handleEditGroup = async (groupId: number, groupData: GroupUpdateInSchema): Promise<void> => {
+  const handleEditGroup = async (
+    groupId: number,
+    groupData: GroupUpdateInSchema,
+  ): Promise<void> => {
     setGroupError(null);
     await updateGroupMutation.mutateAsync({ groupId, groupData });
   };

@@ -22,23 +22,23 @@ const DeleteGroupModal: React.FC<DeleteGroupModalProps> = ({
   loading,
   error,
 }) => {
-    // Clear error when modal is shown
-    useEffect(() => {
-        if (show) {
-            // Clear any previous errors when the modal opens
-        }
-    }, [show]);
+  // Clear error when modal is shown
+  useEffect(() => {
+    if (show) {
+      // Clear any previous errors when the modal opens
+    }
+  }, [show]);
 
-const onDelete = async () => {
+  const onDelete = async () => {
     if (!group) return; // Should not happen if modal is shown
 
     await handleDelete(group.id);
   };
 
-    // Don't render if no group is selected (though parent handles this with conditional rendering)
-    if (!group && show) {
-        return null;
-    }
+  // Don't render if no group is selected (though parent handles this with conditional rendering)
+  if (!group && show) {
+    return null;
+  }
 
   return (
     <Modal show={show} onHide={handleClose} centered>
@@ -48,8 +48,8 @@ const onDelete = async () => {
       <Modal.Body>
         {error && <Alert variant="danger">{error}</Alert>}
         <p>
-          Are you sure you want to delete the group "
-          <strong>{group?.name}</strong>"? This action cannot be undone.
+          Are you sure you want to delete the group "<strong>{group?.name}</strong>"? This action
+          cannot be undone.
         </p>
       </Modal.Body>
       <Modal.Footer>
@@ -59,13 +59,7 @@ const onDelete = async () => {
         <Button variant="danger" onClick={onDelete} disabled={loading}>
           {loading ? (
             <>
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
+              <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
               {" Deleting..."}
             </>
           ) : (

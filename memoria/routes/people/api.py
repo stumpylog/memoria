@@ -4,10 +4,13 @@ from django.db.models import Count
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from ninja import Router
+from ninja.pagination import LimitOffsetPagination
+from ninja.pagination import paginate
 
 from memoria.models import Person
 from memoria.models.abstract import PermittedQueryset
 from memoria.routes.people.schemas import PersonDetailOutSchema
+from memoria.routes.people.schemas import PersonImageOutSchema
 from memoria.routes.people.schemas import PersonReadOutSchema
 
 router = Router(tags=["people"])
@@ -37,11 +40,25 @@ def get_person_detail(
     person: Person = get_object_or_404(Person.objects.permitted(request.user).with_images(), pk=person_id)
     permitted_image_filter = PermittedQueryset.get_permitted_filter_q(request.user)
 
-    logger.info(f"{person.name} has {person.images_featured_in.count()} images")
+    person_images = person.images_featured_in.filter(permitted_image_filter).distinct()
+
+    logger.info(f"{person.name} has {person_images.count()} images")
 
     return {
         "id": person.pk,
         "name": person.name,
         "description": person.description,
-        "image_ids": person.images_featured_in.filter(permitted_image_filter).distinct().values_list("pk", flat=True),
+        "image_count": person_images.count(),
     }
+
+
+@router.get("/{person_id}/images/", response=list[PersonImageOutSchema], operation_id="get_person_images")
+@paginate(LimitOffsetPagination)
+def get_person_images(
+    request: HttpRequest,
+    person_id: int,
+):
+    person: Person = get_object_or_404(Person.objects.permitted(request.user).with_images(), pk=person_id)
+    permitted_image_filter = PermittedQueryset.get_permitted_filter_q(request.user)
+
+    return person.images_featured_in.filter(permitted_image_filter).distinct().order_by("-created_at")

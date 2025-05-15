@@ -58,9 +58,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
         <Modal.Title>Create New Group</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {(localError || error) && (
-          <Alert variant="danger">{localError || error}</Alert>
-        )}
+        {(localError || error) && <Alert variant="danger">{localError || error}</Alert>}
         <Form>
           <Form.Group className="mb-3" controlId="formGroupName">
             <Form.Label>Group Name</Form.Label>
@@ -72,9 +70,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
               isInvalid={!!localError}
               disabled={loading}
             />
-            <Form.Control.Feedback type="invalid">
-              {localError}
-            </Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">{localError}</Form.Control.Feedback>
           </Form.Group>
         </Form>
       </Modal.Body>
@@ -85,13 +81,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
         <Button variant="primary" onClick={onSave} disabled={loading}>
           {loading ? (
             <>
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
+              <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
               {" Saving..."}
             </>
           ) : (

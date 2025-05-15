@@ -31,8 +31,12 @@ class PersonReadOutSchema(PersonCreateInSchema):
 class PersonDetailOutSchema(Schema):
     id: int
     name: str
+    image_count: int
     description: str | None = None
-    image_ids: list[int] = Field(default_factory=list)
+
+
+class PersonImageOutSchema(Schema):
+    id: int = Field(description="One image the person appears in")
 
 
 class PersonUpdateInSchema(Schema):

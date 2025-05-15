@@ -141,7 +141,7 @@ def get_user_groups(request: HttpRequest, user_id: int):
 @router.patch(
     "/{user_id}/info/",
     response=UserOutSchema,
-    auth=active_staff_or_superuser_auth,
+    auth=active_user_auth,
     operation_id="user_set_info",
 )
 def set_user_info(
@@ -159,6 +159,8 @@ def set_user_info(
     if data.is_active is not None:
         user.is_active = data.is_active
     if data.is_staff is not None:
+        if not request.user.is_staff or not request.user.is_superuser:
+            raise HttpNotAuthorizedError("Only a staff or superuser may designate another staff")
         user.is_staff = data.is_staff
     if data.is_superuser is not None:
         if data.is_superuser and not request.user.is_superuser:
@@ -182,7 +184,7 @@ def edit_profile(
     user_id: int,
     data: UserProfileUpdateSchema,
 ):
-    # TODO: Update a user profile if it is them or a staff member
+    user: UserModelT = get_object_or_404(UserModelT.objects.select_related("profile"), pk=user_id)
     return request.user
 
 

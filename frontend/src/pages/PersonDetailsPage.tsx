@@ -1,98 +1,144 @@
 // src/pages/PersonDetailsPage.tsx
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query"; // Import useQuery
-import type { PersonDetailOutSchema } from "../api";
-import type { ImageThumbnailSchema } from "../api";
-import { getPersonDetail, imageGetThumbInfo } from "../api";
-import { Container } from "react-bootstrap";
+import { useQuery } from "@tanstack/react-query";
+import type {
+  PersonDetailOutSchema,
+  ImageThumbnailSchema,
+  PersonImageOutSchema,
+  PagedPersonImageOutSchema,
+} from "../api";
+import { getPersonDetail, imageGetThumbInfo, getPersonImages } from "../api";
+import { Container, Button, Row, Col, Spinner } from "react-bootstrap";
 import ImageWall from "../components/image/ImageWall";
 import { Helmet } from "react-helmet-async";
+import { useAuth } from "../hooks/useAuth";
 
 const PersonDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { profile } = useAuth();
 
-  // Validate and parse the ID
   const personId = id ? parseInt(id, 10) : undefined;
   const isValidId = personId !== undefined && !isNaN(personId);
 
-  // 1. Query for Person Details
+  const [offset, setOffset] = useState<number>(0);
+  const [limit, setLimit] = useState<number>(profile?.items_per_page || 30);
+  const [totalImageCount, setTotalImageCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (profile?.items_per_page) {
+      setLimit(profile.items_per_page);
+      setOffset(0);
+    }
+  }, [profile]);
+
+  // 1. Query for Person Details (includes image_count)
   const {
     data: person,
     isLoading: isLoadingPerson,
     isError: isErrorPerson,
     error: personError,
   } = useQuery<PersonDetailOutSchema | null, Error>({
-    queryKey: ["person", personId], // Unique key for this query
+    queryKey: ["person", personId],
     queryFn: async () => {
-      if (!isValidId) {
-        throw new Error("Invalid or missing person ID in URL.");
-      }
-      // Assuming getPersonDetail returns a response object with a 'data' property
+      if (!isValidId) throw new Error("Invalid person ID.");
       const response = await getPersonDetail({ path: { person_id: personId! } });
-      if (!response || !response.data) {
-        // You might throw an error here if a person is expected but not found
-        // or return null if the API signals not found by returning data: null
-        // For now, let's return the data property which could be null/undefined
-        return response?.data || null;
+      if (response?.data) {
+        // Use image_count from PersonDetailOutSchema for totalImageCount
+        setTotalImageCount(response.data.image_count || 0);
+        return response.data;
       }
-      return response.data;
+      return null;
     },
-    enabled: isValidId, // Only run this query if the ID is valid
-    // You can add staleTime, cacheTime, etc. here if needed
+    enabled: isValidId,
   });
 
-  // Extract image_ids from the person data for the next query
-  const imageIds = person?.image_ids || [];
+  // 2. Query for Paginated Image IDs
+  const {
+    data: paginatedImageObjects,
+    isLoading: isLoadingPaginatedImageObjects,
+    isError: isErrorPaginatedImageObjects,
+    error: paginatedImageObjectsError,
+  } = useQuery<PersonImageOutSchema[], Error, PersonImageOutSchema[], readonly unknown[]>({
+    queryKey: ["person-image-ids", personId, limit, offset],
+    queryFn: async (): Promise<PersonImageOutSchema[]> => {
+      // The `enabled` condition handles guards for personId, person, totalImageCount, limit.
 
-  // 2. Query for Images related to the Person
+      const response = await getPersonImages({
+        // Type of 'response' is likely { data: PagedPersonImageOutSchema, ...other client props }
+        path: { person_id: personId! },
+        query: { limit, offset },
+      });
+
+      // Access the PagedPersonImageOutSchema from response.data
+      const pagedData: PagedPersonImageOutSchema | undefined = response?.data;
+
+      // Now extract the array of PersonImageOutSchema from pagedData.
+      // COMMON PROPERTY NAMES: items, results, list, records, data.
+      // Using 'items' as an assumption. PLEASE VERIFY THIS.
+      const actualImageObjects: PersonImageOutSchema[] | undefined = pagedData?.items;
+
+      if (Array.isArray(actualImageObjects)) {
+        return actualImageObjects;
+      }
+
+      // Log a warning if the expected structure isn't found.
+      console.warn(
+        "Paginated image data from API is not in the expected structure (e.g., response.data.items). Response data:",
+        response?.data,
+      );
+      return []; // Return empty array if data is not in the expected structure or if response/data is null/undefined.
+    },
+    enabled: isValidId && !!person && totalImageCount > 0 && limit > 0,
+  });
+
+  // Extract IDs for the next query
+  const currentImageIds = paginatedImageObjects?.map((img) => img.id) || [];
+
+  // 3. Query for Image Thumbnails based on Paginated IDs
   const {
     data: images,
     isLoading: isLoadingImages,
     isError: isErrorImages,
     error: imagesError,
   } = useQuery<ImageThumbnailSchema[] | null, Error>({
-    queryKey: ["person-images", personId, imageIds], // Key depends on person ID and image IDs
+    queryKey: ["person-images-thumbnails", currentImageIds.join(",")], // Key depends on the current set of IDs
     queryFn: async () => {
-      if (imageIds.length === 0) {
-        return []; // No images to fetch
+      if (currentImageIds.length === 0) {
+        return [];
       }
-      const imagePromises = imageIds.map((imageId) =>
+      const imagePromises = currentImageIds.map((imageId) =>
         imageGetThumbInfo({ path: { image_id: imageId } })
           .then((response) => response.data)
           .catch((imgErr) => {
             console.error(`Failed to fetch thumbnail for image ID ${imageId}:`, imgErr);
-            return null; // Return null for failed fetches
+            return null;
           }),
       );
-
       const imageResults = await Promise.all(imagePromises);
-      // Filter out any failed image fetches
-      const successfulImages = imageResults.filter(
-        (item) => item !== null,
-      ) as ImageThumbnailSchema[];
-
-      return successfulImages;
+      return imageResults.filter(
+        (item): item is ImageThumbnailSchema => item !== null, // Type guard
+      );
     },
-    // This query depends on the person data being successfully fetched AND having image IDs
-    enabled: !!person && imageIds.length > 0,
-    // The query will refetch if imageIds changes (though this is unlikely for a given person)
-    // If imageIds were to change dynamically for the same person ID,
-    // react-query would automatically refetch this query due to the key change.
+    enabled: currentImageIds.length > 0,
   });
 
   // Handle Loading States
-  if (isLoadingPerson || (person && isLoadingImages)) {
+  // Show spinner while person details are loading
+  if (isLoadingPerson) {
     return (
-      <Container className="mt-4">
+      <Container className="mt-4 text-center">
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading person details...</span>
+        </Spinner>
         <p>Loading person details...</p>
       </Container>
     );
   }
 
-  // Handle Error States
+  // Handle Error States for Person
   if (isErrorPerson) {
     return (
       <Container className="mt-4">
@@ -103,35 +149,28 @@ const PersonDetailsPage: React.FC = () => {
     );
   }
 
-  // Handle case where person data was fetched but is null (e.g., 404 Not Found from API if getPersonDetail returns data: null)
-  // Or the initial check for invalid ID failed.
   if (!person) {
-    // If isValidId is false, personError should already be set.
-    // If isValidId is true but person is null, it means the API returned no data for the ID.
-    const displayError = !isValidId
-      ? personError // Use the error set during initial validation
-      : new Error(`Person with ID ${personId} not found.`); // Or a new error for 404 case
-
     return (
       <Container className="mt-4">
-        <p className="text-danger">Error: {displayError ? displayError.message : "Unknown"}</p>
+        <p className="text-danger">Person with ID {personId} not found.</p>
       </Container>
     );
   }
 
-  // Handle Error State for Images (if person data was fetched successfully)
-  if (isErrorImages) {
-    // You might choose to render the person details and show an error message for images
-    console.error("Error fetching images:", imagesError);
-    // Option 1: Render person details and show an image error
-    // Option 2: Show a full error page (less common if person data is available)
-    // We'll proceed to render the page and potentially show an error message within the image section or just log it.
-    // For this example, we'll proceed and the ImageWall might just be empty or show a loading/error state itself if it handles that.
-    // Let's add a simple error message below the "Images" heading.
-  }
+  // Pagination handlers
+  const handleNextPage = () => {
+    if (offset + limit < totalImageCount) {
+      setOffset(offset + limit);
+    }
+  };
 
-  // If we reach here, person data is successfully loaded.
-  // images data might be loading, errored, empty, or loaded.
+  const handlePreviousPage = () => {
+    setOffset(Math.max(0, offset - limit));
+  };
+
+  const isLoadingAnyImageData = isLoadingPaginatedImageObjects || isLoadingImages;
+  const isErrorAnyImageData = isErrorPaginatedImageObjects || isErrorImages;
+  const anyImageError = paginatedImageObjectsError || imagesError;
 
   return (
     <Container className="mt-4">
@@ -141,22 +180,56 @@ const PersonDetailsPage: React.FC = () => {
       <h2>{person.name}</h2>
       {person.description && <p>{person.description}</p>}
       <hr className="my-4" />
-      <h3>Images</h3>
+      <h3>Images ({totalImageCount})</h3>
 
-      {/* Handle image loading/error states within the image section */}
-      {isLoadingImages ? (
-        <p>Loading images...</p>
-      ) : isErrorImages ? (
-        <p className="text-warning">Could not load all images. {imagesError?.message}</p> // Use warning for less critical error
+      {/* Show spinner while image data is loading, but only if no images are currently displayed */}
+      {isLoadingAnyImageData && !images ? (
+        <Container className="mt-4 text-center">
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading images...</span>
+          </Spinner>
+          <p>Loading images...</p>
+        </Container>
+      ) : isErrorAnyImageData ? (
+        <p className="text-warning">
+          Could not load images.
+          {anyImageError?.message}
+        </p>
+      ) : totalImageCount === 0 ? (
+        <p>No images found for this person.</p>
       ) : (
-        // Render ImageWall only when images data is available (could be an empty array)
-        <ImageWall
-          images={images || []} // Ensure images is always an array
-          onImageClick={(imageId) => {
-            navigate(`/images/${imageId}`);
-          }}
-          columns={4}
-        />
+        <>
+          <ImageWall
+            images={images || []}
+            onImageClick={(imgId) => navigate(`/images/${imgId}`)}
+            columns={4}
+          />
+          {totalImageCount > limit && ( // Only show pagination controls if there's more than one page
+            <Row className="mt-4 mb-4 justify-content-center">
+              <Col xs="auto">
+                <Button
+                  onClick={handlePreviousPage}
+                  disabled={offset === 0 || isLoadingAnyImageData}
+                >
+                  Previous
+                </Button>
+              </Col>
+              <Col xs="auto" className="d-flex align-items-center">
+                <span>
+                  Page {Math.floor(offset / limit) + 1} of {Math.ceil(totalImageCount / limit)}
+                </span>
+              </Col>
+              <Col xs="auto">
+                <Button
+                  onClick={handleNextPage}
+                  disabled={offset + limit >= totalImageCount || isLoadingAnyImageData}
+                >
+                  Next
+                </Button>
+              </Col>
+            </Row>
+          )}
+        </>
       )}
     </Container>
   );

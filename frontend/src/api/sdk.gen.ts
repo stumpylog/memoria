@@ -55,6 +55,8 @@ import type {
   GetAllPeopleResponse,
   GetPersonDetailData,
   GetPersonDetailResponse,
+  GetPersonImagesData,
+  GetPersonImagesResponse,
   UserGetAllData,
   UserGetAllResponse,
   UserCreateData,
@@ -395,7 +397,7 @@ export const groupGetAll = <ThrowOnError extends boolean = false>(
 
 /**
  * Create Group
- * Creates multiple groups from a list of group schemas using bulk_create.
+ * Creates multiple groups from a list of group schemas or a single group.
  *
  * Args:
  * request: The Django request object.
@@ -625,6 +627,18 @@ export const getPersonDetail = <ThrowOnError extends boolean = false>(
 ) => {
   return (options.client ?? _heyApiClient).get<GetPersonDetailResponse, unknown, ThrowOnError>({
     url: "/api/person/{person_id}/",
+    ...options,
+  });
+};
+
+/**
+ * Get Person Images
+ */
+export const getPersonImages = <ThrowOnError extends boolean = false>(
+  options: Options<GetPersonImagesData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<GetPersonImagesResponse, unknown, ThrowOnError>({
+    url: "/api/person/{person_id}/images/",
     ...options,
   });
 };

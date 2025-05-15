@@ -25,5 +25,7 @@ tasks:
     cmds:
       - uv run manage.py makemigrations
   exportschema:
+    env:
+      MEMORIA_DEBUG: "true"
     cmds:
       - uv run manage.py export_openapi_schema --output schema.json --sorted --indent 2

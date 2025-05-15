@@ -370,16 +370,12 @@
       },
       "GroupUpdateInSchema": {
         "properties": {
-          "id": {
-            "title": "Id",
-            "type": "integer"
-          },
           "name": {
             "title": "Name",
             "type": "string"
           }
         },
-        "required": ["id", "name"],
+        "required": ["name"],
         "title": "GroupUpdateInSchema",
         "type": "object"
       },
@@ -588,6 +584,42 @@
         "title": "ImagesPerPageChoices",
         "type": "integer"
       },
+      "Input": {
+        "properties": {
+          "limit": {
+            "default": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          }
+        },
+        "title": "Input",
+        "type": "object"
+      },
+      "PagedPersonImageOutSchema": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PersonImageOutSchema"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": ["items", "count"],
+        "title": "PagedPersonImageOutSchema",
+        "type": "object"
+      },
       "PersonDetailOutSchema": {
         "properties": {
           "description": {
@@ -605,20 +637,29 @@
             "title": "Id",
             "type": "integer"
           },
-          "image_ids": {
-            "items": {
-              "type": "integer"
-            },
-            "title": "Image Ids",
-            "type": "array"
+          "image_count": {
+            "title": "Image Count",
+            "type": "integer"
           },
           "name": {
             "title": "Name",
             "type": "string"
           }
         },
-        "required": ["id", "name"],
+        "required": ["id", "name", "image_count"],
         "title": "PersonDetailOutSchema",
+        "type": "object"
+      },
+      "PersonImageOutSchema": {
+        "properties": {
+          "id": {
+            "description": "One image the person appears in",
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": ["id"],
+        "title": "PersonImageOutSchema",
         "type": "object"
       },
       "PersonInImageSchemaOut": {
@@ -1822,7 +1863,7 @@
         "tags": ["groups"]
       },
       "post": {
-        "description": "Creates multiple groups from a list of group schemas using bulk_create.\n\nArgs:\n    request: The Django request object.\n    data: A GroupListInCreateSchema object containing the list of groups to create.\n\nReturns:\n    A list of GroupOutSchema objects representing the created groups.",
+        "description": "Creates multiple groups from a list of group schemas or a single group.\n\nArgs:\n    request: The Django request object.\n    data: A GroupListInCreateSchema object containing the list of groups to create.\n\nReturns:\n    A list of GroupOutSchema objects representing the created groups.",
         "operationId": "groups_create",
         "parameters": [],
         "requestBody": {
@@ -2265,6 +2306,58 @@
         "tags": ["people"]
       }
     },
+    "/api/person/{person_id}/images/": {
+      "get": {
+        "operationId": "get_person_images",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "person_id",
+            "required": true,
+            "schema": {
+              "title": "Person Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedPersonImageOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Person Images",
+        "tags": ["people"]
+      }
+    },
     "/api/user/": {
       "get": {
         "operationId": "user_get_all",
@@ -2541,7 +2634,7 @@
         },
         "security": [
           {
-            "SessionAuthIsActiveSuperUserOrStaff": []
+            "SessionAuthIsActive": []
           }
         ],
         "summary": "Set User Info",

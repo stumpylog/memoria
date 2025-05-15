@@ -60,9 +60,8 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
 
   // Don't render if no group is selected (though parent handles this with conditional rendering)
   if (!group && show) {
-      return null;
+    return null;
   }
-
 
   return (
     <Modal show={show} onHide={handleClose} centered>
@@ -70,9 +69,7 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
         <Modal.Title>Edit Group: {group?.name}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {(localError || error) && (
-          <Alert variant="danger">{localError || error}</Alert>
-        )}
+        {(localError || error) && <Alert variant="danger">{localError || error}</Alert>}
         <Form>
           <Form.Group className="mb-3" controlId="formGroupName">
             <Form.Label>Group Name</Form.Label>
@@ -84,9 +81,7 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
               isInvalid={!!localError}
               disabled={loading}
             />
-            <Form.Control.Feedback type="invalid">
-              {localError}
-            </Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">{localError}</Form.Control.Feedback>
           </Form.Group>
         </Form>
       </Modal.Body>
@@ -97,13 +92,7 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
         <Button variant="primary" onClick={onSave} disabled={loading}>
           {loading ? (
             <>
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
+              <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
               {" Saving..."}
             </>
           ) : (
