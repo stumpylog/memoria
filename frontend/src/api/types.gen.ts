@@ -144,11 +144,16 @@ export type FolderDetailSchema = {
   name: string;
 };
 
-export type GroupAssignSchema = {
-  id: number;
+export type GroupCreateInSchema = {
+  name: string;
 };
 
 export type GroupOutSchema = {
+  id: number;
+  name: string;
+};
+
+export type GroupUpdateInSchema = {
   id: number;
   name: string;
 };
@@ -491,6 +496,10 @@ export type TimezoneChoices =
   | "Antarctica/Vostok"
   | "Arctic/Longyearbyen";
 
+export type UserGroupAssignInSchema = {
+  id: number;
+};
+
 export type UserInCreateSchemaReadable = {
   email?: string | null;
   first_name?: string | null;
@@ -525,7 +534,7 @@ export type UserOutSchema = {
 
 export type UserProfileOutSchema = {
   bio: string | null;
-  items_per_page?: ImagesPerPageChoices;
+  items_per_page: ImagesPerPageChoices;
   timezone_name: TimezoneChoices;
 };
 
@@ -834,6 +843,94 @@ export type FolderGetDetailsResponses = {
 
 export type FolderGetDetailsResponse = FolderGetDetailsResponses[keyof FolderGetDetailsResponses];
 
+export type GroupGetAllData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/groups/";
+};
+
+export type GroupGetAllResponses = {
+  /**
+   * OK
+   */
+  200: Array<GroupOutSchema>;
+};
+
+export type GroupGetAllResponse = GroupGetAllResponses[keyof GroupGetAllResponses];
+
+export type GroupsCreateData = {
+  body: GroupCreateInSchema | Array<GroupCreateInSchema>;
+  path?: never;
+  query?: never;
+  url: "/api/groups/";
+};
+
+export type GroupsCreateResponses = {
+  /**
+   * OK
+   */
+  200: Array<GroupOutSchema>;
+};
+
+export type GroupsCreateResponse = GroupsCreateResponses[keyof GroupsCreateResponses];
+
+export type GroupDeleteSingleData = {
+  body?: never;
+  path: {
+    group_id: number;
+  };
+  query?: never;
+  url: "/api/groups/{group_id}/";
+};
+
+export type GroupDeleteSingleResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type GroupDeleteSingleResponse =
+  GroupDeleteSingleResponses[keyof GroupDeleteSingleResponses];
+
+export type GroupGetSingleData = {
+  body?: never;
+  path: {
+    group_id: number;
+  };
+  query?: never;
+  url: "/api/groups/{group_id}/";
+};
+
+export type GroupGetSingleResponses = {
+  /**
+   * OK
+   */
+  200: GroupOutSchema;
+};
+
+export type GroupGetSingleResponse = GroupGetSingleResponses[keyof GroupGetSingleResponses];
+
+export type GroupUpdateSingleData = {
+  body: GroupUpdateInSchema;
+  path: {
+    group_id: number;
+  };
+  query?: never;
+  url: "/api/groups/{group_id}/";
+};
+
+export type GroupUpdateSingleResponses = {
+  /**
+   * OK
+   */
+  200: GroupOutSchema;
+};
+
+export type GroupUpdateSingleResponse =
+  GroupUpdateSingleResponses[keyof GroupUpdateSingleResponses];
+
 export type ImageGetDateData = {
   body?: never;
   path: {
@@ -1007,11 +1104,27 @@ export type GetPersonDetailResponses = {
 
 export type GetPersonDetailResponse = GetPersonDetailResponses[keyof GetPersonDetailResponses];
 
+export type UserGetAllData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/user/";
+};
+
+export type UserGetAllResponses = {
+  /**
+   * OK
+   */
+  200: Array<UserOutSchema>;
+};
+
+export type UserGetAllResponse = UserGetAllResponses[keyof UserGetAllResponses];
+
 export type UserCreateData = {
   body: UserInCreateSchemaWritable;
   path?: never;
   query?: never;
-  url: "/api/user/create/";
+  url: "/api/user/";
 };
 
 export type UserCreateResponses = {
@@ -1022,22 +1135,6 @@ export type UserCreateResponses = {
 };
 
 export type UserCreateResponse = UserCreateResponses[keyof UserCreateResponses];
-
-export type GroupGetAllData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/user/groups/";
-};
-
-export type GroupGetAllResponses = {
-  /**
-   * OK
-   */
-  200: Array<GroupOutSchema>;
-};
-
-export type GroupGetAllResponse = GroupGetAllResponses[keyof GroupGetAllResponses];
 
 export type UserGetMeData = {
   body?: never;
@@ -1071,22 +1168,6 @@ export type UserGetMyProfileResponses = {
 
 export type UserGetMyProfileResponse = UserGetMyProfileResponses[keyof UserGetMyProfileResponses];
 
-export type UserGetAllData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/user/users/";
-};
-
-export type UserGetAllResponses = {
-  /**
-   * OK
-   */
-  200: Array<UserOutSchema>;
-};
-
-export type UserGetAllResponse = UserGetAllResponses[keyof UserGetAllResponses];
-
 export type UserGetGroupsData = {
   body?: never;
   path: {
@@ -1106,7 +1187,7 @@ export type UserGetGroupsResponses = {
 export type UserGetGroupsResponse = UserGetGroupsResponses[keyof UserGetGroupsResponses];
 
 export type UserSetGroupsData = {
-  body: Array<GroupAssignSchema>;
+  body: Array<UserGroupAssignInSchema>;
   path: {
     user_id: number;
   };
@@ -1190,7 +1271,7 @@ export type UserEditProfileData = {
     user_id: number;
   };
   query?: never;
-  url: "/api/user/{user_id}/profile/edit/";
+  url: "/api/user/{user_id}/profile/";
 };
 
 export type UserEditProfileResponses = {

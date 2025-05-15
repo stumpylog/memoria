@@ -11,8 +11,8 @@ from memoria.common.auth import active_staff_or_superuser_auth
 from memoria.common.auth import active_user_auth
 from memoria.common.errors import HttpBadRequestError
 from memoria.common.errors import HttpNotAuthorizedError
-from memoria.routes.users.schemas import GroupAssignSchema
-from memoria.routes.users.schemas import GroupOutSchema
+from memoria.routes.groups.schemas import GroupOutSchema
+from memoria.routes.users.schemas import UserGroupAssignInSchema
 from memoria.routes.users.schemas import UserInCreateSchema
 from memoria.routes.users.schemas import UserOutSchema
 from memoria.routes.users.schemas import UserProfileOutSchema
@@ -25,168 +25,8 @@ logger = logging.getLogger(__name__)
 UserModelT = get_user_model()
 
 
-@router.get(
-    "/me/",
-    response=UserOutSchema,
-    auth=active_user_auth,
-    operation_id="user_get_me",
-)
-def get_user_me_info(
-    request: HttpRequest,
-):
-    return request.user
-
-
-@router.get(
-    "/me/profile/",
-    response=UserProfileOutSchema,
-    auth=active_user_auth,
-    operation_id="user_get_my_profile",
-)
-def get_my_profile(
-    request: HttpRequest,
-):
-    return request.user.profile
-
-
-@router.get(
-    "/{user_id}/info/",
-    response=UserOutSchema,
-    auth=active_user_auth,
-    operation_id="user_get_info",
-)
-def get_user_info(
-    request: HttpRequest,
-    user_id: int,
-):
-    user = get_object_or_404(UserModelT, pk=user_id)
-    return user
-
-
 @router.post(
-    "/{user_id}/info/",
-    response=UserOutSchema,
-    auth=active_staff_or_superuser_auth,
-    operation_id="user_set_info",
-)
-def set_user_info(
-    request: HttpRequest,
-    user_id: int,
-    data: UserUpdateInScheme,
-):
-    user: UserModelT = get_object_or_404(UserModelT, pk=user_id)
-    if data.first_name:
-        user.first_name = data.first_name
-    if data.last_name:
-        user.last_name = data.last_name
-    if data.email:
-        user.email = data.email
-    if data.is_active is not None:
-        user.is_active = data.is_active
-    if data.is_staff is not None:
-        user.is_staff = data.is_staff
-    if data.is_superuser is not None:
-        if data.is_superuser and not request.user.is_superuser:
-            raise HttpNotAuthorizedError("Only a superuser may designate another super user")
-        data.is_superuser = data.is_superuser
-    user.save()
-    if data.password:
-        user.set_password(data.password.get_secret_value())
-        user.save()
-    return user
-
-
-@router.get(
-    "/users/",
-    response=list[UserOutSchema],
-    auth=active_staff_or_superuser_auth,
-    operation_id="user_get_all",
-)
-def get_all_users(
-    request: HttpRequest,
-):
-    return UserModelT.objects.all()
-
-
-@router.get(
-    "/groups/",
-    response=list[GroupOutSchema],
-    auth=active_staff_or_superuser_auth,
-    operation_id="group_get_all",
-)
-def get_all_groups(
-    request: HttpRequest,
-):
-    return Group.objects.all()
-
-
-@router.get(
-    "/{user_id}/profile/",
-    response=UserProfileOutSchema,
-    auth=active_user_auth,
-    operation_id="user_get_profile",
-)
-def get_profile(
-    request: HttpRequest,
-    user_id: int,
-):
-    user = get_object_or_404(UserModelT.objects.select_related("profile"), pk=user_id)
-    return user.profile
-
-
-@router.post(
-    "/{user_id}/profile/edit/",
-    response=UserProfileOutSchema,
-    auth=active_user_auth,
-    operation_id="user_edit_profile",
-)
-def edit_profile(
-    request: HttpRequest,
-    user_id: int,
-    data: UserProfileUpdateSchema,
-):
-    # TODO: Update a user profile if it is them or a staff member
-    return request.user
-
-
-@router.get("/{user_id}/groups/", response=list[GroupOutSchema], auth=active_user_auth, operation_id="user_get_groups")
-def get_user_groups(request: HttpRequest, user_id: int):
-    user = get_object_or_404(UserModelT.objects.prefetch_related("groups"), id=user_id)
-    groups = user.groups.all()
-    return [{"id": group.id, "name": group.name} for group in groups]
-
-
-@router.post(
-    "/{user_id}/groups/",
-    response=list[GroupOutSchema],
-    auth=active_staff_or_superuser_auth,
-    operation_id="user_set_groups",
-    openapi_extra={
-        "responses": {
-            HTTPStatus.BAD_REQUEST: {
-                "description": "some provided groups don't exist",
-            },
-        },
-    },
-)
-def set_user_groups(request: HttpRequest, user_id: int, data: list[GroupAssignSchema]):
-    user = get_object_or_404(UserModelT.objects.prefetch_related("groups"), id=user_id)
-
-    group_ids = [item.id for item in data]
-    groups_to_assign = Group.objects.filter(id__in=group_ids)
-    if len(groups_to_assign) != len(group_ids):
-        existing_group_ids = {group.id for group in groups_to_assign}
-        missing_ids = set(group_ids) - existing_group_ids
-        raise HttpBadRequestError(f"Group(s) with ID(s) {missing_ids} do not exist.")
-
-    user.groups.clear()
-    user.groups.add(*groups_to_assign)
-    groups = user.groups.all()
-    return [{"id": group.id, "name": group.name} for group in groups]
-
-
-@router.post(
-    "/create/",
+    "/",
     response={HTTPStatus.OK: UserOutSchema},
     auth=active_staff_or_superuser_auth,
     operation_id="user_create",
@@ -225,3 +65,151 @@ def create_user(
         new_user.last_name = data.last_name
 
     return new_user
+
+
+@router.get(
+    "/",
+    response=list[UserOutSchema],
+    auth=active_staff_or_superuser_auth,
+    operation_id="user_get_all",
+)
+def get_all_users(
+    request: HttpRequest,
+):
+    return UserModelT.objects.all()
+
+
+@router.get(
+    "/me/",
+    response=UserOutSchema,
+    auth=active_user_auth,
+    operation_id="user_get_me",
+)
+def get_user_me_info(
+    request: HttpRequest,
+):
+    return request.user
+
+
+@router.get(
+    "/{user_id}/info/",
+    response=UserOutSchema,
+    auth=active_user_auth,
+    operation_id="user_get_info",
+)
+def get_user_info(
+    request: HttpRequest,
+    user_id: int,
+):
+    user = get_object_or_404(UserModelT, pk=user_id)
+    return user
+
+
+@router.get(
+    "/me/profile/",
+    response=UserProfileOutSchema,
+    auth=active_user_auth,
+    operation_id="user_get_my_profile",
+)
+def get_my_profile(
+    request: HttpRequest,
+):
+    return request.user.profile
+
+
+@router.get(
+    "/{user_id}/profile/",
+    response=UserProfileOutSchema,
+    auth=active_user_auth,
+    operation_id="user_get_profile",
+)
+def get_profile(
+    request: HttpRequest,
+    user_id: int,
+):
+    user = get_object_or_404(UserModelT.objects.select_related("profile"), pk=user_id)
+    return user.profile
+
+
+@router.get("/{user_id}/groups/", response=list[GroupOutSchema], auth=active_user_auth, operation_id="user_get_groups")
+def get_user_groups(request: HttpRequest, user_id: int):
+    user = get_object_or_404(UserModelT.objects.prefetch_related("groups"), id=user_id)
+    groups = user.groups.all()
+    return [{"id": group.id, "name": group.name} for group in groups]
+
+
+@router.patch(
+    "/{user_id}/info/",
+    response=UserOutSchema,
+    auth=active_staff_or_superuser_auth,
+    operation_id="user_set_info",
+)
+def set_user_info(
+    request: HttpRequest,
+    user_id: int,
+    data: UserUpdateInScheme,
+):
+    user: UserModelT = get_object_or_404(UserModelT, pk=user_id)
+    if data.first_name:
+        user.first_name = data.first_name
+    if data.last_name:
+        user.last_name = data.last_name
+    if data.email:
+        user.email = data.email
+    if data.is_active is not None:
+        user.is_active = data.is_active
+    if data.is_staff is not None:
+        user.is_staff = data.is_staff
+    if data.is_superuser is not None:
+        if data.is_superuser and not request.user.is_superuser:
+            raise HttpNotAuthorizedError("Only a superuser may designate another super user")
+        data.is_superuser = data.is_superuser
+    user.save()
+    if data.password:
+        user.set_password(data.password.get_secret_value())
+        user.save()
+    return user
+
+
+@router.patch(
+    "/{user_id}/profile/",
+    response=UserProfileOutSchema,
+    auth=active_user_auth,
+    operation_id="user_edit_profile",
+)
+def edit_profile(
+    request: HttpRequest,
+    user_id: int,
+    data: UserProfileUpdateSchema,
+):
+    # TODO: Update a user profile if it is them or a staff member
+    return request.user
+
+
+@router.patch(
+    "/{user_id}/groups/",
+    response=list[GroupOutSchema],
+    auth=active_staff_or_superuser_auth,
+    operation_id="user_set_groups",
+    openapi_extra={
+        "responses": {
+            HTTPStatus.BAD_REQUEST: {
+                "description": "some provided groups don't exist",
+            },
+        },
+    },
+)
+def set_user_groups(request: HttpRequest, user_id: int, data: list[UserGroupAssignInSchema]):
+    user = get_object_or_404(UserModelT.objects.prefetch_related("groups"), id=user_id)
+
+    group_ids = [item.id for item in data]
+    groups_to_assign = Group.objects.filter(id__in=group_ids)
+    if len(groups_to_assign) != len(group_ids):
+        existing_group_ids = {group.id for group in groups_to_assign}
+        missing_ids = set(group_ids) - existing_group_ids
+        raise HttpBadRequestError(f"Group(s) with ID(s) {missing_ids} do not exist.")
+
+    user.groups.clear()
+    user.groups.add(*groups_to_assign)
+    groups = user.groups.all()
+    return [{"id": group.id, "name": group.name} for group in groups]

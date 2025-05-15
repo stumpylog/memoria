@@ -61,11 +61,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "name",
-          "id",
-          "image_count"
-        ],
+        "required": ["name", "id", "image_count"],
         "title": "AlbumBasicReadOutSchema",
         "type": "object"
       },
@@ -105,9 +101,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "AlbumCreateInSchema",
         "type": "object"
       },
@@ -136,9 +130,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "sorting"
-        ],
+        "required": ["sorting"],
         "title": "AlbumSortUpdateInSchema",
         "type": "object"
       },
@@ -256,12 +248,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "name",
-          "id",
-          "image_count",
-          "image_ids"
-        ],
+        "required": ["name", "id", "image_count", "image_ids"],
         "title": "AlbumWithImagesReadInSchema",
         "type": "object"
       },
@@ -278,10 +265,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "title": "AuthLoginSchema",
         "type": "object"
       },
@@ -296,10 +280,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "id"
-        ],
+        "required": ["name", "id"],
         "title": "BreadcrumbSchema",
         "type": "object"
       },
@@ -310,9 +291,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "csrf_token"
-        ],
+        "required": ["csrf_token"],
         "title": "CsrfTokenOutSchema",
         "type": "object"
       },
@@ -363,17 +342,15 @@
         "title": "FolderDetailSchema",
         "type": "object"
       },
-      "GroupAssignSchema": {
+      "GroupCreateInSchema": {
         "properties": {
-          "id": {
-            "title": "Id",
-            "type": "integer"
+          "name": {
+            "title": "Name",
+            "type": "string"
           }
         },
-        "required": [
-          "id"
-        ],
-        "title": "GroupAssignSchema",
+        "required": ["name"],
+        "title": "GroupCreateInSchema",
         "type": "object"
       },
       "GroupOutSchema": {
@@ -387,11 +364,23 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "id"
-        ],
+        "required": ["id", "name"],
         "title": "GroupOutSchema",
+        "type": "object"
+      },
+      "GroupUpdateInSchema": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": ["id", "name"],
+        "title": "GroupUpdateInSchema",
         "type": "object"
       },
       "ImageDateSchema": {
@@ -410,11 +399,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "date",
-          "month_valid",
-          "day_valid"
-        ],
+        "required": ["date", "month_valid", "day_valid"],
         "title": "ImageDateSchema",
         "type": "object"
       },
@@ -594,29 +579,12 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "title",
-          "thumbnail_url",
-          "thumbnail_height",
-          "thumbnail_width"
-        ],
+        "required": ["id", "title", "thumbnail_url", "thumbnail_height", "thumbnail_width"],
         "title": "ImageThumbnailSchema",
         "type": "object"
       },
       "ImagesPerPageChoices": {
-        "enum": [
-          10,
-          20,
-          30,
-          40,
-          50,
-          60,
-          70,
-          80,
-          90,
-          100
-        ],
+        "enum": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
         "title": "ImagesPerPageChoices",
         "type": "integer"
       },
@@ -649,10 +617,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name"
-        ],
+        "required": ["id", "name"],
         "title": "PersonDetailOutSchema",
         "type": "object"
       },
@@ -688,15 +653,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "id",
-          "center_x",
-          "center_y",
-          "height",
-          "width",
-          "person_id",
-          "name"
-        ],
+        "required": ["id", "center_x", "center_y", "height", "width", "person_id", "name"],
         "title": "PersonInImageSchemaOut",
         "type": "object"
       },
@@ -727,11 +684,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "id",
-          "image_count"
-        ],
+        "required": ["name", "id", "image_count"],
         "title": "PersonReadOutSchema",
         "type": "object"
       },
@@ -774,14 +727,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "id",
-          "center_x",
-          "center_y",
-          "height",
-          "width",
-          "name"
-        ],
+        "required": ["id", "center_x", "center_y", "height", "width", "name"],
         "title": "PetInImageSchemaOut",
         "type": "object"
       },
@@ -817,26 +763,13 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "description"
-        ],
+        "required": ["id", "name", "description"],
         "title": "RootFolderSchema",
         "type": "object"
       },
       "RotationEnum": {
         "description": "https://exiftool.org/TagNames/EXIF.html (0x0112)",
-        "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ],
+        "enum": [1, 2, 3, 4, 5, 6, 7, 8],
         "title": "RotationEnum",
         "type": "integer"
       },
@@ -1082,6 +1015,17 @@
         "title": "TimezoneChoices",
         "type": "string"
       },
+      "UserGroupAssignInSchema": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": ["id"],
+        "title": "UserGroupAssignInSchema",
+        "type": "object"
+      },
       "UserInCreateSchema": {
         "properties": {
           "email": {
@@ -1144,10 +1088,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "title": "UserInCreateSchema",
         "type": "object"
       },
@@ -1200,12 +1141,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "first_name",
-          "last_name",
-          "username"
-        ],
+        "required": ["id", "first_name", "last_name", "username"],
         "title": "UserOutSchema",
         "type": "object"
       },
@@ -1223,21 +1159,13 @@
             "title": "Bio"
           },
           "items_per_page": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ImagesPerPageChoices"
-              }
-            ],
-            "default": 30
+            "$ref": "#/components/schemas/ImagesPerPageChoices"
           },
           "timezone_name": {
             "$ref": "#/components/schemas/TimezoneChoices"
           }
         },
-        "required": [
-          "bio",
-          "timezone_name"
-        ],
+        "required": ["items_per_page", "bio", "timezone_name"],
         "title": "UserProfileOutSchema",
         "type": "object"
       },
@@ -1412,9 +1340,7 @@
           }
         ],
         "summary": "Get Albums",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       },
       "post": {
         "description": "Create a new album with optional view/edit groups",
@@ -1448,9 +1374,7 @@
           }
         ],
         "summary": "Create Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       }
     },
     "/api/album/{album_id}/": {
@@ -1478,9 +1402,7 @@
           }
         ],
         "summary": "Delete Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       },
       "get": {
         "description": "Retrieve full details of a single album",
@@ -1517,9 +1439,7 @@
           }
         ],
         "summary": "Get Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       },
       "patch": {
         "description": "Update album name, description, and group permissions",
@@ -1566,9 +1486,7 @@
           }
         ],
         "summary": "Update Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       }
     },
     "/api/album/{album_id}/add/": {
@@ -1613,9 +1531,7 @@
           }
         ],
         "summary": "Add Image To Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       }
     },
     "/api/album/{album_id}/download/": {
@@ -1654,9 +1570,7 @@
           }
         ],
         "summary": "Download Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       }
     },
     "/api/album/{album_id}/remove/": {
@@ -1701,9 +1615,7 @@
           }
         ],
         "summary": "Remove Image From Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       }
     },
     "/api/album/{album_id}/sort/": {
@@ -1755,9 +1667,7 @@
           }
         ],
         "summary": "Update Album Sorting",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       }
     },
     "/api/auth/csrf/": {
@@ -1777,9 +1687,7 @@
           }
         },
         "summary": "Get Csrf Token",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/api/auth/login/": {
@@ -1808,9 +1716,7 @@
           }
         },
         "summary": "Login",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/api/auth/logout/": {
@@ -1828,9 +1734,7 @@
           }
         ],
         "summary": "Logout",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/api/folder/": {
@@ -1855,9 +1759,7 @@
           }
         },
         "summary": "List Image Folders",
-        "tags": [
-          "folders"
-        ]
+        "tags": ["folders"]
       }
     },
     "/api/folder/{folder_id}/": {
@@ -1888,9 +1790,189 @@
           }
         },
         "summary": "Get Image Folder",
-        "tags": [
-          "folders"
-        ]
+        "tags": ["folders"]
+      }
+    },
+    "/api/groups/": {
+      "get": {
+        "operationId": "group_get_all",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupOutSchema"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActiveSuperUserOrStaff": []
+          }
+        ],
+        "summary": "Get All Groups",
+        "tags": ["groups"]
+      },
+      "post": {
+        "description": "Creates multiple groups from a list of group schemas using bulk_create.\n\nArgs:\n    request: The Django request object.\n    data: A GroupListInCreateSchema object containing the list of groups to create.\n\nReturns:\n    A list of GroupOutSchema objects representing the created groups.",
+        "operationId": "groups_create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/GroupCreateInSchema"
+                  },
+                  {
+                    "items": {
+                      "$ref": "#/components/schemas/GroupCreateInSchema"
+                    },
+                    "type": "array"
+                  }
+                ],
+                "title": "Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupOutSchema"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActiveSuperUserOrStaff": []
+          }
+        ],
+        "summary": "Create Group",
+        "tags": ["groups"]
+      }
+    },
+    "/api/groups/{group_id}/": {
+      "delete": {
+        "operationId": "group_delete_single",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActiveSuperUserOrStaff": []
+          }
+        ],
+        "summary": "Delete Group",
+        "tags": ["groups"]
+      },
+      "get": {
+        "operationId": "group_get_single",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActiveSuperUserOrStaff": []
+          }
+        ],
+        "summary": "Get Single Groups",
+        "tags": ["groups"]
+      },
+      "patch": {
+        "operationId": "group_update_single",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupUpdateInSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActiveSuperUserOrStaff": []
+          }
+        ],
+        "summary": "Update Single Group",
+        "tags": ["groups"]
       }
     },
     "/api/image/{image_id}/date/": {
@@ -1934,9 +2016,7 @@
           }
         ],
         "summary": "Get Image Date",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/location/": {
@@ -1980,9 +2060,7 @@
           }
         ],
         "summary": "Get Image Location",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/metadata/": {
@@ -2017,9 +2095,7 @@
           }
         ],
         "summary": "Get Image Details",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/people/": {
@@ -2058,9 +2134,7 @@
           }
         ],
         "summary": "Get Image People",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/pets/": {
@@ -2099,9 +2173,7 @@
           }
         ],
         "summary": "Get Image Pets",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/thumbnail/": {
@@ -2136,9 +2208,7 @@
           }
         ],
         "summary": "Get Image Thumbnail Info",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/person/": {
@@ -2162,9 +2232,7 @@
           }
         },
         "summary": "Get All People",
-        "tags": [
-          "people"
-        ]
+        "tags": ["people"]
       }
     },
     "/api/person/{person_id}/": {
@@ -2194,12 +2262,37 @@
           }
         },
         "summary": "Get Person Detail",
-        "tags": [
-          "people"
-        ]
+        "tags": ["people"]
       }
     },
-    "/api/user/create/": {
+    "/api/user/": {
+      "get": {
+        "operationId": "user_get_all",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserOutSchema"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActiveSuperUserOrStaff": []
+          }
+        ],
+        "summary": "Get All Users",
+        "tags": ["users"]
+      },
       "post": {
         "operationId": "user_create",
         "parameters": [],
@@ -2231,40 +2324,7 @@
           }
         ],
         "summary": "Create User",
-        "tags": [
-          "users"
-        ]
-      }
-    },
-    "/api/user/groups/": {
-      "get": {
-        "operationId": "group_get_all",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/GroupOutSchema"
-                  },
-                  "title": "Response",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "SessionAuthIsActiveSuperUserOrStaff": []
-          }
-        ],
-        "summary": "Get All Groups",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/api/user/me/": {
@@ -2289,9 +2349,7 @@
           }
         ],
         "summary": "Get User Me Info",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/api/user/me/profile/": {
@@ -2316,40 +2374,7 @@
           }
         ],
         "summary": "Get My Profile",
-        "tags": [
-          "users"
-        ]
-      }
-    },
-    "/api/user/users/": {
-      "get": {
-        "operationId": "user_get_all",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/UserOutSchema"
-                  },
-                  "title": "Response",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "SessionAuthIsActiveSuperUserOrStaff": []
-          }
-        ],
-        "summary": "Get All Users",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/api/user/{user_id}/groups/": {
@@ -2388,11 +2413,9 @@
           }
         ],
         "summary": "Get User Groups",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       },
-      "post": {
+      "patch": {
         "operationId": "user_set_groups",
         "parameters": [
           {
@@ -2410,7 +2433,7 @@
             "application/json": {
               "schema": {
                 "items": {
-                  "$ref": "#/components/schemas/GroupAssignSchema"
+                  "$ref": "#/components/schemas/UserGroupAssignInSchema"
                 },
                 "title": "Data",
                 "type": "array"
@@ -2444,9 +2467,7 @@
           }
         ],
         "summary": "Set User Groups",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/api/user/{user_id}/info/": {
@@ -2481,11 +2502,9 @@
           }
         ],
         "summary": "Get User Info",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       },
-      "post": {
+      "patch": {
         "operationId": "user_set_info",
         "parameters": [
           {
@@ -2526,9 +2545,7 @@
           }
         ],
         "summary": "Set User Info",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/api/user/{user_id}/profile/": {
@@ -2563,13 +2580,9 @@
           }
         ],
         "summary": "Get Profile",
-        "tags": [
-          "users"
-        ]
-      }
-    },
-    "/api/user/{user_id}/profile/edit/": {
-      "post": {
+        "tags": ["users"]
+      },
+      "patch": {
         "operationId": "user_edit_profile",
         "parameters": [
           {
@@ -2610,9 +2623,7 @@
           }
         ],
         "summary": "Edit Profile",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     }
   },

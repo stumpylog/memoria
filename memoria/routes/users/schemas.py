@@ -297,18 +297,10 @@ class UserProfileUpdateSchema(Schema):
 
 
 class UserProfileOutSchema(Schema):
-    items_per_page: ImagesPerPageChoices = ImagesPerPageChoices.THIRTY
+    items_per_page: ImagesPerPageChoices
     bio: str | None
     timezone_name: TimezoneChoices
 
 
-class GroupInCreateSchema(Schema):
-    name: str
-
-
-class GroupOutSchema(GroupInCreateSchema):
-    id: int
-
-
-class GroupAssignSchema(Schema):
+class UserGroupAssignInSchema(Schema):
     id: int

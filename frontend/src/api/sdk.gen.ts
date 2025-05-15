@@ -29,6 +29,16 @@ import type {
   FolderListRootsResponse,
   FolderGetDetailsData,
   FolderGetDetailsResponse,
+  GroupGetAllData,
+  GroupGetAllResponse,
+  GroupsCreateData,
+  GroupsCreateResponse,
+  GroupDeleteSingleData,
+  GroupDeleteSingleResponse,
+  GroupGetSingleData,
+  GroupGetSingleResponse,
+  GroupUpdateSingleData,
+  GroupUpdateSingleResponse,
   ImageGetDateData,
   ImageGetDateResponse,
   ImageGetLocationData,
@@ -45,16 +55,14 @@ import type {
   GetAllPeopleResponse,
   GetPersonDetailData,
   GetPersonDetailResponse,
+  UserGetAllData,
+  UserGetAllResponse,
   UserCreateData,
   UserCreateResponse,
-  GroupGetAllData,
-  GroupGetAllResponse,
   UserGetMeData,
   UserGetMeResponse,
   UserGetMyProfileData,
   UserGetMyProfileResponse,
-  UserGetAllData,
-  UserGetAllResponse,
   UserGetGroupsData,
   UserGetGroupsResponse,
   UserSetGroupsData,
@@ -367,6 +375,123 @@ export const folderGetDetails = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Get All Groups
+ */
+export const groupGetAll = <ThrowOnError extends boolean = false>(
+  options?: Options<GroupGetAllData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<GroupGetAllResponse, unknown, ThrowOnError>({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/groups/",
+    ...options,
+  });
+};
+
+/**
+ * Create Group
+ * Creates multiple groups from a list of group schemas using bulk_create.
+ *
+ * Args:
+ * request: The Django request object.
+ * data: A GroupListInCreateSchema object containing the list of groups to create.
+ *
+ * Returns:
+ * A list of GroupOutSchema objects representing the created groups.
+ */
+export const groupsCreate = <ThrowOnError extends boolean = false>(
+  options: Options<GroupsCreateData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<GroupsCreateResponse, unknown, ThrowOnError>({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/groups/",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Delete Group
+ */
+export const groupDeleteSingle = <ThrowOnError extends boolean = false>(
+  options: Options<GroupDeleteSingleData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    GroupDeleteSingleResponse,
+    unknown,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/groups/{group_id}/",
+    ...options,
+  });
+};
+
+/**
+ * Get Single Groups
+ */
+export const groupGetSingle = <ThrowOnError extends boolean = false>(
+  options: Options<GroupGetSingleData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<GroupGetSingleResponse, unknown, ThrowOnError>({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/groups/{group_id}/",
+    ...options,
+  });
+};
+
+/**
+ * Update Single Group
+ */
+export const groupUpdateSingle = <ThrowOnError extends boolean = false>(
+  options: Options<GroupUpdateSingleData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).patch<GroupUpdateSingleResponse, unknown, ThrowOnError>(
+    {
+      security: [
+        {
+          in: "cookie",
+          name: "sessionid",
+          type: "apiKey",
+        },
+      ],
+      url: "/api/groups/{group_id}/",
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+    },
+  );
+};
+
+/**
  * Get Image Date
  */
 export const imageGetDate = <ThrowOnError extends boolean = false>(
@@ -505,6 +630,25 @@ export const getPersonDetail = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Get All Users
+ */
+export const userGetAll = <ThrowOnError extends boolean = false>(
+  options?: Options<UserGetAllData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<UserGetAllResponse, unknown, ThrowOnError>({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/user/",
+    ...options,
+  });
+};
+
+/**
  * Create User
  */
 export const userCreate = <ThrowOnError extends boolean = false>(
@@ -518,31 +662,12 @@ export const userCreate = <ThrowOnError extends boolean = false>(
         type: "apiKey",
       },
     ],
-    url: "/api/user/create/",
+    url: "/api/user/",
     ...options,
     headers: {
       "Content-Type": "application/json",
       ...options?.headers,
     },
-  });
-};
-
-/**
- * Get All Groups
- */
-export const groupGetAll = <ThrowOnError extends boolean = false>(
-  options?: Options<GroupGetAllData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<GroupGetAllResponse, unknown, ThrowOnError>({
-    security: [
-      {
-        in: "cookie",
-        name: "sessionid",
-        type: "apiKey",
-      },
-    ],
-    url: "/api/user/groups/",
-    ...options,
   });
 };
 
@@ -585,25 +710,6 @@ export const userGetMyProfile = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Get All Users
- */
-export const userGetAll = <ThrowOnError extends boolean = false>(
-  options?: Options<UserGetAllData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<UserGetAllResponse, unknown, ThrowOnError>({
-    security: [
-      {
-        in: "cookie",
-        name: "sessionid",
-        type: "apiKey",
-      },
-    ],
-    url: "/api/user/users/",
-    ...options,
-  });
-};
-
-/**
  * Get User Groups
  */
 export const userGetGroups = <ThrowOnError extends boolean = false>(
@@ -628,7 +734,7 @@ export const userGetGroups = <ThrowOnError extends boolean = false>(
 export const userSetGroups = <ThrowOnError extends boolean = false>(
   options: Options<UserSetGroupsData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).post<UserSetGroupsResponse, unknown, ThrowOnError>({
+  return (options.client ?? _heyApiClient).patch<UserSetGroupsResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -670,7 +776,7 @@ export const userGetInfo = <ThrowOnError extends boolean = false>(
 export const userSetInfo = <ThrowOnError extends boolean = false>(
   options: Options<UserSetInfoData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).post<UserSetInfoResponse, unknown, ThrowOnError>({
+  return (options.client ?? _heyApiClient).patch<UserSetInfoResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -712,7 +818,7 @@ export const userGetProfile = <ThrowOnError extends boolean = false>(
 export const userEditProfile = <ThrowOnError extends boolean = false>(
   options: Options<UserEditProfileData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).post<UserEditProfileResponse, unknown, ThrowOnError>({
+  return (options.client ?? _heyApiClient).patch<UserEditProfileResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -720,7 +826,7 @@ export const userEditProfile = <ThrowOnError extends boolean = false>(
         type: "apiKey",
       },
     ],
-    url: "/api/user/{user_id}/profile/edit/",
+    url: "/api/user/{user_id}/profile/",
     ...options,
     headers: {
       "Content-Type": "application/json",
