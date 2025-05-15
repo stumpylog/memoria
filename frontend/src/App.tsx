@@ -2,7 +2,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { Spinner, Container } from 'react-bootstrap';
-
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
@@ -44,10 +44,20 @@ const AppLayout: React.FC = () => {
   );
 };
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // default: true
+      retry: 1, // default: 3
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 function App(): React.JSX.Element {
   return (
     <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider> {/* AuthProvider wraps routes that need auth state */}
           <Routes>
@@ -89,6 +99,7 @@ function App(): React.JSX.Element {
           </Routes>
         </AuthProvider>
       </Router>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

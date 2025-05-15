@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Container, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import FolderWall from '../components/folder/FolderWall';
 import type { RootFolderSchema } from '../api';
 import { folderListRoots } from '../api';
@@ -17,28 +18,19 @@ const FoldersPage: React.FC<FoldersPageProps> = ({
   buttonText = "View Folder",
   truncateDescription = 100
 }) => {
-  const [folders, setFolders] = useState<RootFolderSchema[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchFolders = async () => {
-      try {
-        setLoading(true);
-        const response = await folderListRoots();
-        setFolders(response.data || []);
-        setError(null);
-      } catch (err) {
-        setError('Failed to load folders. Please try again later.');
-        console.error('Error fetching folders:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFolders();
-  }, []);
+  const {
+    data: folders = [],
+    isLoading,
+    error
+  } = useQuery<RootFolderSchema[]>({
+    queryKey: ['folders', 'roots'],
+    queryFn: async () => {
+      const response = await folderListRoots();
+      return response.data || [];
+    }
+  });
 
   const handleFolderClick = (id: number) => {
     if (onFolderClick) {
@@ -49,7 +41,7 @@ const FoldersPage: React.FC<FoldersPageProps> = ({
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '200px' }}>
         <Spinner animation="border" role="status">
@@ -62,7 +54,7 @@ const FoldersPage: React.FC<FoldersPageProps> = ({
   if (error) {
     return (
       <Container>
-        <Alert variant="danger">{error}</Alert>
+        <Alert variant="danger">Failed to load folders. Please try again later.</Alert>
       </Container>
     );
   }
@@ -78,8 +70,8 @@ const FoldersPage: React.FC<FoldersPageProps> = ({
   return (
     <Container fluid>
       <Helmet>
-              <title>Memoria - All Folders</title>
-            </Helmet>
+        <title>Memoria - All Folders</title>
+      </Helmet>
       <h2 className="mb-4">Folders</h2>
       <FolderWall
         folders={folders}

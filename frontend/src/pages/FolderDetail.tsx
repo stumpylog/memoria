@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Container, Breadcrumb, Spinner, Alert } from 'react-bootstrap';
+import { useQuery } from '@tanstack/react-query';
 import FolderWall from '../components/folder/FolderWall';
 import ImageWall from '../components/image/ImageWall';
 import { folderGetDetails, imageGetThumbInfo } from '../api';
@@ -14,174 +15,154 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
   const folderId = parseInt(id || '0', 10);
   const navigate = useNavigate();
 
-  const [folderDetail, setFolderDetail] = useState<FolderDetailSchema | null>(null);
-  const [imageThumbs, setImageThumbs] = useState<ImageThumbnailSchema[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [loadingImages, setLoadingImages] = useState<boolean>(false);
-  const [imageError, setImageError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchFolderDetail = async () => {
+  // Query for folder details
+  const {
+    data: folderDetail,
+    isLoading: folderLoading,
+    error: folderError
+  } = useQuery({
+    queryKey: ['folder', folderId],
+    queryFn: async (): Promise<FolderDetailSchema> => {
       if (!folderId) {
-        setLoading(false);
-        setError('Invalid folder ID.');
-        return;
+        throw new Error('Invalid folder ID.');
+      }
+      const response = await folderGetDetails({
+        path: { folder_id: folderId }
+      });
+      if (!response.data) {
+        throw new Error('Folder not found.');
+      }
+      return response.data;
+    },
+    enabled: !!folderId && folderId > 0
+  });
+
+  // Dependent query for image thumbnails
+  const {
+    data: imageThumbs = [],
+    isLoading: imagesLoading,
+    error: imagesError
+  } = useQuery({
+    queryKey: ['folderImages', folderId],
+    queryFn: async (): Promise<ImageThumbnailSchema[]> => {
+      if (!folderDetail?.folder_images?.length) {
+        return [];
       }
 
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await folderGetDetails({
-          path: {
-          folder_id: folderId
-        }
-        });
-        setFolderDetail(response.data === undefined ? null : response.data);
-      } catch (err) {
-        setError('Failed to load folder details. Please try again later.');
-        console.error('Error fetching folder detail:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      const thumbInfoPromises = folderDetail.folder_images.map(imageId =>
+        imageGetThumbInfo({ path: { image_id: imageId } })
+          .then(response => response.data)
+          .catch(err => {
+            console.error(`Error fetching thumbnail info for image ID ${imageId}:`, err);
+            return null;
+          })
+      );
 
-    fetchFolderDetail();
-  }, [folderId]);
+      const results = await Promise.all(thumbInfoPromises);
+      return results.filter((item): item is ImageThumbnailSchema => item !== null);
+    },
+    enabled: !!folderDetail && (folderDetail.folder_images?.length > 0)
+  });
 
-  useEffect(() => {
-    const fetchImageThumbnails = async () => {
-      if (!folderDetail || !folderDetail.folder_images || folderDetail.folder_images.length === 0) {
-        setImageThumbs([]);
-        setLoadingImages(false); // Ensure loading is false if there are no images listed
-        setImageError(null);
-        return;
-      }
+  if (folderLoading) {
+    return (
+      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '200px' }}>
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading folder details...</span>
+        </Spinner>
+      </Container>
+    );
+  }
 
-      setLoadingImages(true);
-      setImageError(null);
+  if (folderError || !folderDetail) {
+    return (
+      <Container className="mt-4">
+        <Alert variant="danger">
+          {folderError instanceof Error
+            ? folderError.message
+            : 'Folder not found or an unexpected error occurred.'}
+        </Alert>
+      </Container>
+    );
+  }
 
-      try {
-        const thumbInfoPromises = folderDetail.folder_images.map(imageId =>
-          imageGetThumbInfo({ path: { image_id: imageId } })
-            .then(response => response.data)
-            .catch(err => {
-              console.error(`Error fetching thumbnail info for image ID ${imageId}:`, err);
-              return null;
-            })
-        );
-
-        const results = await Promise.all(thumbInfoPromises);
-        const successfulThumbs = results.filter(item => item !== null) as ImageThumbnailSchema[];
-
-        setImageThumbs(successfulThumbs);
-
-        if (successfulThumbs.length !== folderDetail.folder_images.length) {
-            setImageError(`Failed to load thumbnail info for ${folderDetail.folder_images.length - successfulThumbs.length} out of ${folderDetail.folder_images.length} images.`);
-        }
-
-      } catch (err) {
-        console.error('Overall error fetching image thumbnails:', err);
-        setImageError('Failed to load image thumbnails.');
-        setImageThumbs([]);
-      } finally {
-        setLoadingImages(false);
-      }
-    };
-
-    fetchImageThumbnails();
-  }, [folderDetail]);
-
-
-  if (loading) {
-     return (
-       <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '200px' }}>
-         <Spinner animation="border" role="status">
-           <span className="visually-hidden">Loading folder details...</span>
-         </Spinner>
-       </Container>
-     );
-   }
-
-  if (error || !folderDetail) {
-     return (
-       <Container className="mt-4">
-         <Alert variant="danger">{error || 'Folder not found or an unexpected error occurred.'}</Alert>
-       </Container>
-     );
-   }
+  // Calculate if there are any missing images
+  const missingImagesCount = folderDetail.folder_images.length - imageThumbs.length;
+  const hasImageLoadError = imagesError || (missingImagesCount > 0 && !imagesLoading);
 
   return (
-     <Container fluid>
+    <Container fluid>
       <Helmet>
-              <title>Memoria - Folder: {folderDetail.name}</title>
-        </Helmet>
-       {/* Breadcrumb navigation */}
-       <Breadcrumb className="mt-3 mb-4">
-         <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/folders" }}>Home</Breadcrumb.Item>
-         {folderDetail.breadcrumbs.map((crumb, index) => (
-           <Breadcrumb.Item
-             key={crumb.id}
-             linkAs={Link}
-             linkProps={{ to: `/folders/${crumb.id}` }}
-             active={index === folderDetail.breadcrumbs.length - 1}
-           >
-             {crumb.name}
-           </Breadcrumb.Item>
-         ))}
-       </Breadcrumb>
+        <title>Memoria - Folder: {folderDetail.name}</title>
+      </Helmet>
 
-       <h1 className="mb-4">Current Folder: {folderDetail.name}</h1>
+      {/* Breadcrumb navigation */}
+      <Breadcrumb className="mt-3 mb-4">
+        <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/folders" }}>Home</Breadcrumb.Item>
+        {folderDetail.breadcrumbs.map((crumb, index) => (
+          <Breadcrumb.Item
+            key={crumb.id}
+            linkAs={Link}
+            linkProps={{ to: `/folders/${crumb.id}` }}
+            active={index === folderDetail.breadcrumbs.length - 1}
+          >
+            {crumb.name}
+          </Breadcrumb.Item>
+        ))}
+      </Breadcrumb>
 
-       {/* Child Folders Section - Heading always visible */}
-       <>
-         <h2 className="mb-3">Child Folders</h2>
-         {/* Render FolderWall if there are child folders, otherwise show a message */}
-         {folderDetail.child_folders.length > 0 ? (
-           <FolderWall
-             folders={folderDetail.child_folders}
-             buttonText="Open"
-             truncateDescription={100}
-             onFolderClick={(childId) => {
-               navigate(`/folders/${childId}`);
-             }}
-           />
-         ) : (
-           <Alert variant="info">This folder contains no child folders.</Alert>
-         )}
-       </> {/* End Folders Section Fragment */}
+      <h1 className="mb-4">Current Folder: {folderDetail.name}</h1>
 
-       {/* Separator Line - Always visible when folder details are loaded */}
-       <hr className="my-5" />
+      {/* Child Folders Section */}
+      <>
+        <h2 className="mb-3">Child Folders</h2>
+        {folderDetail.child_folders.length > 0 ? (
+          <FolderWall
+            folders={folderDetail.child_folders}
+            buttonText="Open"
+            truncateDescription={100}
+            onFolderClick={(childId) => {
+              navigate(`/folders/${childId}`);
+            }}
+          />
+        ) : (
+          <Alert variant="info">This folder contains no child folders.</Alert>
+        )}
+      </>
 
-       {/* Images Section - Heading always visible */}
-       <>
-         <h2 className="mb-3">Images ({folderDetail.folder_images.length})</h2>
-         {/* Render image content based on loading, errors, and data */}
-         {loadingImages ? (
-           <div className="d-flex justify-content-center align-items-center my-3">
-             <Spinner animation="border" size="sm" role="status">
-               <span className="visually-hidden">Loading images...</span>
-             </Spinner>
-             <span className="ms-2">Loading images...</span>
-           </div>
-         ) : imageError ? ( // Show image error if present after loading
-           <Alert variant="warning">{imageError}</Alert>
-         ) : imageThumbs.length > 0 ? ( // Show ImageWall if images loaded successfully
-           <ImageWall
-             images={imageThumbs} // Pass the fetched image thumbnail data
-             onImageClick={(imageId) => {
-                 navigate(`/images/${imageId}`);
-             }}
-             columns={4}
-           />
-         ) : ( // Show message if no images loaded successfully (covers folder_images.length === 0 initially or failed fetch)
-           <Alert variant="info">This folder contains no images.</Alert>
-         )}
-       </> {/* End Images Section Fragment */}
+      {/* Separator Line */}
+      <hr className="my-5" />
 
-     </Container>
+      {/* Images Section */}
+      <>
+        <h2 className="mb-3">Images ({folderDetail.folder_images.length})</h2>
+
+        {imagesLoading ? (
+          <div className="d-flex justify-content-center align-items-center my-3">
+            <Spinner animation="border" size="sm" role="status">
+              <span className="visually-hidden">Loading images...</span>
+            </Spinner>
+            <span className="ms-2">Loading images...</span>
+          </div>
+        ) : hasImageLoadError ? (
+          <Alert variant="warning">
+            {missingImagesCount > 0
+              ? `Failed to load thumbnail info for ${missingImagesCount} out of ${folderDetail.folder_images.length} images.`
+              : 'Failed to load image thumbnails.'}
+          </Alert>
+        ) : imageThumbs.length > 0 ? (
+          <ImageWall
+            images={imageThumbs}
+            onImageClick={(imageId) => {
+              navigate(`/images/${imageId}`);
+            }}
+            columns={4}
+          />
+        ) : (
+          <Alert variant="info">This folder contains no images.</Alert>
+        )}
+      </>
+    </Container>
   );
 };
 
