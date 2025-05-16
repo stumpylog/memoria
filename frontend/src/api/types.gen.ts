@@ -186,6 +186,11 @@ export type ImageDateUpdateSchemaIn = {
   month_valid: boolean;
 };
 
+export type ImageFolderSchemaOut = {
+  id: number;
+  name: string;
+};
+
 export type ImageLocationSchemaOut = {
   city: string | null;
   country_code: string;
@@ -207,15 +212,15 @@ export type ImageMetadataSchemaOut = {
   created_at: string;
   description: string | null;
   file_size: number;
+  folder: ImageFolderSchemaOut;
   id: number;
   image_fs_id: string;
   larger_size_url: string;
   orientation: RotationEnum;
   original_checksum: string;
-  original_height: number;
   original_path: string;
-  original_width: number;
   phash: string;
+  size: ImageSizeSchemaOut;
   title: string;
   updated_at: string;
 };
@@ -223,6 +228,13 @@ export type ImageMetadataSchemaOut = {
 export type ImageMetadataUpdateSchemaIn = {
   description: string | null;
   title: string | null;
+};
+
+export type ImageSizeSchemaOut = {
+  large_version_height: number;
+  large_version_width: number;
+  original_height: number;
+  original_width: number;
 };
 
 export type ImageThumbnailSchemaOut = {
@@ -1227,7 +1239,7 @@ export type LocationGetCitiesData = {
   path?: never;
   query: {
     country_code: string;
-    subdivision_code: string;
+    subdivision_code?: string | null;
   };
   url: "/api/location/cities/";
 };
@@ -1283,8 +1295,8 @@ export type LocationGetSubLocationsData = {
   path?: never;
   query: {
     country_code: string;
-    subdivision_code: string;
     city_name: string;
+    subdivision_code?: string | null;
   };
   url: "/api/location/sublocations/";
 };

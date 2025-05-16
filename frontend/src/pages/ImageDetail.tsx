@@ -21,11 +21,15 @@ import {
   imageGetPeople,
   imageGetPets,
 } from "../api";
+import DateEditModal from "../components/image/DateEditModal"; // Adjust the import path as needed
 import ImageBasicInfoCard from "../components/image/ImageBasicInfoCard";
 import ImageDisplaySection from "../components/image/ImageDisplaySection";
 import ImagePeopleCard from "../components/image/ImagePeopleCard";
 import ImagePetsCard from "../components/image/ImagePetsCard";
 import ImageTechnicalDetails from "../components/image/ImageTechnicalDetails";
+// Import the modal components
+import LocationEditModal from "../components/image/LocationEditModal"; // Adjust the import path as needed
+import MetadataEditModal from "../components/image/MetadataEditModal"; // Adjust the import path as needed
 import { useAuth } from "../hooks/useAuth";
 
 const ImageDetailPage: React.FC = () => {
@@ -44,6 +48,11 @@ const ImageDetailPage: React.FC = () => {
   const [individualPetsVisibility, setIndividualPetsVisibility] = useState<Map<number, boolean>>(
     new Map(),
   );
+
+  // State for modal visibility
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showDateModal, setShowDateModal] = useState(false); // State for date modal
+  const [showMetadataModal, setShowMetadataModal] = useState(false); // State for metadata modal
 
   // Function to toggle visibility of a specific person's bounding box
   const togglePersonVisibility = (personId: number) => {
@@ -91,6 +100,7 @@ const ImageDetailPage: React.FC = () => {
   const isLoading = results.some((r) => r.isLoading);
   const isError = results.some((r) => r.isError);
 
+  // Destructure results and get refetch functions
   const [metadataRes, locationRes, dateRes, peopleRes, petsRes] = results;
 
   const metadata: ImageMetadataSchemaOut | null = metadataRes.data?.data ?? null;
@@ -116,6 +126,19 @@ const ImageDetailPage: React.FC = () => {
     setShowPeople(false);
     setShowPets(false);
   }, [people, pets]); // Now depends on the memoized arrays
+
+  // Handlers for modal updates
+  const handleLocationUpdated = () => {
+    locationRes.refetch(); // Re-fetch the location data
+  };
+
+  const handleDateUpdated = () => {
+    dateRes.refetch(); // Re-fetch the date data
+  };
+
+  const handleMetadataUpdated = () => {
+    metadataRes.refetch(); // Re-fetch the metadata
+  };
 
   if (isLoading) {
     return (
@@ -161,6 +184,10 @@ const ImageDetailPage: React.FC = () => {
             location={location}
             dateInfo={dateInfo}
             profile={profile}
+            // Pass down the state setters to ImageBasicInfoCard
+            setShowMetadataModal={setShowMetadataModal}
+            setShowLocationModal={setShowLocationModal}
+            setShowDateModal={setShowDateModal}
           />
 
           {/* People Card */}
@@ -183,6 +210,31 @@ const ImageDetailPage: React.FC = () => {
       <Row>
         <ImageTechnicalDetails metadata={metadata} />
       </Row>
+
+      {/* Edit Modals */}
+      <MetadataEditModal
+        show={showMetadataModal}
+        onHide={() => setShowMetadataModal(false)}
+        imageId={imageId}
+        currentMetadata={metadata}
+        onMetadataUpdated={handleMetadataUpdated} // Pass the handler here
+      />
+
+      <LocationEditModal
+        show={showLocationModal}
+        onHide={() => setShowLocationModal(false)}
+        imageId={imageId}
+        currentLocation={location}
+        onLocationUpdated={handleLocationUpdated} // Pass the handler here
+      />
+
+      <DateEditModal
+        show={showDateModal}
+        onHide={() => setShowDateModal(false)}
+        imageId={imageId}
+        currentDate={dateInfo}
+        onDateUpdated={handleDateUpdated} // Pass the handler here
+      />
     </Container>
   );
 };

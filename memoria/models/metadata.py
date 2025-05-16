@@ -224,7 +224,7 @@ class RoughLocation(AbstractTimestampMixin, ObjectPermissionModelMixin, models.M
         db_index=True,
         null=True,
         blank=True,
-        help_text="Detailed location within a city or Town",
+        help_text="Detailed location within a city or town",
     )
 
     objects: PermittedQueryset = PermittedQueryset.as_manager()
@@ -237,6 +237,10 @@ class RoughLocation(AbstractTimestampMixin, ObjectPermissionModelMixin, models.M
             "sub_location",
         ]
         constraints: Sequence = [
+            # Enforce uniqueness on the combination of all four fields.
+            # This allows for cities with the same name in different subdivisions,
+            # and different sub_locations within the same city/subdivision.
+            # It prevents identical entries at the most granular level provided.
             models.UniqueConstraint(
                 fields=["country_code", "subdivision_code", "city", "sub_location"],
                 name="unique-location",

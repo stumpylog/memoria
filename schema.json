@@ -437,6 +437,21 @@
         "title": "ImageDateUpdateSchemaIn",
         "type": "object"
       },
+      "ImageFolderSchemaOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": ["id", "name"],
+        "title": "ImageFolderSchemaOut",
+        "type": "object"
+      },
       "ImageLocationSchemaOut": {
         "properties": {
           "city": {
@@ -573,6 +588,9 @@
             "title": "File Size",
             "type": "integer"
           },
+          "folder": {
+            "$ref": "#/components/schemas/ImageFolderSchemaOut"
+          },
           "id": {
             "title": "Id",
             "type": "integer"
@@ -592,22 +610,17 @@
             "title": "Original Checksum",
             "type": "string"
           },
-          "original_height": {
-            "title": "Original Height",
-            "type": "integer"
-          },
           "original_path": {
             "format": "file-path",
             "title": "Original Path",
             "type": "string"
           },
-          "original_width": {
-            "title": "Original Width",
-            "type": "integer"
-          },
           "phash": {
             "title": "Phash",
             "type": "string"
+          },
+          "size": {
+            "$ref": "#/components/schemas/ImageSizeSchemaOut"
           },
           "title": {
             "title": "Title",
@@ -623,18 +636,18 @@
           "id",
           "larger_size_url",
           "orientation",
-          "original_height",
-          "original_width",
+          "size",
           "title",
-          "file_size",
           "description",
+          "file_size",
           "created_at",
           "updated_at",
           "original_checksum",
           "phash",
           "original_path",
           "image_fs_id",
-          "can_edit"
+          "can_edit",
+          "folder"
         ],
         "title": "ImageMetadataSchemaOut",
         "type": "object"
@@ -666,6 +679,34 @@
         },
         "required": ["title", "description"],
         "title": "ImageMetadataUpdateSchemaIn",
+        "type": "object"
+      },
+      "ImageSizeSchemaOut": {
+        "properties": {
+          "large_version_height": {
+            "title": "Large Version Height",
+            "type": "integer"
+          },
+          "large_version_width": {
+            "title": "Large Version Width",
+            "type": "integer"
+          },
+          "original_height": {
+            "title": "Original Height",
+            "type": "integer"
+          },
+          "original_width": {
+            "title": "Original Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "original_height",
+          "original_width",
+          "large_version_height",
+          "large_version_width"
+        ],
+        "title": "ImageSizeSchemaOut",
         "type": "object"
       },
       "ImageThumbnailSchemaOut": {
@@ -2590,10 +2631,17 @@
           {
             "in": "query",
             "name": "subdivision_code",
-            "required": true,
+            "required": false,
             "schema": {
-              "title": "Subdivision Code",
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subdivision Code"
             }
           }
         ],
@@ -2690,20 +2738,27 @@
           },
           {
             "in": "query",
-            "name": "subdivision_code",
-            "required": true,
-            "schema": {
-              "title": "Subdivision Code",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
             "name": "city_name",
             "required": true,
             "schema": {
               "title": "City Name",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subdivision_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subdivision Code"
             }
           }
         ],

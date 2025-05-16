@@ -14,6 +14,7 @@ interface DateEditModalProps {
   onHide: () => void;
   imageId: number;
   currentDate: ImageDateSchemaOut | null;
+  onDateUpdated: () => void; // Add this line
 }
 
 // Parse display format (YYYY-MM-DD or YYYY-XX-YY) to actual date value
@@ -40,7 +41,14 @@ const parseDisplayDate = (dateInfo: ImageDateSchemaOut | null): string => {
   }
 };
 
-const DateEditModal: React.FC<DateEditModalProps> = ({ show, onHide, imageId, currentDate }) => {
+const DateEditModal: React.FC<DateEditModalProps> = ({
+  show,
+  onHide,
+  imageId,
+  currentDate,
+  onDateUpdated,
+}) => {
+  // Destructure the new prop
   const queryClient = useQueryClient();
 
   const {
@@ -76,6 +84,7 @@ const DateEditModal: React.FC<DateEditModalProps> = ({ show, onHide, imageId, cu
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["date", imageId] });
       onHide();
+      onDateUpdated(); // Call the callback on success
     },
     onError: (err) => {
       console.error("Failed to update date:", err);

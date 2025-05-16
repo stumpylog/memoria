@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button, Card } from "react-bootstrap";
+import { Nav } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 import type {
   ImageDateSchemaOut,
@@ -8,15 +10,15 @@ import type {
   UserProfileOutSchema,
 } from "../../api";
 
-import DateEditModal from "./DateEditModal";
-import LocationEditModal from "./LocationEditModal";
-import MetadataEditModal from "./MetadataEditModal";
-
 interface ImageBasicInfoCardProps {
   metadata: ImageMetadataSchemaOut;
   location: ImageLocationSchemaOut | null;
   dateInfo: ImageDateSchemaOut | null;
   profile: UserProfileOutSchema | null;
+  // Add these props to control modal visibility from the parent
+  setShowMetadataModal: (show: boolean) => void;
+  setShowLocationModal: (show: boolean) => void;
+  setShowDateModal: (show: boolean) => void;
 }
 
 // Format date helper with timezone support
@@ -80,11 +82,15 @@ const ImageBasicInfoCard: React.FC<ImageBasicInfoCardProps> = ({
   location,
   dateInfo,
   profile,
+  // Destructure the new props
+  setShowMetadataModal,
+  setShowLocationModal,
+  setShowDateModal,
 }) => {
-  // Modal visibility states
-  const [showMetadataModal, setShowMetadataModal] = useState(false);
-  const [showLocationModal, setShowLocationModal] = useState(false);
-  const [showDateModal, setShowDateModal] = useState(false);
+  // Remove local modal visibility states as they are now managed by the parent
+  // const [showMetadataModal, setShowMetadataModal] = useState(false);
+  // const [showLocationModal, setShowLocationModal] = useState(false);
+  // const [showDateModal, setShowDateModal] = useState(false);
 
   // Check if user has edit permissions
   const canEdit = metadata?.can_edit || false;
@@ -98,7 +104,7 @@ const ImageBasicInfoCard: React.FC<ImageBasicInfoCardProps> = ({
             <Button
               variant="outline-primary"
               size="sm"
-              onClick={() => setShowMetadataModal(true)}
+              onClick={() => setShowMetadataModal(true)} // Use the prop
               title="Edit title and description"
             >
               <i className="bi bi-pencil"></i>
@@ -127,7 +133,7 @@ const ImageBasicInfoCard: React.FC<ImageBasicInfoCardProps> = ({
               <Button
                 variant="outline-secondary"
                 size="sm"
-                onClick={() => setShowDateModal(true)}
+                onClick={() => setShowDateModal(true)} // Use the prop
                 title="Edit date"
               >
                 <i className="bi bi-pencil-fill"></i>
@@ -157,12 +163,22 @@ const ImageBasicInfoCard: React.FC<ImageBasicInfoCardProps> = ({
               <Button
                 variant="outline-secondary"
                 size="sm"
-                onClick={() => setShowLocationModal(true)}
+                onClick={() => setShowLocationModal(true)} // Use the prop
                 title="Edit location"
               >
                 <i className="bi bi-pencil-fill"></i>
               </Button>
             )}
+          </div>
+
+          <div className="d-flex justify-content-between align-items-center mb-1">
+            <div>
+              <strong>Folder: </strong>
+              <Nav.Link as={Link} to={`/folders/${metadata.folder.id}`}>
+                <i className="bi bi-folder-fill"></i>{" "}
+                <span className="text-muted"> {metadata.folder.name}</span>
+              </Nav.Link>
+            </div>
           </div>
 
           <hr />
@@ -178,28 +194,6 @@ const ImageBasicInfoCard: React.FC<ImageBasicInfoCardProps> = ({
           </p>
         </Card.Body>
       </Card>
-
-      {/* Edit Modals */}
-      <MetadataEditModal
-        show={showMetadataModal}
-        onHide={() => setShowMetadataModal(false)}
-        imageId={metadata.id}
-        currentMetadata={metadata}
-      />
-
-      <LocationEditModal
-        show={showLocationModal}
-        onHide={() => setShowLocationModal(false)}
-        imageId={metadata.id}
-        currentLocation={location}
-      />
-
-      <DateEditModal
-        show={showDateModal}
-        onHide={() => setShowDateModal(false)}
-        imageId={metadata.id}
-        currentDate={dateInfo}
-      />
     </>
   );
 };

@@ -14,6 +14,7 @@ client.setConfig({
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
+    Accept: "application/json",
   },
 });
 

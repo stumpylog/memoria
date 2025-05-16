@@ -14,6 +14,7 @@ interface MetadataEditModalProps {
   onHide: () => void;
   imageId: number;
   currentMetadata: ImageMetadataSchemaOut;
+  onMetadataUpdated: () => void; // Add this line
 }
 
 const MetadataEditModal: React.FC<MetadataEditModalProps> = ({
@@ -21,6 +22,7 @@ const MetadataEditModal: React.FC<MetadataEditModalProps> = ({
   onHide,
   imageId,
   currentMetadata,
+  onMetadataUpdated, // Destructure the new prop
 }) => {
   const queryClient = useQueryClient();
 
@@ -55,6 +57,7 @@ const MetadataEditModal: React.FC<MetadataEditModalProps> = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["metadata", imageId] });
       onHide();
+      onMetadataUpdated(); // Call the callback on success
     },
     onError: (err) => {
       console.error("Failed to update metadata:", err);

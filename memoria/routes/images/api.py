@@ -53,12 +53,16 @@ def get_image_thumbnail_info(request: HttpRequest, image_id: int):
     operation_id="image_get_metadata",
 )
 def get_image_details(request: HttpRequest, image_id: int):
-    img: Image = get_object_or_404(Image.objects.permitted(request.user), pk=image_id)
+    img: Image = get_object_or_404(Image.objects.permitted(request.user).with_folder(), pk=image_id)
     return {
         "id": img.id,
         "orientation": img.orientation,
-        "original_height": img.original_height,
-        "original_width": img.original_width,
+        "size": {
+            "original_height": img.original_height,
+            "original_width": img.original_width,
+            "large_version_height": img.large_version_height,
+            "large_version_width": img.large_version_width,
+        },
         "title": img.title,
         "file_size": img.file_size,
         "description": img.description,
@@ -70,6 +74,7 @@ def get_image_details(request: HttpRequest, image_id: int):
         "image_fs_id": img.image_fs_id,
         "larger_size_url": request.build_absolute_uri(img.larger_size_url),
         "can_edit": request.user.groups.filter(id__in=img.edit_groups.all()).exists() or request.user.is_superuser,
+        "folder": {"id": img.folder.pk, "name": img.folder.name},
     }
 
 
@@ -160,11 +165,16 @@ def update_image_details(request: HttpRequest, image_id: int, data: ImageMetadat
     if data.description is not None:
         img.description = data.description
     img.save()
+    # TODO: Deduplicate this
     return {
         "id": img.id,
         "orientation": img.orientation,
-        "original_height": img.original_height,
-        "original_width": img.original_width,
+        "size": {
+            "original_height": img.original_height,
+            "original_width": img.original_width,
+            "large_version_height": img.large_version_height,
+            "large_version_width": img.large_version_width,
+        },
         "title": img.title,
         "file_size": img.file_size,
         "description": img.description,
@@ -176,6 +186,7 @@ def update_image_details(request: HttpRequest, image_id: int, data: ImageMetadat
         "image_fs_id": img.image_fs_id,
         "larger_size_url": request.build_absolute_uri(img.larger_size_url),
         "can_edit": request.user.groups.filter(id__in=img.edit_groups.all()).exists() or request.user.is_superuser,
+        "folder": {"id": img.folder.pk, "name": img.folder.name},
     }
 
 

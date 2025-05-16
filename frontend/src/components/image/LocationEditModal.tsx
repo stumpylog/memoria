@@ -37,6 +37,7 @@ interface LocationEditModalProps {
   onHide: () => void;
   imageId: number;
   currentLocation: ImageLocationSchemaOut | null;
+  onLocationUpdated: () => void; // Add this line
 }
 
 const LocationEditModal: React.FC<LocationEditModalProps> = ({
@@ -44,6 +45,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
   onHide,
   imageId,
   currentLocation,
+  onLocationUpdated, // Destructure the new prop
 }) => {
   const queryClient = useQueryClient();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -118,13 +120,20 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
   } = useQuery<string[], ApiError>({
     queryKey: ["cities", selectedCountry, selectedSubdivision],
     queryFn: async (): Promise<string[]> => {
+      const queryParams: { country_code: string; subdivision_code?: string } = {
+        country_code: selectedCountry,
+      };
+      if (selectedSubdivision) {
+        // Conditionally add subdivision_code
+        queryParams.subdivision_code = selectedSubdivision;
+      }
       const response: AxiosResponse<string[]> = await locationGetCities({
-        query: { country_code: selectedCountry, subdivision_code: selectedSubdivision || "" },
+        query: queryParams,
         throwOnError: true,
       });
       return response.data;
     },
-    enabled: !!selectedCountry && !!selectedSubdivision,
+    enabled: !!selectedCountry, // Enabled if country is selected (Subdivision is optional)
     staleTime: 5 * 60 * 1000,
   });
 
@@ -137,17 +146,21 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
   } = useQuery<string[], ApiError>({
     queryKey: ["subLocations", selectedCountry, selectedSubdivision, selectedCity],
     queryFn: async (): Promise<string[]> => {
+      const queryParams: { country_code: string; city_name: string; subdivision_code?: string } = {
+        country_code: selectedCountry,
+        city_name: selectedCity || "",
+      };
+      if (selectedSubdivision) {
+        // Conditionally add subdivision_code
+        queryParams.subdivision_code = selectedSubdivision;
+      }
       const response: AxiosResponse<string[]> = await locationGetSubLocations({
-        query: {
-          country_code: selectedCountry,
-          subdivision_code: selectedSubdivision || "",
-          city_name: selectedCity || "",
-        },
+        query: queryParams,
         throwOnError: true,
       });
       return response.data;
     },
-    enabled: !!selectedCountry && !!selectedSubdivision && !!selectedCity,
+    enabled: !!selectedCountry && !!selectedCity, // Enabled if country and city are selected (Subdivision is optional)
     staleTime: 5 * 60 * 1000,
   });
 
@@ -173,10 +186,15 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
 
   useEffect(() => {
     if (selectedSubdivision === "" || selectedSubdivision === null) {
-      setValue("city", null);
-      setValue("sub_location", null);
+      // Keep city and sub_location if a country is still selected
+      if (selectedCountry) {
+        // No need to clear city or sub_location if only subdivision is cleared
+      } else {
+        setValue("city", null);
+        setValue("sub_location", null);
+      }
     }
-  }, [selectedSubdivision, setValue]);
+  }, [selectedSubdivision, selectedCountry, setValue]); // Added selectedCountry to dependencies
 
   useEffect(() => {
     if (selectedCity === "" || selectedCity === null) {
@@ -203,6 +221,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
       queryClient.setQueryData(["image", imageId, "location"], updatedLocationData);
       queryClient.invalidateQueries({ queryKey: ["images"] });
       onHide();
+      onLocationUpdated(); // Call the callback on success
     },
     onError: (err) => {
       console.error("Failed to update location:", err);
@@ -268,7 +287,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
           {submitError && <Alert variant="danger">{submitError}</Alert>}
           {updateLocationMutation.isError && !submitError && (
             <Alert variant="danger">
-              Failed to update location information.{" "}
+              Failed to update location information.
               {getErrorMessage(updateLocationMutation.error)}
             </Alert>
           )}
@@ -351,7 +370,8 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
             </Form.Group>
           )}
 
-          {selectedCountry && selectedSubdivision && (
+          {/* City is now enabled if only country is selected */}
+          {selectedCountry && (
             <Form.Group className="mb-3">
               <Form.Label>
                 City
@@ -374,7 +394,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
                     value={field.value || ""}
                     onChange={(e) => field.onChange(e.target.value || null)}
                     disabled={
-                      !selectedSubdivision ||
+                      !selectedCountry || // Enabled if country is selected
                       isLoadingCities ||
                       isErrorCities ||
                       updateLocationMutation.isPending
@@ -389,12 +409,13 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
                 ))}
               </datalist>
               <Form.Text className="text-muted">
-                Dependent on state/province. Select or type a new one.
+                Dependent on country and optionally state/province. Select or type a new one.
               </Form.Text>
             </Form.Group>
           )}
 
-          {selectedCountry && selectedSubdivision && selectedCity && (
+          {/* Specific Location is now enabled if country and city are selected */}
+          {selectedCountry && selectedCity && (
             <Form.Group className="mb-3">
               <Form.Label>
                 Specific Location
@@ -419,7 +440,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
                     value={field.value || ""}
                     onChange={(e) => field.onChange(e.target.value || null)}
                     disabled={
-                      !selectedCity ||
+                      !selectedCity || // Enabled if city is selected
                       isLoadingSubLocations ||
                       isErrorSubLocations ||
                       updateLocationMutation.isPending

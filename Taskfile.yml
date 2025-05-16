@@ -25,7 +25,16 @@ tasks:
     cmds:
       - uv run manage.py makemigrations
   exportschema:
+    deps:
+      - exportopenapi
+      - generateapiclient
+  exportopenapi:
     env:
       MEMORIA_DEBUG: "true"
     cmds:
       - uv run manage.py export_openapi_schema --output schema.json --sorted --indent 2
+  generateapiclient:
+    dir: "frontend"
+    cmds:
+      - pnpm run generate-api-client
+      - pnpm run format

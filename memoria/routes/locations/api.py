@@ -38,20 +38,17 @@ def get_subdivisions_for_country(
 def get_existing_cities(
     request: HttpRequest,
     country_code: str,
-    subdivision_code: str,
+    subdivision_code: str | None = None,
 ):
     country = ALPHA2_CODE_TO_COUNTRIES.get(cast("CountryCodeAlpha2Type", country_code))
     if not country:
         raise HttpBadRequestError(f"There is no country {country_code}")
-    if not country.contains_subdivision(subdivision_code):
-        raise HttpBadRequestError(f"There is no {subdivision_code} in country{country_code}")
-    return (
+    if subdivision_code is not None and not country.contains_subdivision(subdivision_code):
+        raise HttpBadRequestError(f"There is no {subdivision_code} in country {country_code}")
+    return list(
         RoughLocation.objects.permitted(request.user)
-        .filter(
-            country_code=country_code,
-            subdivision_code=subdivision_code,
-        )
-        .values_list("city", flat=True)
+        .filter(country_code=country_code, subdivision_code=subdivision_code, city__isnull=False)
+        .values_list("city", flat=True),
     )
 
 
@@ -59,20 +56,22 @@ def get_existing_cities(
 def get_existing_sublocations(
     request: HttpRequest,
     country_code: str,
-    subdivision_code: str,
     city_name: str,
+    subdivision_code: str | None = None,
 ):
     country = ALPHA2_CODE_TO_COUNTRIES.get(cast("CountryCodeAlpha2Type", country_code))
     if not country:
         raise HttpBadRequestError(f"There is no country {country_code}")
-    if not country.contains_subdivision(subdivision_code):
-        raise HttpBadRequestError(f"There is no {subdivision_code} in country{country_code}")
-    return (
+    if subdivision_code is not None and not country.contains_subdivision(subdivision_code):
+        raise HttpBadRequestError(f"There is no {subdivision_code} in country {country_code}")
+    return list(
         RoughLocation.objects.permitted(request.user)
         .filter(
             country_code=country_code,
             subdivision_code=subdivision_code,
-            city__iexact=city_name,
+            city__icontains=city_name,
+            sub_location__isnull=False,
         )
-        .values_list("sub_location", flat=True)
+        .all()
+        .values_list("sub_location", flat=True),
     )

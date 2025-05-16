@@ -44,15 +44,26 @@ class ImageLocationUpdateSchemaIn(Schema):
     sub_location: str | None
 
 
+class ImageSizeSchemaOut(Schema):
+    original_height: int
+    original_width: int
+    large_version_height: int
+    large_version_width: int
+
+
+class ImageFolderSchemaOut(Schema):
+    id: int
+    name: str
+
+
 class ImageMetadataSchemaOut(Schema):
     id: int
     larger_size_url: str
     orientation: RotationEnum
-    original_height: int
-    original_width: int
+    size: ImageSizeSchemaOut
     title: str
-    file_size: int
     description: str | None
+    file_size: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
     original_checksum: str
@@ -60,6 +71,7 @@ class ImageMetadataSchemaOut(Schema):
     original_path: FilePath
     image_fs_id: str
     can_edit: bool
+    folder: ImageFolderSchemaOut
 
     @field_serializer("original_path")
     def convert_path_to_str(self, v) -> str:
