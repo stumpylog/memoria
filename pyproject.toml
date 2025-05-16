@@ -31,9 +31,9 @@ dependencies = [
   "simpleiso3166[search]>=0.1",
 ]
 
-optional-dependencies.mariadb = [
-  "mysqlclient~=2.2.7",
-]
+# optional-dependencies.mariadb = [
+#   "mysqlclient~=2.2.7",
+# ]
 optional-dependencies.postgres = [
   "psycopg[c,pool]~=3.2.5",
 ]

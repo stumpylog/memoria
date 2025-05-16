@@ -2,19 +2,25 @@
 
 FROM node:lts-alpine AS frontend-builder
 
-RUN npm install -g pnpm
+RUN set -eux \
+  && npm install -g npm@11.4.0 \
+  && npm install -g pnpm@10.11.0 \
+  && npm install -g corepack@latest \
+  && corepack enable
 
 WORKDIR /build/
 
 COPY ./frontend/package.json ./frontend/pnpm-lock.yaml ./
 
-RUN pnpm install
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store/ \
+  set -eux \
+  pnpm install --frozen-lockfile --store-dir /pnpm/store/
 
 COPY ./frontend/ .
 
 ENV VITE_API_BASE_URL="/"
 
-RUN pnpm run build
+RUN set -eux && pnpm run build
 
 # Stage: s6-overlay-base
 # Purpose: Installs s6-overlay and rootfs
