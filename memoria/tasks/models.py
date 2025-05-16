@@ -17,6 +17,7 @@ class ImageIndexTaskModel:
     large_image_size: int
     large_image_quality: int
 
+    synchronous: bool = True
     logger: Logger | None = None
     overwrite: bool = False
     view_groups: QuerySet | None = None

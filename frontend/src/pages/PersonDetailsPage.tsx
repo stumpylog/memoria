@@ -32,8 +32,17 @@ const PersonDetailsPage: React.FC = () => {
 
   const handleShowEditModal = () => setShowEditModal(true);
   const handleCloseEditModal = () => setShowEditModal(false);
-  const handleSaveSuccess = () => {
-    refetchPerson(); // Refetch person data after successful save
+  const handleSaveSuccess = (updatedPerson: PersonDetailOutSchema) => {
+    // Check if the returned person ID is different than the current person ID
+    // This indicates a merge happened during the edit operation
+    if (updatedPerson.id !== personId) {
+      // Redirect to the new person page with the updated ID
+      navigate(`/persons/${updatedPerson.id}`, { replace: true });
+      return;
+    }
+
+    // If no redirect needed, just refetch the current person data
+    refetchPerson();
   };
 
   // Use useSearchParams to manage offset and limit in the URL

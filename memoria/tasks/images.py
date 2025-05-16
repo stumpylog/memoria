@@ -78,14 +78,21 @@ def index_update_existing_images(pkgs: list[ImageUpdateTaskModel]) -> None:
     """
     These are all existing images, check for modifications to the locations
     """
-    with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool, transaction.atomic():
+    with transaction.atomic():
         for pkg in pkgs:
             if not pkg.logger:
                 pkg.logger = logger
 
             pkg.logger.info(f"Checking {pkg.image_path.stem} for updates")
 
-            handle_existing_image(pkg, tool)
+            handle_existing_image(pkg)
+
+
+@db_task()
+def generate_image_files(imgs: list[ImageModel]) -> None:
+    """
+    TODO: Generate/update thumbnails and large size images
+    """
 
 
 @db_task()
@@ -93,11 +100,11 @@ def index_replace_existing_images(pkgs: list[ImageReplaceTaskModel]) -> None:
     """
     These images exist via Path, but are assumed to have been replaced with a new image file (with new metadata)
     """
-    with transaction.atomic():
+    with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool, transaction.atomic():
         for pkg in pkgs:
             if not pkg.logger:
                 pkg.logger = logger
-            replace_image_via_path(pkg)
+            replace_image_via_path(pkg, tool)
 
 
 @db_periodic_task(crontab(minute="0", hour="0"))

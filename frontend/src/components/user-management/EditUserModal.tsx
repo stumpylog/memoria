@@ -1,8 +1,22 @@
 // src/components/UserManagement/EditUserModal.tsx
+import type { SubmitHandler } from "react-hook-form";
+
 import React, { useEffect, useState } from "react";
 import { Alert, Button, Form, Modal } from "react-bootstrap";
+import { Controller, useForm } from "react-hook-form";
 
 import type { UserOutSchema, UserUpdateInSchemeWritable } from "../../api";
+
+// Define the shape of the form data
+interface EditUserFormData {
+  email: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  is_active: boolean;
+  is_staff: boolean;
+  is_superuser: boolean;
+  password?: string; // Password is optional for submission
+}
 
 interface EditUserModalProps {
   show: boolean;
@@ -21,107 +35,125 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   loading,
   error,
 }) => {
-  // State for the form data (can be partial as we only send changed fields)
-  const [formData, setFormData] = useState<UserUpdateInSchemeWritable>({});
-  // State to store the original user data for comparison
-  const [originalUserData, setOriginalUserData] = useState<UserUpdateInSchemeWritable>({});
-  // State for the password field (handled separately)
-  const [password, setPassword] = useState("");
+  // Use react-hook-form's useForm hook
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting, isDirty, dirtyFields },
+    getValues, // Access getValues here
+  } = useForm<EditUserFormData>({
+    // mode: "onChange", // Optional: Validate on change
+    defaultValues: {
+      email: null,
+      first_name: null,
+      last_name: null,
+      is_active: true,
+      is_staff: false,
+      is_superuser: false,
+      password: "",
+    },
+  });
+
   // Local error state for modal-specific errors (optional, can use parent error)
   const [localError, setLocalError] = useState<string | null>(null);
 
+  // Effect to reset the form when the user prop changes
+  // reset also resets the dirty state
   useEffect(() => {
     if (user) {
-      // Initialize form data and original data from the user prop
-      const initialData: UserUpdateInSchemeWritable = {
-        email: user.email ?? null, // Ensure null for comparison if backend sends undefined
+      const initialData: EditUserFormData = {
+        // Ensure null or default values for fields that could be null/undefined from API
+        email: user.email ?? null,
         first_name: user.first_name ?? null,
         last_name: user.last_name ?? null,
-        // Use ?? false/true for booleans to match form input expectations, but store original boolean/null
-        is_active: user.is_active,
-        is_staff: user.is_staff,
-        is_superuser: user.is_superuser,
+        is_active: user.is_active ?? true, // Provide a default if null/undefined is possible
+        is_staff: user.is_staff ?? false,
+        is_superuser: user.is_superuser ?? false,
+        password: "", // Password field is always empty initially
       };
-      setFormData(initialData);
-      setOriginalUserData(initialData); // Store the initial state
-      setPassword(""); // Clear password field on user change
+      // Reset the form with the user's data. This also resets the dirty state.
+      reset(initialData);
       setLocalError(null); // Clear local errors
     } else {
-      // Reset form and original data if user becomes null (modal is closed)
-      setFormData({});
-      setOriginalUserData({});
-      setPassword("");
+      // Reset form if user becomes null (modal is closed)
+      reset({
+        email: null,
+        first_name: null,
+        last_name: null,
+        is_active: true,
+        is_staff: false,
+        is_superuser: false,
+        password: "",
+      });
       setLocalError(null);
     }
-  }, [user]); // Re-run effect when the user prop changes
+  }, [user, reset]); // Add reset to dependency array
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    // Cast to HTMLInputElement to access `checked` safely for checkboxes
-    const checked = (e.target as HTMLInputElement).checked;
-
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value === "" ? null : value, // Treat empty strings for optional fields as null
-    });
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-  };
-
-  const handleSubmit = async () => {
+  // This is the function that will be called when the form is valid and submitted
+  const onSubmit: SubmitHandler<EditUserFormData> = async (formData) => {
     if (!user) {
       setLocalError("No user selected for editing.");
       return;
     }
 
-    setLocalError(null); // Clear previous errors
-    // Use a separate loading state if needed, otherwise reuse parent's
-    // setModalLoading(true);
+    setLocalError(null); // Clear previous local errors
+
+    // Check if any fields managed by react-hook-form are dirty OR if the password field is filled
+    // We check the password separately because its initial value is always "", so isDirty wouldn't
+    // detect a change from "" to a value unless the initial default was something else.
+    const passwordChanged = !!formData.password; // Check if password has a non-empty value
+
+    // Use isDirty from formState to check for changes in tracked fields
+    if (!isDirty && !passwordChanged) {
+      console.log("No changes detected.");
+      handleClose(); // Close modal as nothing needs saving
+      return;
+    }
 
     const dataToSave: UserUpdateInSchemeWritable = {};
 
-    // Compare current formData with originalUserData and add changed fields to dataToSave
-    const fieldsToCompare: Array<keyof UserUpdateInSchemeWritable> = [
-      "email",
-      "first_name",
-      "last_name",
-      "is_active",
-      "is_staff",
-      "is_superuser",
-    ];
+    // Iterate over form data and add fields to dataToSave if they are dirty
+    // dirtyFields tells us which fields were modified. We get the current value from formData.
+    (Object.keys(formData) as Array<keyof EditUserFormData>).forEach((key) => {
+      // Exclude password from this general dirty check unless it's the password field itself
+      if (key === "password") {
+        // Password handled separately below
+        return;
+      }
 
-    fieldsToCompare.forEach((field) => {
-      // Compare values, handling null and undefined consistently
-      // Also check if the field exists in formData before comparison
-      if (
-        Object.prototype.hasOwnProperty.call(formData, field) &&
-        formData[field] !== originalUserData[field]
-      ) {
-        // The type of formData[field] here is T | null | undefined, where T is string or boolean
-        // We need to ensure we assign a type compatible with UserUpdateInSchemeWritable[field]
+      // Check if the field is marked as dirty by react-hook-form
+      if (dirtyFields && dirtyFields[key]) {
+        const value = formData[key];
 
-        // The type of UserUpdateInSchemeWritable[field] is T | null | undefined
-        // So, assigning formData[field] should be fine as long as it's not undefined
-        if (formData[field] !== undefined) {
-          // This assignment should now be type-compatible
-          // TypeScript knows formData[field] is string | boolean | null here
-          // and dataToSave[field] expects string | null or boolean | null
-          dataToSave[field] = formData[field] as any; // Use 'as any' as a temporary workaround if strict types still complain, but ideally fix the types. Let's try without it first.
+        // Handle specific type conversions if necessary (e.g., "" to null for strings)
+        if (key === "email" || key === "first_name" || key === "last_name") {
+          // For optional string fields, convert empty string to null if that's the API expectation
+          (dataToSave[key] as string | null) = value === "" ? null : (value as string | null);
+        } else {
+          // For other fields (like booleans), add the value directly
+          // Use type assertion to match UserUpdateInSchemeWritable field type
+          if (typeof value === "boolean") {
+            (dataToSave[key] as boolean) = value;
+          } else if (value === null) {
+            // If the form value is null and the original wasn't, we should send null
+            (dataToSave[key] as any) = value; // Using 'any' as a fallback if complex union types
+          }
         }
       }
     });
 
-    // Include password only if it was entered/changed
-    if (password) {
-      dataToSave.password = password;
+    // Include password only if it was entered (the field is not empty)
+    if (passwordChanged) {
+      dataToSave.password = formData.password;
     }
 
-    // If no fields were changed and no password was set, do nothing
+    // This check should technically be redundant due to the !isDirty && !passwordChanged check above,
+    // but leaving it for safety.
     if (Object.keys(dataToSave).length === 0) {
-      console.log("No changes detected.");
-      handleClose(); // Close modal as nothing needs saving
+      console.log("No changes detected (post-processing check).");
+      handleClose();
       return;
     }
 
@@ -133,21 +165,32 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
       // handleSave in parent should close the modal on success
     } catch (err: any) {
       console.error(`Failed to update user ${user.id}:`, err);
-      setLocalError(err.message || `Failed to update user ${user.id}.`);
+      // Use parent error state or local error state
+      // setLocalError(err.message || `Failed to update user ${user.id}.`); // If using local error
     } finally {
-      // setModalLoading(false);
+      // The parent component should handle loading state based on the handleSave promise
     }
   };
+
+  // Determine if we should show a loading spinner/disable inputs
+  // Use parent loading state OR react-hook-form's isSubmitting state
+  const isLoading = loading || isSubmitting;
 
   return (
     <Modal show={show} onHide={handleClose}>
       <Modal.Header closeButton>
         <Modal.Title>Edit User: {user?.username}</Modal.Title>
       </Modal.Header>
-      <Modal.Body>
-        {/* Display either parent error or local error */}
-        {(error || localError) && <Alert variant="danger">{error || localError}</Alert>}
-        <Form>
+      {/* Wrap the form content in react-bootstrap Form and attach handleSubmit */}
+      <Form onSubmit={handleSubmit(onSubmit)}>
+        <Modal.Body>
+          {/* Display either parent error or local error */}
+          {(error || localError) && <Alert variant="danger">{error || localError}</Alert>}
+          {/* Display react-hook-form validation errors if any */}
+          {/* {Object.keys(errors).length > 0 && (
+              <Alert variant="warning">Please fix the errors in the form.</Alert>
+          )} */}
+
           {/* Username is typically not editable via this form */}
           <Form.Group className="mb-3" controlId="formUsernameReadonly">
             <Form.Label>Username</Form.Label>
@@ -158,90 +201,140 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
             <Form.Label>Password (Leave blank to keep current)</Form.Label>
             <Form.Control
               type="password"
-              name="password"
-              value={password}
-              onChange={handlePasswordChange}
               placeholder="Enter new password"
-              // Disable password field if parent loading (optional)
-              disabled={loading}
+              // Use register to connect the input to react-hook-form state
+              {...register("password")}
+              disabled={isLoading}
             />
+            {/* Display react-hook-form password errors if any */}
+            {errors.password && <p className="text-danger">{errors.password.message}</p>}
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="formEmail">
             <Form.Label>Email address</Form.Label>
             <Form.Control
               type="email"
-              name="email"
-              value={formData.email ?? ""}
-              onChange={handleChange}
-              disabled={loading}
+              placeholder="Enter email"
+              // Use register to connect the input to react-hook-form state
+              {...register("email")}
+              disabled={isLoading}
             />
+            {/* Display react-hook-form email errors if any */}
+            {errors.email && <p className="text-danger">{errors.email.message}</p>}
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="formFirstName">
             <Form.Label>First Name</Form.Label>
             <Form.Control
               type="text"
-              name="first_name"
-              value={formData.first_name ?? ""}
-              onChange={handleChange}
-              disabled={loading}
+              placeholder="Enter first name"
+              // Use register to connect the input to react-hook-form state
+              {...register("first_name")}
+              disabled={isLoading}
             />
+            {/* Display react-hook-form first_name errors if any */}
+            {errors.first_name && <p className="text-danger">{errors.first_name.message}</p>}
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="formLastName">
             <Form.Label>Last Name</Form.Label>
             <Form.Control
               type="text"
-              name="last_name"
-              value={formData.last_name ?? ""}
-              onChange={handleChange}
-              disabled={loading}
+              placeholder="Enter last name"
+              // Use register to connect the input to react-hook-form state
+              {...register("last_name")}
+              disabled={isLoading}
             />
+            {/* Display react-hook-form last_name errors if any */}
+            {errors.last_name && <p className="text-danger">{errors.last_name.message}</p>}
           </Form.Group>
 
+          {/* Use Controller for checkboxes - Corrected prop mapping */}
           <Form.Group className="mb-3" controlId="formIsActive">
-            <Form.Check
-              type="checkbox"
-              label="Is Active"
+            <Controller
               name="is_active"
-              checked={formData.is_active ?? true}
-              onChange={handleChange}
-              disabled={loading}
+              control={control}
+              // defaultValue={true} // Can set default here or in useForm
+              render={({ field }) => (
+                <Form.Check
+                  type="checkbox"
+                  label="Is Active"
+                  // Manually wire up field props to Form.Check props
+                  name={field.name}
+                  onChange={field.onChange} // react-hook-form's change handler
+                  onBlur={field.onBlur} // react-hook-form's blur handler
+                  ref={field.ref} // react-hook-form's ref
+                  checked={field.value} // Use field.value for the 'checked' prop
+                  disabled={isLoading}
+                />
+              )}
             />
+            {/* Display react-hook-form is_active errors if any */}
+            {errors.is_active && <p className="text-danger">{errors.is_active.message}</p>}
           </Form.Group>
 
+          {/* Use Controller for checkboxes - Corrected prop mapping */}
           <Form.Group className="mb-3" controlId="formIsStaff">
-            <Form.Check
-              type="checkbox"
-              label="Is Staff"
+            <Controller
               name="is_staff"
-              checked={formData.is_staff ?? false}
-              onChange={handleChange}
-              disabled={loading}
+              control={control}
+              // defaultValue={false} // Can set default here or in useForm
+              render={({ field }) => (
+                <Form.Check
+                  type="checkbox"
+                  label="Is Staff"
+                  name={field.name}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  checked={field.value}
+                  disabled={isLoading}
+                />
+              )}
             />
+            {/* Display react-hook-form is_staff errors if any */}
+            {errors.is_staff && <p className="text-danger">{errors.is_staff.message}</p>}
           </Form.Group>
 
+          {/* Use Controller for checkboxes - Corrected prop mapping */}
           <Form.Group className="mb-3" controlId="formIsSuperuser">
-            <Form.Check
-              type="checkbox"
-              label="Is Superuser"
+            <Controller
               name="is_superuser"
-              checked={formData.is_superuser ?? false}
-              onChange={handleChange}
-              disabled={loading}
+              control={control}
+              // defaultValue={false} // Can set default here or in useForm
+              render={({ field }) => (
+                <Form.Check
+                  type="checkbox"
+                  label="Is Superuser"
+                  name={field.name}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  checked={field.value}
+                  disabled={isLoading}
+                />
+              )}
             />
+            {/* Display react-hook-form is_superuser errors if any */}
+            {errors.is_superuser && <p className="text-danger">{errors.is_superuser.message}</p>}
           </Form.Group>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose} disabled={loading}>
-          Close
-        </Button>
-        <Button variant="primary" onClick={handleSubmit} disabled={loading}>
-          {loading ? "Saving..." : "Save Changes"}
-        </Button>
-      </Modal.Footer>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose} disabled={isLoading}>
+            Close
+          </Button>
+          {/* The submit button triggers react-hook-form's handleSubmit */}
+          {/* Disable save button if no changes have been made and password is empty */}
+          <Button
+            variant="primary"
+            type="submit"
+            disabled={isLoading || (!isDirty && !getValues("password"))}
+          >
+            {isLoading ? "Saving..." : "Save Changes"}
+          </Button>
+        </Modal.Footer>
+      </Form>{" "}
+      {/* Close the Form tag */}
     </Modal>
   );
 };

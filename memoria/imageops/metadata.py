@@ -16,6 +16,7 @@ from memoria.models import RoughDate
 from memoria.models import RoughLocation
 from memoria.models import Tag
 from memoria.models import TagOnImage
+from memoria.models.abstract import ObjectPermissionModelMixin
 from memoria.tasks.models import ImageIndexTaskModel
 from memoria.tasks.models import ImageReplaceTaskModel
 from memoria.tasks.models import ImageUpdateTaskModel
@@ -25,6 +26,27 @@ from memoria.utils.constants import PEOPLE_KEYWORD
 from memoria.utils.constants import PET_KEYWORD
 from memoria.utils.geo import get_country_code_from_name
 from memoria.utils.geo import get_subdivision_code_from_name
+
+
+def handle_view_edit_groups(
+    pkg: ImageIndexTaskModel | ImageUpdateTaskModel | ImageReplaceTaskModel,
+    db_object: ObjectPermissionModelMixin,
+    *,
+    was_created: bool,
+):
+    """
+    Handles the adding or setting of edit and view groups on created or existing models with permission groups
+    """
+    if pkg.view_groups:
+        if was_created:
+            db_object.view_groups.set(pkg.view_groups.all())
+        else:
+            db_object.view_groups.add(*pkg.view_groups.all())
+    if pkg.edit_groups:
+        if was_created:
+            db_object.edit_groups.set(pkg.edit_groups.all())
+        else:
+            db_object.edit_groups.add(*pkg.edit_groups.all())
 
 
 def update_image_people_and_pets(
@@ -51,6 +73,9 @@ def update_image_people_and_pets(
             assert pkg.logger is not None
         person, created = Person.objects.get_or_create(name=region.Name)
 
+        handle_view_edit_groups(pkg, person, was_created=created)
+
+        # TODO: This should be on the PersonInImage, as it might differ between pictures, but currently nothing sets this
         if region.Description:
             person.description = region.Description
             person.save()
@@ -75,6 +100,8 @@ def update_image_people_and_pets(
         if TYPE_CHECKING:
             assert pkg.logger is not None
         pet, created = Pet.objects.get_or_create(name=region.Name)
+
+        handle_view_edit_groups(pkg, pet, was_created=created)
 
         if region.Description:
             pet.description = region.Description
@@ -226,6 +253,8 @@ def update_image_location_from_mwg(
             sub_location=metadata.Location,
         )
 
+        handle_view_edit_groups(pkg, location, was_created=created)
+
         # Update image with location
         image_to_update.location = location
         image_to_update.save()
@@ -307,6 +336,8 @@ def update_image_location_from_keywords(
             city=city,
             sub_location=sub_location,
         )
+
+        handle_view_edit_groups(pkg, location, was_created=created)
 
         image_to_update.location = location
         image_to_update.save()
@@ -416,6 +447,7 @@ def update_image_date_from_keywords(
             month_valid=month_valid,
             day_valid=day_valid,
         )
+        handle_view_edit_groups(pkg, rough_date, was_created=created)
         if created:
             pkg.logger.debug(f"    Created new RoughDate: {rough_date}")
         else:
@@ -436,37 +468,20 @@ def update_image_folder_structure(pkg: ImageIndexTaskModel | ImageUpdateTaskMode
     if TYPE_CHECKING:
         assert pkg.logger is not None
 
+    # TODO: Handle a replace/move better here
     path_from_parent = pkg.image_path.relative_to(pkg.root_dir).parent
 
     parent, created = ImageFolder.objects.get_or_create(name=path_from_parent.parts[0], tn_parent=None)
+    handle_view_edit_groups(pkg, parent, was_created=created)
     if created:
         pkg.logger.info(f"  Created new parent folder: {parent.name}")
-        if pkg.view_groups:
-            if pkg.overwrite:
-                parent.view_groups.set(pkg.view_groups.all())
-            else:
-                parent.view_groups.add(*pkg.view_groups.all())
-        if pkg.edit_groups:
-            if pkg.overwrite:
-                parent.edit_groups.set(pkg.edit_groups.all())
-            else:
-                parent.edit_groups.add(*pkg.edit_groups.all())
     else:
         pkg.logger.info(f"  Using existing parent folder: {parent.name}")
     for depth, child_name in enumerate(path_from_parent.parts[1:]):
         child, created = ImageFolder.objects.get_or_create(name=child_name, tn_parent=parent)
+        handle_view_edit_groups(pkg, child, was_created=created)
         if created:
             pkg.logger.info(f"  {' ' * (depth + 2)}Created new child folder: {child.name}")
-            if pkg.view_groups:
-                if pkg.overwrite:
-                    child.view_groups.set(pkg.view_groups.all())
-                else:
-                    child.view_groups.add(*pkg.view_groups.all())
-            if pkg.edit_groups:
-                if pkg.overwrite:
-                    child.edit_groups.set(pkg.edit_groups.all())
-                else:
-                    child.edit_groups.add(*pkg.edit_groups.all())
         else:
             pkg.logger.info(f"  {' ' * (depth + 2)}Using existing child folder: {child.name}")
         parent = child

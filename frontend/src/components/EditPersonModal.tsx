@@ -19,12 +19,6 @@ interface EditPersonFormData {
   description: string | null;
 }
 
-// Optional: Define Zod schema for validation
-// const editPersonSchema = z.object({
-//   name: z.string().min(1, "Name is required"),
-//   description: z.string().nullable(),
-// });
-
 const EditPersonModal: React.FC<EditPersonModalProps> = ({
   show,
   handleClose,
@@ -36,8 +30,6 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
       name: person.name,
       description: person.description || "", // Initialize with empty string if null for form
     },
-    // Optional: Add resolver for Zod validation
-    // resolver: zodResolver(editPersonSchema),
   });
 
   // Reset form when modal is opened or person data changes

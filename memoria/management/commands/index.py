@@ -157,6 +157,7 @@ class Command(TyperCommand):
                     view_groups=view_groups,
                     edit_groups=edit_groups,
                     hash_threads=hash_threads,
+                    synchronous=synchronous,
                     thumbnail_size=site_settings.thumbnail_max_size,
                     large_image_size=site_settings.large_image_max_size,
                     large_image_quality=site_settings.large_image_quality,

@@ -2,7 +2,6 @@
 import React, { useEffect } from "react";
 import { Alert, Button, Modal, Spinner } from "react-bootstrap";
 
-// Assuming GroupOutSchema type exists in your api types
 import type { GroupOutSchema } from "../../api";
 
 interface DeleteGroupModalProps {

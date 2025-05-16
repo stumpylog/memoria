@@ -1,13 +1,22 @@
+from dataclasses import dataclass
 from logging import Logger
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-import pyvips
 from PIL import Image
 from PIL import ImageOps
 
+Image.MAX_IMAGE_PIXELS = None
 
-def generate_image_versions_pyvips(
+
+@dataclass(slots=True, frozen=True)
+class GeneratedFileInfo:
+    thumbnail_width: int
+    thumbnail_height: int
+    large_img_height: int
+    large_img_width: int
+
+
+def generate_image_versions(
     input_path: Path,
     thumbnail_output_path: Path,
     webp_output_path: Path,
@@ -15,10 +24,11 @@ def generate_image_versions_pyvips(
     thumbnail_size: int,
     webp_quality: int,
     scaled_image_side_max: int,
-) -> None:
+) -> GeneratedFileInfo:
     """
     Creates a thumbnail for an image and saves a potentially scaled-down
-    version of the original image as WebP with a specified quality using pyvips.
+    version of the original image as WebP with a specified quality using Pillow (PIL).
+    Uses context managers for resource management.
 
     The original image is scaled down if its largest side exceeds
     scaled_image_side_max.
@@ -31,80 +41,59 @@ def generate_image_versions_pyvips(
         thumbnail_size: The maximum dimension (width or height) for the thumbnail.
         webp_quality: The quality level for the WebP image (0-100).
         scaled_image_side_max: The maximum dimension (width or height) for the
-                                scaled image saved as WebP.
+                                 scaled image saved as WebP.
     """
+    thumbnail_width = thumbnail_height = large_img_height = large_img_width = 0
     try:
-        # Load the image
-        image = pyvips.Image.new_from_file(str(input_path))
+        # Use context manager for the initial image load.
+        # This ensures the file handle is closed automatically.
+        with Image.open(input_path) as img:
+            # First, transpose the image according to its EXIF flag
+            ImageOps.exif_transpose(img, in_place=True)
 
-        if TYPE_CHECKING:
-            assert image is not None
-            assert isinstance(image, pyvips.Image)
+            # Create and save the thumbnail
+            logger.info("    Creating thumbnail")
+            thumb_img = img.copy()
+            thumb_img.thumbnail((thumbnail_size, thumbnail_size), Image.Resampling.LANCZOS)
+            thumb_img.save(thumbnail_output_path)
+            logger.debug(f"Thumbnail saved to {thumbnail_output_path}")
+            thumbnail_width, thumbnail_height = thumb_img.size
 
-        # Create and save the thumbnail
-        # The thumbnail function resizes the image to fit within the specified size
-        logger.info("    Creating thumbnail")
-        thumbnail_image = image.thumbnail_image(
-            thumbnail_size,
-            size=pyvips.enums.Size.BOTH,
-            no_rotate=False,
-        )
-        thumbnail_image.write_to_file(str(thumbnail_output_path))
+            # Prepare image for WebP
+            # Use another copy derived from the original opened image.
+            webp_img = img.copy()
 
-        image_for_webp = image.autorot()
-        original_width = image_for_webp.width
-        original_height = image_for_webp.height
-        largest_side = max(original_width, original_height)
+            large_img_width, large_img_height = webp_img.size
+            largest_side = max(large_img_height, large_img_width)
 
-        if scaled_image_side_max > 0 and largest_side > scaled_image_side_max:
-            # Calculate the scaling factor
-            scale_factor = scaled_image_side_max / largest_side
-            # Resize the image
-            image_for_webp = image_for_webp.resize(scale_factor, kernel=pyvips.enums.Kernel.LANCZOS3)
+            # Check if scaling is needed for the WebP version
+            if scaled_image_side_max > 0 and largest_side > scaled_image_side_max:
+                logger.debug(
+                    f"    Image largest side ({largest_side}) exceeds max ({scaled_image_side_max}), resizing.",
+                )
+                # Calculate the new dimensions preserving aspect ratio
+                if large_img_width > large_img_height:
+                    new_width = scaled_image_side_max
+                    new_height = int(large_img_height * (scaled_image_side_max / large_img_width))
+                else:
+                    new_height = scaled_image_side_max
+                    new_width = int(large_img_width * (scaled_image_side_max / large_img_height))
 
-        # Save the image as WebP with specified quality
-        # The quality is passed as a keyword argument 'Q'
-        logger.info("    Creating WebP version")
-        image_for_webp.write_to_file(str(webp_output_path), Q=webp_quality)
+                # Resize returns a *new* Image object with the new dimensions
+                # Assign the new resized image back to webp_img
+                webp_img = webp_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                logger.debug(f"    Resized image to {new_width}x{new_height}")
+            else:
+                logger.debug("Image within max size or max size is 0, no scaling needed for WebP.")
 
-    except pyvips.Error:
-        logger.exception("An libvips error occurred")
-    except FileNotFoundError:
-        logger.exception(f"Error: Input file not found at {input_path}")
+            # Save the image as WebP with specified quality
+            logger.info("    Creating WebP version")
+            # PIL saves the image from the current state of webp_img
+            webp_img.save(webp_output_path, format="webp", quality=webp_quality)
+            logger.debug(f"WebP image saved to {webp_output_path}")
+
+            return GeneratedFileInfo(thumbnail_width, thumbnail_height, large_img_height, large_img_width)
+
     except Exception:
         logger.exception("An unexpected error occurred")
-
-
-def generate_image_versions_pillow(
-    input_path: Path,
-    thumbnail_output_path: Path,
-    webp_output_path: Path,
-    logger: Logger,
-    thumbnail_size: int,
-    webp_quality: int,
-    scaled_image_size: int,
-) -> None:
-    """
-    Creates a thumbnail for an image and saves the original image as WebP
-    with a specified quality using PIL.
-
-    Args:
-        input_path: The path to the input image file.
-        thumbnail_output_path: The path to save the thumbnail image.
-        webp_output_path: The path to save the WebP image.
-        thumbnail_size: The maximum dimension (width or height) for the thumbnail.
-        webp_quality: The quality level for the WebP image (0-100).
-    """
-    with Image.open(input_path) as im_file:
-        img_copy = ImageOps.exif_transpose(im_file)
-        if TYPE_CHECKING:
-            assert img_copy is not None
-
-        logger.info("    Creating thumbnail")
-        thumbnail = img_copy.copy()
-        thumbnail.thumbnail((thumbnail_size, thumbnail_size))
-        thumbnail.save(thumbnail_output_path)
-
-        logger.info("    Creating WebP version")
-        # TODO: Make this quality configurable
-        img_copy.save(webp_output_path, quality=webp_quality)
+        raise

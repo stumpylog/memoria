@@ -113,6 +113,9 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     original_height = models.PositiveIntegerField(verbose_name="original image height in pixels")
     original_width = models.PositiveIntegerField(verbose_name="original image width in pixels")
 
+    large_version_height = models.PositiveSmallIntegerField(verbose_name="Large size image height in pixels")
+    large_version_width = models.PositiveSmallIntegerField(verbose_name="Large size image width in pixels")
+
     thumbnail_height = models.PositiveSmallIntegerField(verbose_name="Thumbnail image height in pixels")
     thumbnail_width = models.PositiveSmallIntegerField(verbose_name="Thumbnail image width in pixels")
 

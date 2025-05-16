@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING
 from typing import cast
 
 from exifmwg import ExifTool
-from PIL import Image
 
 from memoria.imageops.metadata import update_image_date_from_keywords
 from memoria.imageops.metadata import update_image_folder_structure
@@ -14,13 +13,10 @@ from memoria.models import Image as ImageModel
 from memoria.tasks.models import ImageIndexTaskModel
 from memoria.tasks.models import ImageUpdateTaskModel
 from memoria.utils.hashing import calculate_image_phash
-from memoria.utils.photos import generate_image_versions_pyvips
+from memoria.utils.photos import generate_image_versions
 
 if TYPE_CHECKING:
     from logging import Logger
-
-# We will just trust the images
-Image.MAX_IMAGE_PIXELS = None
 
 
 def handle_existing_image(pkg: ImageUpdateTaskModel) -> None:
@@ -68,7 +64,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
 
     containing_folder = update_image_folder_structure(pkg)
 
-    new_img = ImageModel.objects.create(
+    new_img: ImageModel = ImageModel.objects.create(
         file_size=pkg.image_path.stat().st_size,
         original=str(pkg.image_path.resolve()),
         title=metadata.Title or pkg.image_path.stem,
@@ -78,14 +74,11 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
         original_width=metadata.ImageWidth,
         original_checksum=pkg.original_hash,
         phash=calculate_image_phash(pkg.image_path),
-        # Relations
         folder=containing_folder,
-        # These are placeholders, the files do not exist yet
-        # thumbnail_checksum="A",
-        # full_size_checksum="B",
+        large_version_height=0,
+        large_version_width=0,
         thumbnail_height=0,
         thumbnail_width=0,
-        # This time cannot be dirty
         is_dirty=False,
     )
 
@@ -97,7 +90,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
 
     pkg.logger.info("  Processing image file")
 
-    generate_image_versions_pyvips(
+    file_info = generate_image_versions(
         pkg.image_path,
         new_img.thumbnail_path,
         new_img.full_size_path,
@@ -107,12 +100,10 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
         scaled_image_side_max=pkg.large_image_size,
     )
 
-    # Update the file hashes, now that the files exist
-    # pkg.logger.info("    Hashing created files")
-    # new_img.thumbnail_checksum = calculate_blake3_hash(new_img.thumbnail_path, hash_threads=pkg.hash_threads)
-    # new_img.full_size_checksum = calculate_blake3_hash(new_img.full_size_path, hash_threads=pkg.hash_threads)
-    with Image.open(new_img.thumbnail_path) as img:
-        new_img.thumbnail_width, new_img.thumbnail_height = img.size
+    new_img.thumbnail_width = file_info.thumbnail_width
+    new_img.thumbnail_height = file_info.thumbnail_height
+    new_img.large_version_width = file_info.large_img_width
+    new_img.large_version_height = file_info.large_img_height
     new_img.save()
 
     # Parse Faces/pets/regions

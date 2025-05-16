@@ -1,6 +1,9 @@
 // src/components/UserManagement/CreateUserModal.tsx
-import React, { useState } from "react";
+import type { SubmitHandler } from "react-hook-form";
+
+import React, { useEffect, useMemo } from "react"; // Import useMemo
 import { Alert, Button, Form, Modal } from "react-bootstrap";
+import { useForm } from "react-hook-form";
 
 import type { UserInCreateSchemaWritable } from "../../api";
 
@@ -12,6 +15,12 @@ interface CreateUserModalProps {
   error: string | null;
 }
 
+type CreateUserFormData = UserInCreateSchemaWritable & {
+  email: string;
+  first_name: string;
+  last_name: string;
+};
+
 const CreateUserModal: React.FC<CreateUserModalProps> = ({
   show,
   handleClose,
@@ -19,34 +28,45 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
   loading,
   error,
 }) => {
-  const [formData, setFormData] = useState<UserInCreateSchemaWritable>({
-    username: "",
-    password: "",
-    email: null,
-    first_name: null,
-    last_name: null,
-    is_active: true, // Default to active
-    is_staff: false,
-    is_superuser: false,
+  // Use useMemo to memoize the defaultValues object
+  const defaultValues: CreateUserFormData = useMemo(
+    () => ({
+      username: "",
+      password: "",
+      email: "",
+      first_name: "",
+      last_name: "",
+      is_active: true,
+      is_staff: false,
+      is_superuser: false,
+    }),
+    [],
+  ); // Empty dependency array means this object is created once
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<CreateUserFormData>({
+    defaultValues: defaultValues,
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-  };
-
-  const handleSubmit = async () => {
-    // Basic validation
-    if (!formData.username || !formData.password) {
-      alert("Username and Password are required.");
-      return;
+  // Reset the form when the modal is opened using the memoized defaultValues
+  useEffect(() => {
+    if (show) {
+      reset(defaultValues);
     }
-    await handleSave(formData);
-    // Consider resetting form only on successful save
-    // setFormData({ ...initialFormData }); // Define an initial state outside
+  }, [show, reset, defaultValues]); // defaultValues is now a stable reference
+
+  const onSubmit: SubmitHandler<CreateUserFormData> = async (data) => {
+    const userDataToSave: UserInCreateSchemaWritable = {
+      ...data,
+      email: data.email === "" ? null : data.email,
+      first_name: data.first_name === "" ? null : data.first_name,
+      last_name: data.last_name === "" ? null : data.last_name,
+    };
+    await handleSave(userDataToSave);
   };
 
   return (
@@ -56,96 +76,117 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
       </Modal.Header>
       <Modal.Body>
         {error && <Alert variant="danger">{error}</Alert>}
-        <Form>
+        <Form onSubmit={handleSubmit(onSubmit)}>
           <Form.Group className="mb-3" controlId="formUsername">
             <Form.Label>Username</Form.Label>
             <Form.Control
               type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
+              {...register("username", { required: "Username is required" })}
+              isInvalid={!!errors.username}
             />
+            {errors.username && (
+              <Form.Control.Feedback type="invalid">
+                {errors.username.message}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="formPassword">
             <Form.Label>Password</Form.Label>
             <Form.Control
               type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
+              {...register("password", { required: "Password is required" })}
+              isInvalid={!!errors.password}
             />
+            {errors.password && (
+              <Form.Control.Feedback type="invalid">
+                {errors.password.message}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="formEmail">
             <Form.Label>Email address</Form.Label>
-            <Form.Control
-              type="email"
-              name="email"
-              value={formData.email || ""}
-              onChange={handleChange}
-            />
+            <Form.Control type="email" {...register("email")} isInvalid={!!errors.email} />
+            {errors.email && (
+              <Form.Control.Feedback type="invalid">{errors.email.message}</Form.Control.Feedback>
+            )}
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="formFirstName">
             <Form.Label>First Name</Form.Label>
             <Form.Control
               type="text"
-              name="first_name"
-              value={formData.first_name || ""}
-              onChange={handleChange}
+              {...register("first_name")}
+              isInvalid={!!errors.first_name}
             />
+            {errors.first_name && (
+              <Form.Control.Feedback type="invalid">
+                {errors.first_name.message}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="formLastName">
             <Form.Label>Last Name</Form.Label>
-            <Form.Control
-              type="text"
-              name="last_name"
-              value={formData.last_name || ""}
-              onChange={handleChange}
-            />
+            <Form.Control type="text" {...register("last_name")} isInvalid={!!errors.last_name} />
+            {errors.last_name && (
+              <Form.Control.Feedback type="invalid">
+                {errors.last_name.message}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="formIsActive">
             <Form.Check
               type="checkbox"
               label="Is Active"
-              name="is_active"
-              checked={formData.is_active || false}
-              onChange={handleChange}
+              {...register("is_active")}
+              isInvalid={!!errors.is_active}
             />
+            {errors.is_active && (
+              <Form.Control.Feedback type="invalid">
+                {errors.is_active.message}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="formIsStaff">
             <Form.Check
               type="checkbox"
               label="Is Staff"
-              name="is_staff"
-              checked={formData.is_staff || false}
-              onChange={handleChange}
+              {...register("is_staff")}
+              isInvalid={!!errors.is_staff}
             />
+            {errors.is_staff && (
+              <Form.Control.Feedback type="invalid">
+                {errors.is_staff.message}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="formIsSuperuser">
             <Form.Check
               type="checkbox"
               label="Is Superuser"
-              name="is_superuser"
-              checked={formData.is_superuser || false}
-              onChange={handleChange}
+              {...register("is_superuser")}
+              isInvalid={!!errors.is_superuser}
             />
+            {errors.is_superuser && (
+              <Form.Control.Feedback type="invalid">
+                {errors.is_superuser.message}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
+
+          <Button variant="primary" type="submit" disabled={loading}>
+            {loading ? "Saving..." : "Create User"}
+          </Button>
         </Form>
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={handleClose} disabled={loading}>
           Close
-        </Button>
-        <Button variant="primary" onClick={handleSubmit} disabled={loading}>
-          {loading ? "Saving..." : "Create User"}
         </Button>
       </Modal.Footer>
     </Modal>
