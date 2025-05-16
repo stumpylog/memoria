@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+import redis
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -76,6 +78,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "treenode",
     "timezone_field",
+    "huey.contrib.djhuey",
     "memoria",
 ]
 
@@ -278,5 +281,31 @@ LOGGING = {
             "level": "DEBUG",
             "propagate": False,
         },
+    },
+}
+
+REDIS_CONNECTION_POOL = redis.ConnectionPool.from_url(
+    REDIS_URL or "redis://localhost:6379/0",
+    max_connections=10,
+)
+
+HUEY = {
+    "huey_class": "huey.RedisHuey",  # Huey implementation to use.
+    "name": "memoria",
+    "results": True,  # Store return values of tasks.
+    "store_none": False,  # If a task returns None, do not save to results.
+    "immediate": DEBUG,  # If DEBUG=True, run synchronously.
+    "utc": True,  # Use UTC for all times internally.
+    "blocking": True,  # Perform blocking pop rather than poll Redis.
+    "connection": {
+        "connection_pool": REDIS_CONNECTION_POOL,
+    },
+    "consumer": {
+        "workers": 2,
+        "worker_type": "process",
+        "scheduler_interval": 60,
+        "periodic": True,  # Enable crontab feature.
+        "check_worker_health": True,  # Enable worker health checks.
+        "health_check_interval": 60,  # Check worker health every second.
     },
 }

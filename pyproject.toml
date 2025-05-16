@@ -27,7 +27,6 @@ dependencies = [
   "pillow~=11.2.1",
   "pydantic[email]",
   "pydantic-extra-types",
-  "pyvips[binary]",
   "redis[hiredis]>=5.0.8",
   "simpleiso3166[search]>=0.1",
 ]
