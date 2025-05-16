@@ -14,7 +14,7 @@ COPY ./frontend/package.json ./frontend/pnpm-lock.yaml ./
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store/ \
   set -eux \
-  pnpm install --frozen-lockfile
+  && pnpm install --frozen-lockfile --store-dir /pnpm/store/
 
 COPY ./frontend/ .
 
