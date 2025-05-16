@@ -1,45 +1,61 @@
 #!/command/with-contenv /bin/ash
-# shellcheck shell=bash
+# shellcheck shell=ash
 
 log_prefix="[init-folders]"
 
-main_dirs=(
-	"/app/data/"
-	"/app/data/logs/"
-	"/app/media/"
-)
+# Use space-separated strings for directory lists, compatible with ash
+main_dirs="/app/data/ /app/data/logs/ /app/media/"
 
-nginx_dirs=(
-	"/app/data/nginx/"
-	"/app/data/nginx/run/"
-	"/app/data/nginx/logs/"
-	"/app/data/nginx/client_body_temp/",
-	/app/data/nginx/proxy_temp/
-	"/app/data/nginx/fastcgi_temp/"
-	"/app/data/nginx/uwsgi_temp/"
-	"/app/data/nginx/scgi_temp/"
-    "/var/lib/nginx/logs"
-    "/var/log/nginx"
-)
+nginx_dirs="/app/data/nginx/ /app/data/nginx/run/ /app/data/nginx/logs/ /app/data/nginx/client_body_temp/ /app/data/nginx/proxy_temp/ /app/data/nginx/fastcgi_temp/ /app/data/nginx/uwsgi_temp/ /app/data/nginx/scgi_temp/ /var/lib/nginx/logs /var/log/nginx"
 
 echo "${log_prefix} Running with root privileges, adjusting directories and permissions"
 
 # First create directories
-for dir in "${main_dirs[@]}"; do
-    if [[ ! -d "${dir}" ]]; then
-        mkdir --parents --verbose "${dir}"
+# Iterate over the space-separated string
+for dir in ${main_dirs}; do
+    # Check if the directory exists
+    if [ ! -d "${dir}" ]; then
+        # Use mkdir with -p and -v flags
+        mkdir -p -v "${dir}"
     fi
 done
-for dir in "${nginx_dirs[@]}"; do
-    if [[ ! -d "${dir}" ]]; then
-        mkdir --parents --verbose "${dir}"
+
+# Iterate over the space-separated string
+for dir in ${nginx_dirs}; do
+    # Check if the directory exists
+    if [ ! -d "${dir}" ]; then
+        # Use mkdir with -p and -v flags
+        mkdir -p -v "${dir}"
     fi
 done
 
 # Then fix permissions on all directories
-for dir in "${main_dirs[@]}"; do
-    find "${dir}" -not \( -user memoria -and -group memoria \) -exec chown --changes memoria:memoria {} +
+# Iterate over the space-separated string
+for dir in ${main_dirs}; do
+    # Use find to locate items and chown to change ownership
+    # -not \( -user memoria -and -group memoria \) finds items NOT owned by memoria:memoria
+    # -exec chown --changes memoria:memoria {} + executes chown on found items
+    find "${dir}" -not \( -user memoria -a -group memoria \) -exec chown memoria:memoria {} \;
 done
-for dir in "${nginx_dirs[@]}"; do
-    find "${dir}" -not \( -user memoria -and -group memoria \) -exec chown --changes memoria:memoria {} +
+
+# Iterate over the space-separated string
+for dir in ${nginx_dirs}; do
+    # Use find to locate items and chown to change ownership
+    find "${dir}" -not \( -user memoria -a -group memoria \) -exec chown memoria:memoria {} \;
 done
+
+# Handle default log directories that might be compiled into nginx
+
+
+mkdir -p /var/lib/nginx/logs
+touch /var/lib/nginx/logs/error.log
+touch /var/lib/nginx/logs/access.log
+chmod 644 /var/lib/nginx/logs/*.log
+chown -R memoria:memoria /var/lib/nginx
+
+# Handle potential /var/log/nginx path
+mkdir -p /var/log/nginx
+touch /var/log/nginx/error.log
+touch /var/log/nginx/access.log
+chmod 644 /var/log/nginx/*.log
+chown -R memoria:memoria /var/log/nginx

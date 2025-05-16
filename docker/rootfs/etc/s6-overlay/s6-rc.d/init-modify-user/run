@@ -1,6 +1,6 @@
 #!/command/with-contenv /bin/ash
 # shellcheck shell=bash
-declare -r log_prefix="[init-user]"
+log_prefix="[init-user]"
 
 
 usermap_original_uid=$(id -u memoria)
