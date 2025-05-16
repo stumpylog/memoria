@@ -1,15 +1,15 @@
 // src/pages/ImageDetailPage.tsx
 
 import { useQueries } from "@tanstack/react-query";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button, Col, Container, Row, Spinner } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
 import { useParams } from "react-router-dom";
 
 import type {
-  ImageDateSchema,
-  ImageLocationSchema,
-  ImageMetadataSchema,
+  ImageDateSchemaOut,
+  ImageLocationSchemaOut,
+  ImageMetadataSchemaOut,
   PersonInImageSchemaOut,
   PetInImageSchemaOut,
 } from "../api";
@@ -33,8 +33,35 @@ const ImageDetailPage: React.FC = () => {
   const imageId = parseInt(id || "0", 10);
   const { profile } = useAuth();
 
+  // Global toggles for categories
   const [showPeople, setShowPeople] = useState(false);
   const [showPets, setShowPets] = useState(false);
+
+  // State for individually toggled boxes (Maps box ID to boolean visibility)
+  const [individualPeopleVisibility, setIndividualPeopleVisibility] = useState<
+    Map<number, boolean>
+  >(new Map());
+  const [individualPetsVisibility, setIndividualPetsVisibility] = useState<Map<number, boolean>>(
+    new Map(),
+  );
+
+  // Function to toggle visibility of a specific person's bounding box
+  const togglePersonVisibility = (personId: number) => {
+    setIndividualPeopleVisibility((prevMap) => {
+      const newMap = new Map(prevMap);
+      newMap.set(personId, !(newMap.get(personId) ?? false)); // Toggle state, default to false if not set
+      return newMap;
+    });
+  };
+
+  // Function to toggle visibility of a specific pet's bounding box
+  const togglePetVisibility = (petId: number) => {
+    setIndividualPetsVisibility((prevMap) => {
+      const newMap = new Map(prevMap);
+      newMap.set(petId, !(newMap.get(petId) ?? false)); // Toggle state, default to false if not set
+      return newMap;
+    });
+  };
 
   const results = useQueries({
     queries: [
@@ -66,13 +93,29 @@ const ImageDetailPage: React.FC = () => {
 
   const [metadataRes, locationRes, dateRes, peopleRes, petsRes] = results;
 
-  const metadata: ImageMetadataSchema | null = metadataRes.data?.data ?? null;
-  const location: ImageLocationSchema | null = locationRes.data?.data ?? null;
-  const dateInfo: ImageDateSchema | null = dateRes.data?.data ?? null;
-  const people: PersonInImageSchemaOut[] = peopleRes.data?.data ?? [];
-  const pets: PetInImageSchemaOut[] = petsRes.data?.data ?? [];
+  const metadata: ImageMetadataSchemaOut | null = metadataRes.data?.data ?? null;
+  const location: ImageLocationSchemaOut | null = locationRes.data?.data ?? null;
+  const dateInfo: ImageDateSchemaOut | null = dateRes.data?.data ?? null;
 
-  const canEdit = true; // Replace with actual permission check later
+  // Memoize people and pets data
+  const people: PersonInImageSchemaOut[] = useMemo(
+    () => peopleRes.data?.data ?? [],
+    [peopleRes.data?.data], // Recompute only if the underlying data changes
+  );
+
+  const pets: PetInImageSchemaOut[] = useMemo(
+    () => petsRes.data?.data ?? [],
+    [petsRes.data?.data], // Recompute only if the underlying data changes
+  );
+
+  // Reset individual visibility when people/pets data changes (e.g., on image ID change)
+  useEffect(() => {
+    setIndividualPeopleVisibility(new Map());
+    setIndividualPetsVisibility(new Map());
+    // Optionally, you could set the global toggles to false here too if desired
+    setShowPeople(false);
+    setShowPets(false);
+  }, [people, pets]); // Now depends on the memoized arrays
 
   if (isLoading) {
     return (
@@ -102,10 +145,12 @@ const ImageDetailPage: React.FC = () => {
           metadata={metadata}
           people={people}
           pets={pets}
-          showPeople={showPeople}
-          setShowPeople={setShowPeople}
-          showPets={showPets}
-          setShowPets={setShowPets}
+          showPeople={showPeople} // Global toggle state
+          setShowPeople={setShowPeople} // Setter for global toggle
+          showPets={showPets} // Global toggle state
+          setShowPets={setShowPets} // Setter for global toggle
+          individualPeopleVisibility={individualPeopleVisibility} // Individual visibility state
+          individualPetsVisibility={individualPetsVisibility} // Individual visibility state
         />
 
         {/* Info, People, Pets, Edit Section (Right Column) */}
@@ -119,19 +164,18 @@ const ImageDetailPage: React.FC = () => {
           />
 
           {/* People Card */}
-          <ImagePeopleCard people={people} />
+          <ImagePeopleCard
+            people={people}
+            individualVisibility={individualPeopleVisibility}
+            toggleVisibility={togglePersonVisibility}
+          />
 
           {/* Pets Card */}
-          <ImagePetsCard pets={pets} />
-
-          {/* Edit Button */}
-          {canEdit && (
-            <div className="d-flex justify-content-end mb-4">
-              <Button href={`/images/${imageId}/edit`} variant="primary">
-                <i className="bi bi-pencil"></i> Edit
-              </Button>
-            </div>
-          )}
+          <ImagePetsCard
+            pets={pets}
+            individualVisibility={individualPetsVisibility}
+            toggleVisibility={togglePetVisibility}
+          />
         </Col>
       </Row>
 

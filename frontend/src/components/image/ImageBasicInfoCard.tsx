@@ -1,19 +1,21 @@
-// src/components/image/ImageBasicInfoCard.tsx
-
-import React from "react";
-import { Card } from "react-bootstrap";
+import React, { useState } from "react";
+import { Button, Card } from "react-bootstrap";
 
 import type {
-  ImageDateSchema,
-  ImageLocationSchema,
-  ImageMetadataSchema,
+  ImageDateSchemaOut,
+  ImageLocationSchemaOut,
+  ImageMetadataSchemaOut,
   UserProfileOutSchema,
 } from "../../api";
 
+import DateEditModal from "./DateEditModal";
+import LocationEditModal from "./LocationEditModal";
+import MetadataEditModal from "./MetadataEditModal";
+
 interface ImageBasicInfoCardProps {
-  metadata: ImageMetadataSchema;
-  location: ImageLocationSchema | null;
-  dateInfo: ImageDateSchema | null;
+  metadata: ImageMetadataSchemaOut;
+  location: ImageLocationSchemaOut | null;
+  dateInfo: ImageDateSchemaOut | null;
   profile: UserProfileOutSchema | null;
 }
 
@@ -47,7 +49,7 @@ const formatDate = (
   }
 };
 
-const formatImageDate = (dateInfo: ImageDateSchema): React.ReactNode => {
+const formatImageDate = (dateInfo: ImageDateSchemaOut): React.ReactNode => {
   if (!dateInfo.date) return <span className="fst-italic">Not available</span>;
 
   try {
@@ -79,60 +81,126 @@ const ImageBasicInfoCard: React.FC<ImageBasicInfoCardProps> = ({
   dateInfo,
   profile,
 }) => {
+  // Modal visibility states
+  const [showMetadataModal, setShowMetadataModal] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showDateModal, setShowDateModal] = useState(false);
+
+  // Check if user has edit permissions
+  const canEdit = metadata?.can_edit || false;
+
   return (
-    <Card className="mb-4">
-      <Card.Header className="d-flex justify-content-between align-items-center">
-        <h5 className="mb-0">Image Info</h5>
-      </Card.Header>
-      <Card.Body>
-        <h5 className="card-title">Title: {metadata.title || "Untitled Image"}</h5>
-
-        {metadata.description ? (
-          <p className="card-text">{metadata.description}</p>
-        ) : (
-          <p className="text-muted small">No description available.</p>
-        )}
-
-        <p className="mb-1">
-          <strong>Date: </strong>
-          {dateInfo ? (
-            <span className="text-muted"> {formatImageDate(dateInfo)}</span>
-          ) : (
-            <span className="text-muted fst-italic"> Not available</span>
+    <>
+      <Card className="mb-4">
+        <Card.Header className="d-flex justify-content-between align-items-center">
+          <h5 className="mb-0">Image Info</h5>
+          {canEdit && (
+            <Button
+              variant="outline-primary"
+              size="sm"
+              onClick={() => setShowMetadataModal(true)}
+              title="Edit title and description"
+            >
+              <i className="bi bi-pencil"></i>
+            </Button>
           )}
-        </p>
+        </Card.Header>
+        <Card.Body>
+          <h5 className="card-title">Title: {metadata.title || "Untitled Image"}</h5>
 
-        <p className="mb-1">
-          <strong>Location: </strong>
-          {location ? (
-            <span className="text-muted">
-              {location.sub_location && `${location.sub_location}, `}
-              {location.city && `${location.city}, `}
-              {location.subdivision_name && `${location.subdivision_name}, `}
-              {location.country_name && location.country_name}
-              {!location.sub_location &&
-                !location.city &&
-                !location.subdivision_name &&
-                !location.country_name && <span className="fst-italic">Not available</span>}
-            </span>
+          {metadata.description ? (
+            <p className="card-text">{metadata.description}</p>
           ) : (
-            <span className="text-muted fst-italic"> Not available</span>
+            <p className="text-muted small">No description available.</p>
           )}
-        </p>
 
-        <hr />
+          <div className="d-flex justify-content-between align-items-center mb-1">
+            <div>
+              <strong>Date: </strong>
+              {dateInfo ? (
+                <span className="text-muted"> {formatImageDate(dateInfo)}</span>
+              ) : (
+                <span className="text-muted fst-italic"> Not available</span>
+              )}
+            </div>
+            {canEdit && (
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={() => setShowDateModal(true)}
+                title="Edit date"
+              >
+                <i className="bi bi-pencil-fill"></i>
+              </Button>
+            )}
+          </div>
 
-        <p className="small mb-1">
-          <strong>Created:</strong>
-          <span className="text-muted"> {formatDate(profile, metadata.created_at)}</span>
-        </p>
+          <div className="d-flex justify-content-between align-items-center mb-1">
+            <div className="flex-grow-1">
+              <strong>Location: </strong>
+              {location ? (
+                <span className="text-muted">
+                  {location.sub_location && `${location.sub_location}, `}
+                  {location.city && `${location.city}, `}
+                  {location.subdivision_name && `${location.subdivision_name}, `}
+                  {location.country_name && location.country_name}
+                  {!location.sub_location &&
+                    !location.city &&
+                    !location.subdivision_name &&
+                    !location.country_name && <span className="fst-italic">Not available</span>}
+                </span>
+              ) : (
+                <span className="text-muted fst-italic"> Not available</span>
+              )}
+            </div>
+            {canEdit && (
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={() => setShowLocationModal(true)}
+                title="Edit location"
+              >
+                <i className="bi bi-pencil-fill"></i>
+              </Button>
+            )}
+          </div>
 
-        <p className="small mb-1">
-          <strong>Updated:</strong>
-          <span className="text-muted"> {formatDate(profile, metadata.updated_at)}</span>
-        </p>
-      </Card.Body>
-    </Card>
+          <hr />
+
+          <p className="small mb-1">
+            <strong>Created:</strong>
+            <span className="text-muted"> {formatDate(profile, metadata.created_at)}</span>
+          </p>
+
+          <p className="small mb-1">
+            <strong>Updated:</strong>
+            <span className="text-muted"> {formatDate(profile, metadata.updated_at)}</span>
+          </p>
+        </Card.Body>
+      </Card>
+
+      {/* Edit Modals */}
+      <MetadataEditModal
+        show={showMetadataModal}
+        onHide={() => setShowMetadataModal(false)}
+        imageId={metadata.id}
+        currentMetadata={metadata}
+      />
+
+      <LocationEditModal
+        show={showLocationModal}
+        onHide={() => setShowLocationModal(false)}
+        imageId={metadata.id}
+        currentLocation={location}
+      />
+
+      <DateEditModal
+        show={showDateModal}
+        onHide={() => setShowDateModal(false)}
+        imageId={metadata.id}
+        currentDate={dateInfo}
+      />
+    </>
   );
 };
 

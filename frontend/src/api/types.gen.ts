@@ -140,6 +140,11 @@ export type BreadcrumbSchema = {
   name: string;
 };
 
+export type CountryListItemSchemaOut = {
+  alpha2: string;
+  best_name: string;
+};
+
 export type CsrfTokenOutSchema = {
   /**
    * The CSRF token used for session verification.
@@ -169,13 +174,19 @@ export type GroupUpdateInSchema = {
   name: string;
 };
 
-export type ImageDateSchema = {
+export type ImageDateSchemaOut = {
   date: string;
   day_valid: boolean;
   month_valid: boolean;
 };
 
-export type ImageLocationSchema = {
+export type ImageDateUpdateSchemaIn = {
+  date: string;
+  day_valid: boolean;
+  month_valid: boolean;
+};
+
+export type ImageLocationSchemaOut = {
   city: string | null;
   country_code: string;
   country_name: string;
@@ -184,7 +195,15 @@ export type ImageLocationSchema = {
   subdivision_name: string | null;
 };
 
-export type ImageMetadataSchema = {
+export type ImageLocationUpdateSchemaIn = {
+  city: string | null;
+  country_code: string;
+  sub_location: string | null;
+  subdivision_code: string | null;
+};
+
+export type ImageMetadataSchemaOut = {
+  can_edit: boolean;
   created_at: string;
   description: string | null;
   file_size: number;
@@ -201,7 +220,12 @@ export type ImageMetadataSchema = {
   updated_at: string;
 };
 
-export type ImageThumbnailSchema = {
+export type ImageMetadataUpdateSchemaIn = {
+  description: string | null;
+  title: string | null;
+};
+
+export type ImageThumbnailSchemaOut = {
   id: number;
   thumbnail_height: number;
   thumbnail_url: string;
@@ -298,6 +322,11 @@ export type RootFolderSchema = {
  * https://exiftool.org/TagNames/EXIF.html (0x0112)
  */
 export type RotationEnum = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
+export type SubdivisionListItemSchemaOut = {
+  code: string;
+  name: string;
+};
 
 export type TimezoneChoices =
   | "Africa/Abidjan"
@@ -996,7 +1025,7 @@ export type ImageGetDateResponses = {
   /**
    * OK
    */
-  200: ImageDateSchema;
+  200: ImageDateSchemaOut;
   /**
    * The image has no date
    */
@@ -1004,6 +1033,35 @@ export type ImageGetDateResponses = {
 };
 
 export type ImageGetDateResponse = ImageGetDateResponses[keyof ImageGetDateResponses];
+
+export type ImageUpdateDateData = {
+  body: ImageDateUpdateSchemaIn;
+  path: {
+    image_id: number;
+  };
+  query?: never;
+  url: "/api/image/{image_id}/date/";
+};
+
+export type ImageUpdateDateErrors = {
+  /**
+   * The user does not have permissions for this image
+   */
+  401: unknown;
+  /**
+   * The image does not exist
+   */
+  404: unknown;
+};
+
+export type ImageUpdateDateResponses = {
+  /**
+   * OK
+   */
+  200: ImageDateSchemaOut;
+};
+
+export type ImageUpdateDateResponse = ImageUpdateDateResponses[keyof ImageUpdateDateResponses];
 
 export type ImageGetLocationData = {
   body?: never;
@@ -1029,7 +1087,7 @@ export type ImageGetLocationResponses = {
   /**
    * OK
    */
-  200: ImageLocationSchema;
+  200: ImageLocationSchemaOut;
   /**
    * The image has no location
    */
@@ -1037,6 +1095,40 @@ export type ImageGetLocationResponses = {
 };
 
 export type ImageGetLocationResponse = ImageGetLocationResponses[keyof ImageGetLocationResponses];
+
+export type ImageUpdateLocationData = {
+  body: ImageLocationUpdateSchemaIn;
+  path: {
+    image_id: number;
+  };
+  query?: never;
+  url: "/api/image/{image_id}/location/";
+};
+
+export type ImageUpdateLocationErrors = {
+  /**
+   * The country is not found or subdivision is not in the country
+   */
+  400: unknown;
+  /**
+   * The user does not have permissions for this image
+   */
+  401: unknown;
+  /**
+   * The image does not exist
+   */
+  404: unknown;
+};
+
+export type ImageUpdateLocationResponses = {
+  /**
+   * OK
+   */
+  200: ImageLocationSchemaOut;
+};
+
+export type ImageUpdateLocationResponse =
+  ImageUpdateLocationResponses[keyof ImageUpdateLocationResponses];
 
 export type ImageGetMetadataData = {
   body?: never;
@@ -1051,10 +1143,29 @@ export type ImageGetMetadataResponses = {
   /**
    * OK
    */
-  200: ImageMetadataSchema;
+  200: ImageMetadataSchemaOut;
 };
 
 export type ImageGetMetadataResponse = ImageGetMetadataResponses[keyof ImageGetMetadataResponses];
+
+export type ImageUpdateMetadataData = {
+  body: ImageMetadataUpdateSchemaIn;
+  path: {
+    image_id: number;
+  };
+  query?: never;
+  url: "/api/image/{image_id}/metadata/";
+};
+
+export type ImageUpdateMetadataResponses = {
+  /**
+   * OK
+   */
+  200: ImageMetadataSchemaOut;
+};
+
+export type ImageUpdateMetadataResponse =
+  ImageUpdateMetadataResponses[keyof ImageUpdateMetadataResponses];
 
 export type ImageGetPeopleData = {
   body?: never;
@@ -1105,16 +1216,94 @@ export type ImageGetThumbInfoResponses = {
   /**
    * OK
    */
-  200: ImageThumbnailSchema;
+  200: ImageThumbnailSchemaOut;
 };
 
 export type ImageGetThumbInfoResponse =
   ImageGetThumbInfoResponses[keyof ImageGetThumbInfoResponses];
 
+export type LocationGetCitiesData = {
+  body?: never;
+  path?: never;
+  query: {
+    country_code: string;
+    subdivision_code: string;
+  };
+  url: "/api/location/cities/";
+};
+
+export type LocationGetCitiesResponses = {
+  /**
+   * OK
+   */
+  200: Array<string>;
+};
+
+export type LocationGetCitiesResponse =
+  LocationGetCitiesResponses[keyof LocationGetCitiesResponses];
+
+export type LocationGetCountriesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/location/countries/";
+};
+
+export type LocationGetCountriesResponses = {
+  /**
+   * OK
+   */
+  200: Array<CountryListItemSchemaOut>;
+};
+
+export type LocationGetCountriesResponse =
+  LocationGetCountriesResponses[keyof LocationGetCountriesResponses];
+
+export type LocationGetSubdivisionsData = {
+  body?: never;
+  path?: never;
+  query: {
+    country_code: string;
+  };
+  url: "/api/location/subdivisions/";
+};
+
+export type LocationGetSubdivisionsResponses = {
+  /**
+   * OK
+   */
+  200: Array<SubdivisionListItemSchemaOut>;
+};
+
+export type LocationGetSubdivisionsResponse =
+  LocationGetSubdivisionsResponses[keyof LocationGetSubdivisionsResponses];
+
+export type LocationGetSubLocationsData = {
+  body?: never;
+  path?: never;
+  query: {
+    country_code: string;
+    subdivision_code: string;
+    city_name: string;
+  };
+  url: "/api/location/sublocations/";
+};
+
+export type LocationGetSubLocationsResponses = {
+  /**
+   * OK
+   */
+  200: Array<string>;
+};
+
+export type LocationGetSubLocationsResponse =
+  LocationGetSubLocationsResponses[keyof LocationGetSubLocationsResponses];
+
 export type GetAllPeopleData = {
   body?: never;
   path?: never;
   query?: {
+    sort_by?: string;
     limit?: number;
     offset?: number;
   };

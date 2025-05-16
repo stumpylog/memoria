@@ -43,3 +43,15 @@
   opacity: 1; /* Fade in */
   transform: translateY(0); /* Move to final position */
 }
+
+.list-group-item-primary {
+  /* Style for visible people */
+  background-color: rgba(0, 123, 255, 0.1); /* Light blue background */
+  font-weight: bold;
+}
+
+.list-group-item-warning {
+  /* Style for visible pets */
+  background-color: rgba(255, 193, 7, 0.1); /* Light amber background */
+  font-weight: bold;
+}

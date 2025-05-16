@@ -8,7 +8,7 @@ from pydantic import FilePath
 from pydantic import field_serializer
 
 
-class ImageThumbnailSchema(Schema):
+class ImageThumbnailSchemaOut(Schema):
     id: int
     title: str
     thumbnail_url: str
@@ -16,13 +16,19 @@ class ImageThumbnailSchema(Schema):
     thumbnail_width: int
 
 
-class ImageDateSchema(Schema):
+class ImageDateSchemaOut(Schema):
     date: date
     month_valid: bool
     day_valid: bool
 
 
-class ImageLocationSchema(Schema):
+class ImageDateUpdateSchemaIn(Schema):
+    date: date
+    month_valid: bool
+    day_valid: bool
+
+
+class ImageLocationSchemaOut(Schema):
     country_code: str
     country_name: str
     subdivision_code: str | None
@@ -31,7 +37,14 @@ class ImageLocationSchema(Schema):
     sub_location: str | None
 
 
-class ImageMetadataSchema(Schema):
+class ImageLocationUpdateSchemaIn(Schema):
+    country_code: str
+    subdivision_code: str | None
+    city: str | None
+    sub_location: str | None
+
+
+class ImageMetadataSchemaOut(Schema):
     id: int
     larger_size_url: str
     orientation: RotationEnum
@@ -46,10 +59,16 @@ class ImageMetadataSchema(Schema):
     phash: str
     original_path: FilePath
     image_fs_id: str
+    can_edit: bool
 
     @field_serializer("original_path")
     def convert_path_to_str(self, v) -> str:
         return str(v)
+
+
+class ImageMetadataUpdateSchemaIn(Schema):
+    title: str | None
+    description: str | None
 
 
 class BoxInImageBaseSchema(Schema):

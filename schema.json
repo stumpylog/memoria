@@ -286,6 +286,21 @@
         "title": "BreadcrumbSchema",
         "type": "object"
       },
+      "CountryListItemSchemaOut": {
+        "properties": {
+          "alpha2": {
+            "title": "Alpha2",
+            "type": "string"
+          },
+          "best_name": {
+            "title": "Best Name",
+            "type": "string"
+          }
+        },
+        "required": ["alpha2", "best_name"],
+        "title": "CountryListItemSchemaOut",
+        "type": "object"
+      },
       "CsrfTokenOutSchema": {
         "properties": {
           "csrf_token": {
@@ -382,7 +397,7 @@
         "title": "GroupUpdateInSchema",
         "type": "object"
       },
-      "ImageDateSchema": {
+      "ImageDateSchemaOut": {
         "properties": {
           "date": {
             "format": "date",
@@ -399,10 +414,30 @@
           }
         },
         "required": ["date", "month_valid", "day_valid"],
-        "title": "ImageDateSchema",
+        "title": "ImageDateSchemaOut",
         "type": "object"
       },
-      "ImageLocationSchema": {
+      "ImageDateUpdateSchemaIn": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "day_valid": {
+            "title": "Day Valid",
+            "type": "boolean"
+          },
+          "month_valid": {
+            "title": "Month Valid",
+            "type": "boolean"
+          }
+        },
+        "required": ["date", "month_valid", "day_valid"],
+        "title": "ImageDateUpdateSchemaIn",
+        "type": "object"
+      },
+      "ImageLocationSchemaOut": {
         "properties": {
           "city": {
             "anyOf": [
@@ -465,11 +500,59 @@
           "city",
           "sub_location"
         ],
-        "title": "ImageLocationSchema",
+        "title": "ImageLocationSchemaOut",
         "type": "object"
       },
-      "ImageMetadataSchema": {
+      "ImageLocationUpdateSchemaIn": {
         "properties": {
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "country_code": {
+            "title": "Country Code",
+            "type": "string"
+          },
+          "sub_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Location"
+          },
+          "subdivision_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subdivision Code"
+          }
+        },
+        "required": ["country_code", "subdivision_code", "city", "sub_location"],
+        "title": "ImageLocationUpdateSchemaIn",
+        "type": "object"
+      },
+      "ImageMetadataSchemaOut": {
+        "properties": {
+          "can_edit": {
+            "title": "Can Edit",
+            "type": "boolean"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -550,12 +633,42 @@
           "original_checksum",
           "phash",
           "original_path",
-          "image_fs_id"
+          "image_fs_id",
+          "can_edit"
         ],
-        "title": "ImageMetadataSchema",
+        "title": "ImageMetadataSchemaOut",
         "type": "object"
       },
-      "ImageThumbnailSchema": {
+      "ImageMetadataUpdateSchemaIn": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": ["title", "description"],
+        "title": "ImageMetadataUpdateSchemaIn",
+        "type": "object"
+      },
+      "ImageThumbnailSchemaOut": {
         "properties": {
           "id": {
             "title": "Id",
@@ -579,7 +692,7 @@
           }
         },
         "required": ["id", "title", "thumbnail_url", "thumbnail_height", "thumbnail_width"],
-        "title": "ImageThumbnailSchema",
+        "title": "ImageThumbnailSchemaOut",
         "type": "object"
       },
       "ImagesPerPageChoices": {
@@ -863,6 +976,21 @@
         "enum": [1, 2, 3, 4, 5, 6, 7, 8],
         "title": "RotationEnum",
         "type": "integer"
+      },
+      "SubdivisionListItemSchemaOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": ["code", "name"],
+        "title": "SubdivisionListItemSchemaOut",
+        "type": "object"
       },
       "TimezoneChoices": {
         "enum": [
@@ -2085,7 +2213,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ImageDateSchema"
+                  "$ref": "#/components/schemas/ImageDateSchemaOut"
                 }
               }
             },
@@ -2108,6 +2236,55 @@
         ],
         "summary": "Get Image Date",
         "tags": ["images"]
+      },
+      "patch": {
+        "operationId": "image_update_date",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageDateUpdateSchemaIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageDateSchemaOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "The user does not have permissions for this image"
+          },
+          "404": {
+            "description": "The image does not exist"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Update Image Date",
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/location/": {
@@ -2129,7 +2306,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ImageLocationSchema"
+                  "$ref": "#/components/schemas/ImageLocationSchemaOut"
                 }
               }
             },
@@ -2152,6 +2329,58 @@
         ],
         "summary": "Get Image Location",
         "tags": ["images"]
+      },
+      "patch": {
+        "operationId": "image_update_location",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageLocationUpdateSchemaIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageLocationSchemaOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "The country is not found or subdivision is not in the country"
+          },
+          "401": {
+            "description": "The user does not have permissions for this image"
+          },
+          "404": {
+            "description": "The image does not exist"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Update Image Location",
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/metadata/": {
@@ -2173,7 +2402,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ImageMetadataSchema"
+                  "$ref": "#/components/schemas/ImageMetadataSchemaOut"
                 }
               }
             },
@@ -2186,6 +2415,49 @@
           }
         ],
         "summary": "Get Image Details",
+        "tags": ["images"]
+      },
+      "patch": {
+        "operationId": "image_update_metadata",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageMetadataUpdateSchemaIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageMetadataSchemaOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Update Image Details",
         "tags": ["images"]
       }
     },
@@ -2286,7 +2558,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ImageThumbnailSchema"
+                  "$ref": "#/components/schemas/ImageThumbnailSchemaOut"
                 }
               }
             },
@@ -2302,10 +2574,173 @@
         "tags": ["images"]
       }
     },
+    "/api/location/cities/": {
+      "get": {
+        "operationId": "location_get_cities",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "country_code",
+            "required": true,
+            "schema": {
+              "title": "Country Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subdivision_code",
+            "required": true,
+            "schema": {
+              "title": "Subdivision Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Existing Cities",
+        "tags": ["locations"]
+      }
+    },
+    "/api/location/countries/": {
+      "get": {
+        "operationId": "location_get_countries",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CountryListItemSchemaOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get All Countries",
+        "tags": ["locations"]
+      }
+    },
+    "/api/location/subdivisions/": {
+      "get": {
+        "operationId": "location_get_subdivisions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "country_code",
+            "required": true,
+            "schema": {
+              "title": "Country Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SubdivisionListItemSchemaOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Subdivisions For Country",
+        "tags": ["locations"]
+      }
+    },
+    "/api/location/sublocations/": {
+      "get": {
+        "operationId": "location_get_sub_locations",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "country_code",
+            "required": true,
+            "schema": {
+              "title": "Country Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subdivision_code",
+            "required": true,
+            "schema": {
+              "title": "Subdivision Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "city_name",
+            "required": true,
+            "schema": {
+              "title": "City Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Existing Sublocations",
+        "tags": ["locations"]
+      }
+    },
     "/api/person/": {
       "get": {
         "operationId": "get_all_people",
         "parameters": [
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "name",
+              "title": "Sort By",
+              "type": "string"
+            }
+          },
           {
             "in": "query",
             "name": "limit",

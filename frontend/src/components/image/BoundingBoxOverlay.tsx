@@ -1,14 +1,16 @@
+// src/components/image/BoundingBoxOverlay.tsx
+
 import React from "react";
 
 import { transformCoordinates } from "../../utils/transformCoordinates";
 
 interface Box {
-  id: number;
+  id: number; // Assuming boxes have an ID for tracking
   center_x: number;
   center_y: number;
   width: number;
   height: number;
-  [key: string]: any;
+  [key: string]: any; // Allow other properties like 'name'
 }
 
 interface Props {
@@ -39,7 +41,7 @@ const BoundingBoxOverlay: React.FC<Props> = ({ boxes, orientation, color, labelK
 
         return (
           <div
-            key={box.id} // Using index as key is generally okay if the list is static and items aren't reordered or filtered
+            key={box.id} // Use box ID as key
             className="bounding-box"
             style={{
               position: "absolute",
@@ -49,7 +51,7 @@ const BoundingBoxOverlay: React.FC<Props> = ({ boxes, orientation, color, labelK
               height,
               border: `2px solid ${color}`,
               backgroundColor: color,
-              opacity: 0.25,
+              opacity: 0.25, // Keep consistent opacity for displayed boxes
             }}
             title={box[labelKey]} // Display label on hover
           />

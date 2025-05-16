@@ -227,7 +227,7 @@ class RoughLocation(AbstractTimestampMixin, ObjectPermissionModelMixin, models.M
         help_text="Detailed location within a city or Town",
     )
 
-    objects = PermittedQueryset.as_manager()
+    objects: PermittedQueryset = PermittedQueryset.as_manager()
 
     class Meta:
         ordering: Sequence = [
