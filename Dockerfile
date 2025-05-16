@@ -10,7 +10,7 @@ RUN set -eux \
 
 WORKDIR /build/
 
-COPY ./frontend/package.json ./frontend/pnpm-lock.yaml ./
+COPY ./frontend/package.json ./frontend/pnpm-lock.yaml ./frontend/pnpm-workspace.yaml ./
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store/ \
   set -eux \
