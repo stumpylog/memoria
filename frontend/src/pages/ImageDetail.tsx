@@ -2,7 +2,7 @@
 
 import { useQueries } from "@tanstack/react-query";
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Col, Container, Row, Spinner } from "react-bootstrap";
+import { Col, Container, Row, Spinner } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
 import { useParams } from "react-router-dom";
 

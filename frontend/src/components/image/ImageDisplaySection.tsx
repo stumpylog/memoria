@@ -3,13 +3,17 @@
 import React from "react";
 import { Card, Col } from "react-bootstrap";
 
-import type { ImageMetadataSchema, PersonInImageSchemaOut, PetInImageSchemaOut } from "../../api";
+import type {
+  ImageMetadataSchemaOut,
+  PersonInImageSchemaOut,
+  PetInImageSchemaOut,
+} from "../../api";
 
 import { formatBytes } from "../../utils/formatBytes";
 import BoundingBoxOverlay from "./BoundingBoxOverlay";
 
 interface ImageDisplaySectionProps {
-  metadata: ImageMetadataSchema;
+  metadata: ImageMetadataSchemaOut;
   people: PersonInImageSchemaOut[];
   pets: PetInImageSchemaOut[];
   showPeople: boolean; // Global toggle state
@@ -55,6 +59,8 @@ const ImageDisplaySection: React.FC<ImageDisplaySectionProps> = ({
                 id="mainImage"
                 src={metadata.larger_size_url}
                 alt={metadata.title || "Image"}
+                width={metadata.size.large_version_width}
+                height={metadata.size.large_version_height}
                 className="img-fluid rounded"
                 style={{ maxHeight: "70vh", width: "auto" }}
               />
@@ -81,7 +87,7 @@ const ImageDisplaySection: React.FC<ImageDisplaySectionProps> = ({
           <Card.Footer className="d-flex justify-content-between flex-wrap">
             {/* ... existing dimension and size display ... */}
             <span>
-              {metadata.original_width}x{metadata.original_height} px
+              {metadata.size.original_width}x{metadata.size.original_height} px
             </span>
             <span>{metadata.file_size ? formatBytes(metadata.file_size) : "Unknown size"}</span>
             <div className="d-flex">

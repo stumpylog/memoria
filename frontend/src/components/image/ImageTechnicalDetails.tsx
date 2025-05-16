@@ -3,12 +3,12 @@
 import React from "react";
 import { Card, Col, Row } from "react-bootstrap";
 
-import type { ImageMetadataSchema } from "../../api";
+import type { ImageMetadataSchemaOut } from "../../api";
 
 import { formatBytes } from "../../utils/formatBytes";
 
 interface ImageTechnicalDetailsProps {
-  metadata: ImageMetadataSchema;
+  metadata: ImageMetadataSchemaOut;
 }
 
 const getOrientationDisplay = (orientation: number | null | undefined): string => {
@@ -71,8 +71,8 @@ const ImageTechnicalDetails: React.FC<ImageTechnicalDetailsProps> = ({ metadata 
                 <strong>Dimensions:</strong>
                 <span className="text-muted">
                   {" "}
-                  {metadata.original_width && metadata.original_height
-                    ? `${metadata.original_width}x${metadata.original_height} pixels`
+                  {metadata.size.original_width && metadata.size.original_height
+                    ? `${metadata.size.original_width}x${metadata.size.original_height} pixels`
                     : "Not available"}
                 </span>
               </p>

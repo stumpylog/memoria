@@ -1,20 +1,11 @@
 // src/components/image/LocationEditModal.tsx
 
-import type { AxiosError as AxiosErrorType, AxiosResponse } from "axios"; // Import Axios types
+import type { AxiosError, AxiosResponse } from "axios"; // Import Axios types
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
-import { Controller, useForm } from "react-hook-form";
-
-// Updated ApiError to better reflect AxiosError structure if needed,
-// or use AxiosErrorType directly in useQuery/useMutation.
-// For simplicity, we'll use AxiosErrorType for TError.
-export interface ApiError
-  extends AxiosErrorType<{
-    message?: string;
-    detail?: string | Array<{ msg: string; type: string }>;
-  }> {}
+import { useForm } from "react-hook-form";
 
 import type {
   CountryListItemSchemaOut,
@@ -61,7 +52,6 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
   const subLocationAutocompleteRef = useRef<HTMLDivElement>(null);
 
   const {
-    control,
     register,
     handleSubmit,
     watch,
@@ -83,14 +73,11 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
 
   // Fetch countries
   const {
-    data: countries = [], // Default to empty array, data is now CountryListItemSchemaOut[]
+    data: countries = [], // Default to empty array
     isLoading: isLoadingCountries,
     isError: isErrorCountries,
     error: errorCountries,
-  } = useQuery<
-    CountryListItemSchemaOut[], // TQueryFnData / TData: The actual data type
-    ApiError // TError
-  >({
+  } = useQuery<CountryListItemSchemaOut[], AxiosError>({
     queryKey: ["countries"],
     queryFn: async (): Promise<CountryListItemSchemaOut[]> => {
       const response: AxiosResponse<CountryListItemSchemaOut[]> = await locationGetCountries({
@@ -107,7 +94,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
     isLoading: isLoadingSubdivisions,
     isError: isErrorSubdivisions,
     error: errorSubdivisions,
-  } = useQuery<SubdivisionListItemSchemaOut[], ApiError>({
+  } = useQuery<SubdivisionListItemSchemaOut[], AxiosError>({
     queryKey: ["subdivisions", selectedCountry],
     queryFn: async (): Promise<SubdivisionListItemSchemaOut[]> => {
       const response: AxiosResponse<SubdivisionListItemSchemaOut[]> =
@@ -127,7 +114,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
     isLoading: isLoadingCities,
     isError: isErrorCities,
     error: errorCities,
-  } = useQuery<string[], ApiError>({
+  } = useQuery<string[], AxiosError>({
     queryKey: ["cities", selectedCountry, selectedSubdivision],
     queryFn: async (): Promise<string[]> => {
       const queryParams: { country_code: string; subdivision_code?: string } = {
@@ -153,7 +140,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
     isLoading: isLoadingSubLocations,
     isError: isErrorSubLocations,
     error: errorSubLocations,
-  } = useQuery<string[], ApiError>({
+  } = useQuery<string[], AxiosError>({
     queryKey: ["subLocations", selectedCountry, selectedSubdivision, selectedCity],
     queryFn: async (): Promise<string[]> => {
       const queryParams: { country_code: string; city_name: string; subdivision_code?: string } = {
@@ -288,13 +275,14 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
 
   const updateLocationMutation = useMutation<
     ImageLocationSchemaOut, // TData: Actual data type from response.data
-    ApiError, // TError
+    AxiosError, // TError
     ImageLocationUpdateSchemaIn // TVariables
   >({
     mutationFn: async (data: ImageLocationUpdateSchemaIn): Promise<ImageLocationSchemaOut> => {
       const response: AxiosResponse<ImageLocationSchemaOut> = await imageUpdateLocation({
         path: { image_id: imageId },
         body: data,
+        throwOnError: true,
       });
       return response.data; // Extract data from AxiosResponse
     },
@@ -309,13 +297,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
     },
     onError: (err) => {
       console.error("Failed to update location:", err);
-      const message = err.response?.data?.detail
-        ? typeof err.response.data.detail === "string"
-          ? err.response.data.detail
-          : err.response.data.detail.map((d) => d.msg).join(", ")
-        : err.response?.data?.message ||
-          err.message ||
-          "An unexpected error occurred. Please try again.";
+      const message = err.message || "An unexpected error occurred. Please try again.";
       setSubmitError(message);
     },
   });
@@ -332,17 +314,23 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
     updateLocationMutation.mutate(sanitizedData);
   };
 
-  const getErrorMessage = (error: ApiError | null): string => {
+  const getErrorMessage = (error: AxiosError | null): string => {
     if (!error) return "An unknown error occurred.";
-    if (error.response?.data?.detail) {
-      if (typeof error.response.data.detail === "string") {
-        return error.response.data.detail;
+    if (error.response?.data) {
+      const data = error.response.data as any;
+      if (data.detail) {
+        if (typeof data.detail === "string") {
+          return data.detail;
+        }
+        if (Array.isArray(data.detail)) {
+          return data.detail.map((d: any) => d.msg).join(", ");
+        }
       }
-      return error.response.data.detail.map((d) => d.msg).join(", ");
+      if (data.message) {
+        return data.message;
+      }
     }
-    return (
-      error.response?.data?.message || error.message || "An error occurred while fetching data."
-    );
+    return error.message || "An error occurred while fetching data.";
   };
 
   const handleCitySelect = (city: string) => {

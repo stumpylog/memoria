@@ -1,10 +1,10 @@
 import React from "react";
 import { Button, Card } from "react-bootstrap";
 
-import type { ImageThumbnailSchema } from "../../api";
+import type { ImageThumbnailSchemaOut } from "../../api";
 
 interface ImageCardProps {
-  image: ImageThumbnailSchema;
+  image: ImageThumbnailSchemaOut;
   showViewButton?: boolean;
   onViewClick?: (id: number) => void;
 }

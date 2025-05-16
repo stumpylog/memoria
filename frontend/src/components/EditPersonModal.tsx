@@ -10,7 +10,7 @@ interface EditPersonModalProps {
   show: boolean;
   handleClose: () => void;
   person: PersonDetailOutSchema;
-  onSaveSuccess: () => void; // Callback to refetch data
+  onSaveSuccess: (updatedPerson: PersonDetailOutSchema) => void; // Updated to pass the updated person data
 }
 
 // Define form data type
@@ -64,8 +64,16 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
 
     try {
       // Assuming person.id is the person_id
-      await updatePersonDetail({ path: { person_id: person.id }, body: updatedData });
-      onSaveSuccess(); // Call the refetch callback
+      const response = await updatePersonDetail({
+        path: { person_id: person.id },
+        body: updatedData,
+      });
+      // Pass the updated person data to the callback
+      if (response && response.data) {
+        onSaveSuccess(response.data); // Now passing the updated person data
+      } else {
+        onSaveSuccess(person);
+      }
       handleClose();
     } catch (error) {
       console.error("Error updating person:", error);

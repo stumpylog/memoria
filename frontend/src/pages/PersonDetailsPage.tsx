@@ -8,7 +8,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import type {
   ImagesPerPageChoices,
-  ImageThumbnailSchema,
+  ImageThumbnailSchemaOut,
   PagedPersonImageOutSchema,
   PersonDetailOutSchema,
   PersonImageOutSchema,
@@ -185,7 +185,7 @@ const PersonDetailsPage: React.FC = () => {
     isLoading: isLoadingImages,
     isError: isErrorImages,
     error: imagesError,
-  } = useQuery<ImageThumbnailSchema[] | null, Error>({
+  } = useQuery<ImageThumbnailSchemaOut[] | null, Error>({
     // Key depends on the current set of IDs
     queryKey: ["person-images-thumbnails", currentImageIds.join(",")],
     queryFn: async () => {
@@ -201,7 +201,7 @@ const PersonDetailsPage: React.FC = () => {
           }),
       );
       const imageResults = await Promise.all(imagePromises);
-      return imageResults.filter((item): item is ImageThumbnailSchema => item !== null);
+      return imageResults.filter((item): item is ImageThumbnailSchemaOut => item !== null);
     },
     enabled: currentImageIds.length > 0,
     staleTime: 5 * 60 * 1000, // Also set staleTime for thumbnails

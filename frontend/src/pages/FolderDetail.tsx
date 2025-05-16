@@ -4,7 +4,7 @@ import { Alert, Breadcrumb, Container, Spinner } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import type { FolderDetailSchema, ImageThumbnailSchema } from "../api";
+import type { FolderDetailSchema, ImageThumbnailSchemaOut } from "../api";
 
 import { folderGetDetails, imageGetThumbInfo } from "../api";
 import FolderWall from "../components/folder/FolderWall";
@@ -48,7 +48,7 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
     error: imagesError,
   } = useQuery({
     queryKey: ["folderImages", folderId],
-    queryFn: async (): Promise<ImageThumbnailSchema[]> => {
+    queryFn: async (): Promise<ImageThumbnailSchemaOut[]> => {
       if (!folderDetail?.folder_images?.length) {
         return [];
       }
@@ -63,7 +63,7 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
       );
 
       const results = await Promise.all(thumbInfoPromises);
-      return results.filter((item): item is ImageThumbnailSchema => item !== null);
+      return results.filter((item): item is ImageThumbnailSchemaOut => item !== null);
     },
     enabled: !!folderDetail && folderDetail.folder_images?.length > 0,
   });

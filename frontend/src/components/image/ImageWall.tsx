@@ -1,12 +1,12 @@
 import React from "react";
 import { Col, Container, Row } from "react-bootstrap";
 
-import type { ImageThumbnailSchema } from "../../api";
+import type { ImageThumbnailSchemaOut } from "../../api";
 
 import ImageCard from "./ImageCard";
 
 interface ImageWallProps {
-  images: ImageThumbnailSchema[];
+  images: ImageThumbnailSchemaOut[];
   showViewButton?: boolean;
   onImageClick?: (id: number) => void;
   columns?: number;
