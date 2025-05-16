@@ -12,6 +12,8 @@ RUN pnpm install
 
 COPY ./frontend/ .
 
+ENV VITE_API_BASE_URL="/"
+
 RUN pnpm run build
 
 # Stage: s6-overlay-base
