@@ -3,7 +3,7 @@
 import type { AxiosError as AxiosErrorType, AxiosResponse } from "axios"; // Import Axios types
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
 
@@ -49,6 +49,16 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // States for autocomplete
+  const [citySearchTerm, setCitySearchTerm] = useState<string>("");
+  const [subLocationSearchTerm, setSubLocationSearchTerm] = useState<string>("");
+  const [showCitySuggestions, setShowCitySuggestions] = useState<boolean>(false);
+  const [showSubLocationSuggestions, setShowSubLocationSuggestions] = useState<boolean>(false);
+
+  // Refs for the autocomplete containers
+  const cityAutocompleteRef = useRef<HTMLDivElement>(null);
+  const subLocationAutocompleteRef = useRef<HTMLDivElement>(null);
 
   const {
     control,
@@ -164,6 +174,36 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
     staleTime: 5 * 60 * 1000,
   });
 
+  // Add styles for Bootstrap hover effect
+  const autocompleteItemStyle = {
+    cursor: "pointer",
+    transition: "background-color 0.2s ease",
+  };
+
+  // Function to highlight matching text in suggestions
+  const highlightMatch = (text: string, query: string): React.ReactNode => {
+    if (!query.trim()) return text;
+
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    const parts = text.split(regex);
+
+    return parts.map((part, index) =>
+      regex.test(part) ? <strong key={index}>{part}</strong> : part,
+    );
+  };
+
+  // Filter cities based on search term
+  const filteredCities = citySearchTerm
+    ? cities.filter((city) => city.toLowerCase().includes(citySearchTerm.toLowerCase()))
+    : cities;
+
+  // Filter sub-locations based on search term
+  const filteredSubLocations = subLocationSearchTerm
+    ? subLocations.filter((location) =>
+        location.toLowerCase().includes(subLocationSearchTerm.toLowerCase()),
+      )
+    : subLocations;
+
   useEffect(() => {
     if (show) {
       reset({
@@ -173,6 +213,8 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
         subdivision_code: currentLocation?.subdivision_code || null,
       });
       setSubmitError(null);
+      setCitySearchTerm(currentLocation?.city || "");
+      setSubLocationSearchTerm(currentLocation?.sub_location || "");
     }
   }, [reset, show, currentLocation]);
 
@@ -181,6 +223,8 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
       setValue("subdivision_code", null);
       setValue("city", null);
       setValue("sub_location", null);
+      setCitySearchTerm("");
+      setSubLocationSearchTerm("");
     }
   }, [selectedCountry, setValue]);
 
@@ -192,6 +236,8 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
       } else {
         setValue("city", null);
         setValue("sub_location", null);
+        setCitySearchTerm("");
+        setSubLocationSearchTerm("");
       }
     }
   }, [selectedSubdivision, selectedCountry, setValue]); // Added selectedCountry to dependencies
@@ -199,8 +245,46 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
   useEffect(() => {
     if (selectedCity === "" || selectedCity === null) {
       setValue("sub_location", null);
+      setSubLocationSearchTerm("");
     }
   }, [selectedCity, setValue]);
+
+  // Close autocomplete suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        cityAutocompleteRef.current &&
+        !cityAutocompleteRef.current.contains(event.target as Node)
+      ) {
+        setShowCitySuggestions(false);
+      }
+
+      if (
+        subLocationAutocompleteRef.current &&
+        !subLocationAutocompleteRef.current.contains(event.target as Node)
+      ) {
+        setShowSubLocationSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Update search terms when selected values change
+  useEffect(() => {
+    if (selectedCity) {
+      setCitySearchTerm(selectedCity);
+    }
+  }, [selectedCity]);
+
+  useEffect(() => {
+    if (selectedCity === null) {
+      setSubLocationSearchTerm("");
+    }
+  }, [selectedCity]);
 
   const updateLocationMutation = useMutation<
     ImageLocationSchemaOut, // TData: Actual data type from response.data
@@ -259,6 +343,18 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
     return (
       error.response?.data?.message || error.message || "An error occurred while fetching data."
     );
+  };
+
+  const handleCitySelect = (city: string) => {
+    setValue("city", city);
+    setCitySearchTerm(city);
+    setShowCitySuggestions(false);
+  };
+
+  const handleSubLocationSelect = (location: string) => {
+    setValue("sub_location", location);
+    setSubLocationSearchTerm(location);
+    setShowSubLocationSuggestions(false);
   };
 
   if (isLoadingCountries && show) {
@@ -370,7 +466,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
             </Form.Group>
           )}
 
-          {/* City is now enabled if only country is selected */}
+          {/* City Autocomplete */}
           {selectedCountry && (
             <Form.Group className="mb-3">
               <Form.Label>
@@ -382,39 +478,60 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
                   Could not load cities: {getErrorMessage(errorCities)}
                 </Alert>
               )}
-              <Controller
-                name="city"
-                control={control}
-                render={({ field }) => (
-                  <Form.Control
-                    {...field}
-                    as="input"
-                    list="city-options"
-                    placeholder="Select or enter city (optional)..."
-                    value={field.value || ""}
-                    onChange={(e) => field.onChange(e.target.value || null)}
-                    disabled={
-                      !selectedCountry || // Enabled if country is selected
-                      isLoadingCities ||
-                      isErrorCities ||
-                      updateLocationMutation.isPending
-                    }
-                  />
+              <div ref={cityAutocompleteRef} className="position-relative">
+                <Form.Control
+                  value={citySearchTerm}
+                  onChange={(e) => {
+                    setCitySearchTerm(e.target.value);
+                    setValue("city", e.target.value || null);
+                    setShowCitySuggestions(true);
+                  }}
+                  onFocus={() => setShowCitySuggestions(true)}
+                  placeholder="Select or enter city (optional)..."
+                  disabled={
+                    !selectedCountry ||
+                    isLoadingCities ||
+                    isErrorCities ||
+                    updateLocationMutation.isPending
+                  }
+                  autoComplete="off" // Disable browser's native autocomplete
+                />
+                <input type="hidden" {...register("city")} />
+
+                {showCitySuggestions && citySearchTerm && filteredCities.length > 0 && (
+                  <div
+                    className="position-absolute w-100 border rounded mt-1"
+                    style={{
+                      zIndex: 1050,
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                      backgroundColor: "#f8f9fa",
+                      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                    }}
+                  >
+                    {filteredCities.map((city) => (
+                      <div
+                        key={city}
+                        className="px-3 py-2 text-dark"
+                        style={autocompleteItemStyle}
+                        onMouseEnter={(e) => e.currentTarget.classList.add("bg-light")}
+                        onMouseLeave={(e) => e.currentTarget.classList.remove("bg-light")}
+                        onClick={() => handleCitySelect(city)}
+                        onMouseDown={(e) => e.preventDefault()} // Prevent blur from hiding dropdown
+                      >
+                        {highlightMatch(city, citySearchTerm)}
+                      </div>
+                    ))}
+                  </div>
                 )}
-              />
-              <datalist id="city-options">
-                {/* `cities` is now directly string[] */}
-                {cities.map((city: string) => (
-                  <option key={city} value={city} />
-                ))}
-              </datalist>
+              </div>
               <Form.Text className="text-muted">
                 Dependent on country and optionally state/province. Select or type a new one.
               </Form.Text>
             </Form.Group>
           )}
 
-          {/* Specific Location is now enabled if country and city are selected */}
+          {/* Sub-Location Autocomplete */}
           {selectedCountry && selectedCity && (
             <Form.Group className="mb-3">
               <Form.Label>
@@ -428,32 +545,55 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
                   Could not load specific locations: {getErrorMessage(errorSubLocations)}
                 </Alert>
               )}
-              <Controller
-                name="sub_location"
-                control={control}
-                render={({ field }) => (
-                  <Form.Control
-                    {...field}
-                    as="input"
-                    list="sublocation-options"
-                    placeholder="e.g. Eiffel Tower (optional)..."
-                    value={field.value || ""}
-                    onChange={(e) => field.onChange(e.target.value || null)}
-                    disabled={
-                      !selectedCity || // Enabled if city is selected
-                      isLoadingSubLocations ||
-                      isErrorSubLocations ||
-                      updateLocationMutation.isPending
-                    }
-                  />
-                )}
-              />
-              <datalist id="sublocation-options">
-                {/* `subLocations` is now directly string[] */}
-                {subLocations.map((location: string) => (
-                  <option key={location} value={location} />
-                ))}
-              </datalist>
+              <div ref={subLocationAutocompleteRef} className="position-relative">
+                <Form.Control
+                  value={subLocationSearchTerm}
+                  onChange={(e) => {
+                    setSubLocationSearchTerm(e.target.value);
+                    setValue("sub_location", e.target.value || null);
+                    setShowSubLocationSuggestions(true);
+                  }}
+                  onFocus={() => setShowSubLocationSuggestions(true)}
+                  placeholder="e.g. Eiffel Tower (optional)..."
+                  disabled={
+                    !selectedCity ||
+                    isLoadingSubLocations ||
+                    isErrorSubLocations ||
+                    updateLocationMutation.isPending
+                  }
+                  autoComplete="off" // Disable browser's native autocomplete
+                />
+                <input type="hidden" {...register("sub_location")} />
+
+                {showSubLocationSuggestions &&
+                  subLocationSearchTerm &&
+                  filteredSubLocations.length > 0 && (
+                    <div
+                      className="position-absolute w-100 border rounded mt-1"
+                      style={{
+                        zIndex: 1050,
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                        backgroundColor: "#f8f9fa",
+                        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      {filteredSubLocations.map((location) => (
+                        <div
+                          key={location}
+                          className="px-3 py-2 text-dark"
+                          style={autocompleteItemStyle}
+                          onMouseEnter={(e) => e.currentTarget.classList.add("bg-light")}
+                          onMouseLeave={(e) => e.currentTarget.classList.remove("bg-light")}
+                          onClick={() => handleSubLocationSelect(location)}
+                          onMouseDown={(e) => e.preventDefault()} // Prevent blur from hiding dropdown
+                        >
+                          {highlightMatch(location, subLocationSearchTerm)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+              </div>
               <Form.Text className="text-muted">
                 Dependent on city. Select or type a new one.
               </Form.Text>
