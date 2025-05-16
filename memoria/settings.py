@@ -275,6 +275,11 @@ LOGGING = {
             "level": "DEBUG",
             "propagate": False,
         },
+        "huey": {
+            "handlers": ["console", "file_memoria"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
         # Logger specifically for Django's internal messages
         "django": {
             "handlers": ["console", "file_django"],
