@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 import redis
 
@@ -57,14 +58,24 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = "Lax"  # or 'None' if using different domains
 
-# React is served from a different domain than Django
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite development server
-]
-CORS_ALLOW_CREDENTIALS = True  # Important for sending cookies
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",  # Vite development server
-]
+CSRF_TRUSTED_ORIGINS = (
+    [os.getenv("MEMORIA_URL")]
+    if "MEMORIA_URL" in os.environ
+    else [
+        "http://localhost:5173",  # Vite development server
+    ]
+)
+CORS_ALLOWED_ORIGINS = (
+    [os.getenv("MEMORIA_URL")]
+    if "MEMORIA_URL" in os.environ
+    else [
+        "http://localhost:5173",  # Vite development server
+    ]
+)
+ALLOWED_HOSTS = (
+    [urlparse(os.getenv("MEMORIA_URL")).hostname, "localhost"] if "MEMORIA_URL" in os.environ else ["localhost"]
+)
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Application definition
