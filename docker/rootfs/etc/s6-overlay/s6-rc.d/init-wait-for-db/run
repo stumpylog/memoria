@@ -4,37 +4,43 @@
 log_prefix="[init-db-wait]"
 
 wait_for_postgres() {
-	attempt_num=1
-	max_attempts=5
+    attempt_num=1
+    max_attempts=5
 
-	echo "${log_prefix} Waiting for PostgreSQL to start..."
+    echo "${log_prefix} Waiting for PostgreSQL to start..."
 
-	host="${DB_HOST}"
-	port="${DB_PORT:-5432}"
-	user="${DB_USER:-memoria}"
+    host="${DB_HOST}"
+    user="${DB_USER}"
+    port="${DB_PORT}"
 
-	# Disable warning, host and port can't have spaces
-	# shellcheck disable=SC2086
-	while [ ! "$(pg_isready -h ${host} -p ${port} --username ${user})" ]; do
+    # Handle default port if not set
+    if [ -z "${port}" ]; then
+        port="5432"
+    fi
 
-		if [ $attempt_num -eq $max_attempts ]; then
-			echo "${log_prefix} Unable to connect to database."
-			exit 1
-		else
-			echo "${log_prefix} Attempt $attempt_num failed! Trying again in 5 seconds..."
-		fi
+    # Use a while loop checking the exit status of pg_isready (0 on success)
+    while ! pg_isready -h "${host}" -p "${port}" --username "${user}"; do
 
-		attempt_num=$(("$attempt_num" + 1))
-		sleep 5
-	done
-	# Extra in case this is a first start
-	sleep 5
-	echo "Connected to PostgreSQL"
+        if [ "$attempt_num" -ge "$max_attempts" ]; then # Use -ge for greater than or equal
+            echo "${log_prefix} Unable to connect to database after $attempt_num attempts."
+            exit 1
+        fi
+
+        echo "${log_prefix} Attempt $attempt_num failed! Trying again in 5 seconds..."
+
+        # Correct Ash arithmetic syntax
+        attempt_num=$((attempt_num + 1))
+        sleep 5
+    done
+
+    # Extra sleep in case this is a first start
+    sleep 5
+    echo "${log_prefix} Connected to PostgreSQL"
 }
 
-if [[ "${MEMORIA_DATABASE_TYPE}" == "postgresql" ]]; then
-	echo "${log_prefix} Waiting for PostgreSQL to report ready"
-	wait_for_postgres
+if [ "${MEMORIA_DATABASE_TYPE}" = "postgresql" ]; then
+    echo "${log_prefix} Waiting for PostgreSQL to report ready"
+    wait_for_postgres
 fi
 
 echo "${log_prefix} Database is ready"
