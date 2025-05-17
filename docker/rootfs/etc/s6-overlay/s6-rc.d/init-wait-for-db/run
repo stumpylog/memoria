@@ -4,14 +4,14 @@
 log_prefix="[init-db-wait]"
 
 wait_for_postgres() {
-	local attempt_num=1
-	local -r max_attempts=5
+	attempt_num=1
+	max_attempts=5
 
 	echo "${log_prefix} Waiting for PostgreSQL to start..."
 
-	local -r host="${DB_HOST}"
-	local -r port="${DB_PORT:-5432}"
-	local -r user="${DB_USER:-memoria}"
+	host="${DB_HOST}"
+	port="${DB_PORT:-5432}"
+	user="${DB_USER:-memoria}"
 
 	# Disable warning, host and port can't have spaces
 	# shellcheck disable=SC2086
