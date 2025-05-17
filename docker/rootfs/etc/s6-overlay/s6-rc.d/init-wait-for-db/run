@@ -9,13 +9,18 @@ wait_for_postgres() {
 
     echo "${log_prefix} Waiting for PostgreSQL to start..."
 
-    host="${DB_HOST}"
-    user="${DB_USER}"
+    host="${MEMORIA_DB_HOST}"
+    user="${MEMORIA_DB_USER}"
     port="${DB_PORT}"
 
-    # Handle default port if not set
     if [ -z "${port}" ]; then
         port="5432"
+    fi
+    if [ -z "${user}" ]; then
+        user="memoria"
+    fi
+    if [ -z "${host}" ]; then
+        host="memoria"
     fi
 
     # Use a while loop checking the exit status of pg_isready (0 on success)
