@@ -26,7 +26,7 @@ RUN set -eux && pnpm run build
 # Purpose: Installs s6-overlay and rootfs
 # Comments:
 #  - Don't leave anything extra in here either
-FROM ghcr.io/astral-sh/uv:0.7.3-python3.11-alpine AS s6-overlay-base
+FROM ghcr.io/astral-sh/uv:0.7.5-python3.12-alpine AS s6-overlay-base
 
 WORKDIR /usr/src/s6
 
@@ -96,15 +96,30 @@ COPY --chown=1000:1000 ["pyproject.toml", "uv.lock", "manage.py", "/app/"]
 RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
   set -eux \
   && echo "Installing system packages" \
-    && apk add --no-cache nginx nginx-mod-http-brotli postgresql-client exiftool vips \
+    && apk add --no-cache \
+      nginx \
+      nginx-mod-http-brotli \
+      postgresql-client \
+      exiftool \
+      tzdata \
   && echo "Installing build system packages" \
     && apk add --no-cache --virtual .python-build \
         postgresql-dev \
         mariadb-dev \
         pkgconfig \
   && echo "Installing Python requirements" \
-    && uv export --quiet --no-dev --all-extras --format requirements-txt --output-file requirements.txt \
-    && uv pip install --system --no-python-downloads --python-preference system --requirements requirements.txt \
+    && uv export \
+      --quiet \
+      --no-dev \
+      --all-extras \
+      --format requirements-txt \
+      --output-file requirements.txt \
+    && uv pip install \
+      --system \
+      --no-python-downloads \
+      --python-preference system \
+      --requirements requirements.txt \
+      --compile-bytecode \
   && echo "Cleaning up image" \
     && apk del --no-cache .python-build
 
