@@ -646,21 +646,23 @@ export type UserUpdateInSchemeWritable = {
   password?: string | null;
 };
 
-export type GetAlbumsData = {
+export type GetAllAlbumsData = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: {
+    album_name?: string | null;
+  };
   url: "/api/album/";
 };
 
-export type GetAlbumsResponses = {
+export type GetAllAlbumsResponses = {
   /**
    * OK
    */
   200: Array<AlbumBasicReadOutSchema>;
 };
 
-export type GetAlbumsResponse = GetAlbumsResponses[keyof GetAlbumsResponses];
+export type GetAllAlbumsResponse = GetAllAlbumsResponses[keyof GetAllAlbumsResponses];
 
 export type CreateAlbumData = {
   body: AlbumCreateInSchema;

@@ -1576,8 +1576,25 @@
     "/api/album/": {
       "get": {
         "description": "List albums viewable by the current user",
-        "operationId": "get_albums",
-        "parameters": [],
+        "operationId": "get_all_albums",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "album_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Album Name"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {

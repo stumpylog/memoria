@@ -47,15 +47,18 @@ group_prefetch = ("view_groups", "edit_groups")
     "/",
     response=list[AlbumBasicReadOutSchema],
     description="List albums viewable by the current user",
-    operation_id="get_albums",
+    operation_id="get_all_albums",
     auth=active_user_auth,
 )
-def get_albums(request: HttpRequest):
+def get_albums(request: HttpRequest, album_name: str | None = None):
     """
     List all albums viewable by the current user.
     Returns basic album information including image count and permission groups.
     """
-    return Album.objects.permitted(request.user).with_image_count().prefetch_related(*group_prefetch)
+    qs = Album.objects.permitted(request.user).with_image_count()
+    if album_name is not None:
+        qs = qs.filter(name__icontains=album_name)
+    return qs
 
 
 @router.get(
@@ -93,14 +96,14 @@ def create_album(request: HttpRequest, data: AlbumCreateInSchema):
     Create a new album with optional view/edit groups.
     Only authenticated users may create albums.
     """
-    album = Album.objects.create(name=data.name, description=data.description)
+    album: Album = Album.objects.create(name=data.name, description=data.description)
     if data.view_group_ids:
         album.view_groups.set(data.view_group_ids)
     if data.edit_group_ids:
         album.edit_groups.set(data.edit_group_ids)
     album.refresh_from_db()
     return HTTPStatus.CREATED, (
-        Album.objects.filter(id=album.id).with_image_count().prefetch_related(*group_prefetch).first()
+        Album.objects.filter(id=album.pk).with_image_count().prefetch_related(*group_prefetch).first()
     )
 
 
@@ -124,7 +127,7 @@ async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateInS
     Only editors can modify album details.
     """
     qs = Album.objects.editable_by(request.user)
-    album = await aget_object_or_404(qs, id=album_id)
+    album: Album = await aget_object_or_404(qs, id=album_id)
     fields_to_update = []
     if data.name is not None:
         album.name = data.name
@@ -139,7 +142,7 @@ async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateInS
     if data.edit_group_ids is not None:
         await album.edit_groups.aset(data.edit_group_ids)
     await album.arefresh_from_db()
-    return Album.objects.filter(id=album.id).with_image_count().prefetch_related(*group_prefetch).first()
+    return Album.objects.filter(id=album.pk).with_image_count().prefetch_related(*group_prefetch).first()
 
 
 @router.patch(
@@ -167,7 +170,8 @@ def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageI
 )
 def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemoveImageInSchema):
     qs = Album.objects.editable_by(request.user).prefetch_related("images", *group_prefetch)
-    album = get_object_or_404(qs, id=album_id)
+    album: Album = get_object_or_404(qs, id=album_id)
+    img: Image
     for img in Image.objects.filter(id__in=data.image_ids):
         if album.images.filter(pk=img.pk).exists():
             album.images.remove(img)

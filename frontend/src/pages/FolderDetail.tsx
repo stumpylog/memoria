@@ -1,16 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
-import React from "react";
-import { Alert, Breadcrumb, Container, Spinner } from "react-bootstrap";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { Alert, Breadcrumb, Button, Container, Spinner } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
+import type { AlbumAddImageInSchema } from "../api";
 import type { FolderDetailSchema, ImageThumbnailSchemaOut } from "../api";
 
 import { folderGetDetails, imageGetThumbInfo } from "../api";
+import { addImageToAlbum } from "../api";
 import FolderWall from "../components/folder/FolderWall";
-import ImageWall from "../components/image/ImageWall";
+import AddToAlbumModal from "../components/image/AddToAlbumModal";
+import SelectableImageWall from "../components/image/SelectableImageWall";
 import { useAuth } from "../hooks/useAuth";
 import { getGridColumns } from "../utils/getGridColums";
+
 interface FolderDetailProps {}
 
 const FolderDetail: React.FC<FolderDetailProps> = () => {
@@ -18,6 +22,10 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
   const { profile } = useAuth();
   const folderId = parseInt(id || "0", 10);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const [selectedImageIds, setSelectedImageIds] = useState<number[]>([]);
+  const [showAlbumModal, setShowAlbumModal] = useState(false);
 
   // Query for folder details
   const {
@@ -67,6 +75,37 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
     },
     enabled: !!folderDetail && folderDetail.folder_images?.length > 0,
   });
+
+  // Add to Album Mutation
+  const addToAlbumMutation = useMutation({
+    mutationFn: async ({ albumId, imageIds }: { albumId: number; imageIds: number[] }) => {
+      const updatedData: AlbumAddImageInSchema = { image_ids: imageIds };
+      return await addImageToAlbum({ path: { album_id: albumId }, body: updatedData });
+    },
+    onSuccess: () => {
+      setSelectedImageIds([]);
+      setShowAlbumModal(false);
+      // Optionally invalidate related queries if needed
+      queryClient.invalidateQueries({ queryKey: ["albums"] });
+    },
+    onError: (error) => {
+      console.error("Failed to add images to album:", error);
+    },
+  });
+
+  const handleSelectionChange = (newSelectedIds: number[]) => {
+    setSelectedImageIds(newSelectedIds);
+  };
+
+  const handleOpenAlbumModal = () => {
+    if (selectedImageIds.length > 0) {
+      setShowAlbumModal(true);
+    }
+  };
+
+  const handleAddToAlbum = async (albumId: number, imageIds: number[]) => {
+    addToAlbumMutation.mutate({ albumId, imageIds });
+  };
 
   if (folderLoading) {
     return (
@@ -144,7 +183,31 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
 
       {/* Images Section */}
       <>
-        <h2 className="mb-3">Images ({folderDetail.folder_images.length})</h2>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h2>Images ({folderDetail.folder_images.length})</h2>
+          {selectedImageIds.length > 0 && (
+            <Button
+              variant="primary"
+              onClick={handleOpenAlbumModal}
+              disabled={addToAlbumMutation.isPending}
+            >
+              {addToAlbumMutation.isPending ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  <span className="ms-2">Processing...</span>
+                </>
+              ) : (
+                `Add ${selectedImageIds.length} selected to album`
+              )}
+            </Button>
+          )}
+        </div>
 
         {imagesLoading ? (
           <div className="d-flex justify-content-center align-items-center my-3">
@@ -160,17 +223,29 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
               : "Failed to load image thumbnails."}
           </Alert>
         ) : imageThumbs.length > 0 ? (
-          <ImageWall
+          <SelectableImageWall
             images={imageThumbs}
             onImageClick={(imageId) => {
               navigate(`/images/${imageId}`);
             }}
             columns={getGridColumns(profile?.items_per_page || 30)}
+            onSelectionChange={handleSelectionChange}
           />
         ) : (
           <Alert variant="info">This folder contains no images.</Alert>
         )}
       </>
+
+      {/* Album Modal */}
+      <AddToAlbumModal
+        show={showAlbumModal}
+        onHide={() => setShowAlbumModal(false)}
+        selectedImageIds={selectedImageIds}
+        onAddToAlbum={handleAddToAlbum}
+        isLoading={addToAlbumMutation.isPending}
+        isError={addToAlbumMutation.isError}
+        error={addToAlbumMutation.error}
+      />
     </Container>
   );
 };

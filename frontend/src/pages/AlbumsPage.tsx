@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import type { AlbumBasicReadOutSchema, AlbumCreateInSchema, GroupOutSchema } from "../api";
 
-import { createAlbum, getAlbums, groupGetAll } from "../api";
+import { createAlbum, getAllAlbums, groupGetAll } from "../api";
 
 const AlbumsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ const AlbumsPage: React.FC = () => {
     const fetchAlbums = async () => {
       try {
         setLoadingAlbums(true);
-        const data = await getAlbums();
+        const data = await getAllAlbums();
         setAlbums(data.data || []);
         setErrorAlbums(null);
       } catch (error) {
@@ -123,7 +123,7 @@ const AlbumsPage: React.FC = () => {
       // setAlbums(prevAlbums => [...prevAlbums, createdAlbum]);
 
       // Option 2: Re-fetch the entire list of albums to ensure data is fresh
-      const updatedAlbums = await getAlbums();
+      const updatedAlbums = await getAllAlbums();
       setAlbums(updatedAlbums.data || []);
 
       handleCloseModal(); // Close modal on success

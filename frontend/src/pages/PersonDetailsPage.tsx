@@ -1,12 +1,13 @@
 // src/pages/PersonDetailsPage.tsx
 
-import { useQuery } from "@tanstack/react-query";
-import React, { useEffect, useRef, useState } from "react"; // Import useRef
-import { Button, Col, Container, Row, Spinner } from "react-bootstrap";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import React, { useEffect, useRef, useState } from "react";
+import { Alert, Button, Col, Container, Row, Spinner } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import type {
+  AlbumAddImageInSchema,
   ImagesPerPageChoices,
   ImageThumbnailSchemaOut,
   PagedPersonImageOutSchema,
@@ -14,9 +15,10 @@ import type {
   PersonImageOutSchema,
 } from "../api";
 
-import { getPersonDetail, getPersonImages, imageGetThumbInfo } from "../api";
+import { addImageToAlbum, getPersonDetail, getPersonImages, imageGetThumbInfo } from "../api";
 import EditPersonModal from "../components/EditPersonModal";
-import ImageWall from "../components/image/ImageWall";
+import AddToAlbumModal from "../components/image/AddToAlbumModal";
+import SelectableImageWall from "../components/image/SelectableImageWall";
 import { useAuth } from "../hooks/useAuth";
 import { getGridColumns } from "../utils/getGridColums";
 
@@ -29,6 +31,8 @@ const PersonDetailsPage: React.FC = () => {
   const isValidId = personId !== undefined && !isNaN(personId);
 
   const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedImageIds, setSelectedImageIds] = useState<number[]>([]);
+  const [showAlbumModal, setShowAlbumModal] = useState(false);
 
   const handleShowEditModal = () => setShowEditModal(true);
   const handleCloseEditModal = () => setShowEditModal(false);
@@ -207,6 +211,38 @@ const PersonDetailsPage: React.FC = () => {
     staleTime: 5 * 60 * 1000, // Also set staleTime for thumbnails
   });
 
+  // Add to Album Mutation
+  const addToAlbumMutation = useMutation({
+    mutationFn: async ({ albumId, imageIds }: { albumId: number; imageIds: number[] }) => {
+      const updatedData: AlbumAddImageInSchema = { image_ids: imageIds };
+      return await addImageToAlbum({ path: { album_id: albumId }, body: updatedData });
+    },
+    onSuccess: () => {
+      setSelectedImageIds([]);
+      setShowAlbumModal(false);
+    },
+    onError: (error) => {
+      console.error("Failed to add images to album:", error);
+    },
+  });
+
+  // Handle image selection
+  const handleSelectionChange = (newSelectedIds: number[]) => {
+    setSelectedImageIds(newSelectedIds);
+  };
+
+  // Handle opening album modal
+  const handleOpenAlbumModal = () => {
+    if (selectedImageIds.length > 0) {
+      setShowAlbumModal(true);
+    }
+  };
+
+  // Handle adding to album
+  const handleAddToAlbum = async (albumId: number, imageIds: number[]) => {
+    addToAlbumMutation.mutate({ albumId, imageIds });
+  };
+
   // Handle Loading States for Person Details
   if (isLoadingPerson && !person) {
     // Only show initial loader if no person data is available
@@ -241,9 +277,6 @@ const PersonDetailsPage: React.FC = () => {
     );
   }
 
-  // If person data is still loading but we have cached data, proceed to render with cached data
-  // The `person` variable will hold the cached data in this case.
-
   // Pagination handlers - update URL search params, pushing to history
   const handleNextPage = () => {
     // Only proceed if totalImageCount is defined and there's a next page
@@ -255,6 +288,8 @@ const PersonDetailsPage: React.FC = () => {
         newParams.set("limit", String(limit));
         return newParams;
       }); // No { replace: true } - push new history entry
+      // Clear selection when changing pages
+      setSelectedImageIds([]);
     }
   };
 
@@ -269,6 +304,8 @@ const PersonDetailsPage: React.FC = () => {
         newParams.set("limit", String(limit));
         return newParams;
       }); // No { replace: true } - push new history entry
+      // Clear selection when changing pages
+      setSelectedImageIds([]);
     }
   };
 
@@ -314,7 +351,16 @@ const PersonDetailsPage: React.FC = () => {
 
       <hr className="my-4" />
 
-      <h3>Images ({totalImageCount !== undefined ? totalImageCount : "Loading..."})</h3>
+      {/* Images Section with Selection and Album functionality */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h3>Images ({totalImageCount !== undefined ? totalImageCount : "Loading..."})</h3>
+        {selectedImageIds.length > 0 && (
+          <Button variant="primary" onClick={handleOpenAlbumModal}>
+            Add {selectedImageIds.length} selected to album
+          </Button>
+        )}
+      </div>
+
       {isLoadingAnyImageData && !images ? (
         <Container className="mt-4 text-center">
           <Spinner animation="border" role="status">
@@ -323,16 +369,17 @@ const PersonDetailsPage: React.FC = () => {
           <p>Loading images...</p>
         </Container>
       ) : isErrorAnyImageData ? (
-        <p className="text-warning">
+        <Alert variant="danger">
           Could not load images.
           {anyImageError?.message}
-        </p>
+        </Alert>
       ) : images && images.length > 0 ? (
         <>
-          <ImageWall
+          <SelectableImageWall
             images={images}
             onImageClick={(imgId) => navigate(`/images/${imgId}`)}
             columns={getGridColumns(limit as ImagesPerPageChoices)}
+            onSelectionChange={handleSelectionChange}
           />
           {totalImageCount !== undefined && totalImageCount > limit && (
             <Row className="mt-4 mb-4 justify-content-center">
@@ -368,10 +415,21 @@ const PersonDetailsPage: React.FC = () => {
         totalImageCount === 0 &&
         !isLoadingAnyImageData &&
         !isErrorAnyImageData ? (
-        <p>No images found for this person.</p>
+        <Alert variant="info">No images found for this person.</Alert>
       ) : (
         <p>Loading image information...</p>
       )}
+
+      {/* Album Modal */}
+      <AddToAlbumModal
+        show={showAlbumModal}
+        onHide={() => setShowAlbumModal(false)}
+        selectedImageIds={selectedImageIds}
+        onAddToAlbum={handleAddToAlbum}
+        isLoading={addToAlbumMutation.isPending}
+        isError={addToAlbumMutation.isError}
+        error={addToAlbumMutation.error}
+      />
     </Container>
   );
 };
