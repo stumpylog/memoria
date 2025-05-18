@@ -59,10 +59,10 @@ client.instance.interceptors.request.use(
 export const initializeCsrfToken = async (): Promise<void> => {
   try {
     // Use the generated type for the response data
-    const response = await client.instance.get<AuthGetCsrfTokenResponse>("/auth/csrf/", {
+    const response = await client.instance.get<AuthGetCsrfTokenResponse>("/api/auth/csrf/", {
       withCredentials: true,
     });
-    if (response.data && response.data.csrf_token) {
+    if (response.status == 200 && response.data && response.data.csrf_token) {
       csrfToken = response.data.csrf_token;
     }
   } catch (error) {
