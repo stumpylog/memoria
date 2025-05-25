@@ -19,14 +19,37 @@ const SelectableImageCard: React.FC<SelectableImageCardProps> = ({
   onSelect,
 }) => {
   const handleViewClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent card click event when button is clicked
     if (onViewClick) {
       onViewClick(image.id);
     }
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    onSelect(image.id, e);
+    // Allow selecting only if the click is not on the view button
+    if (
+      !(e.target instanceof HTMLElement && e.target.closest("button")) &&
+      !(e.target instanceof SVGElement && e.target.closest("button")) // handle clicks on svg inside button
+    ) {
+      onSelect(image.id, e);
+    }
+  };
+
+  const selectionIndicatorStyle: React.CSSProperties = {
+    position: "absolute",
+    top: "8px",
+    right: "8px",
+    width: "24px",
+    height: "24px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "background-color 0.2s ease-in-out, border-color 0.2s ease-in-out",
+    border: `2px solid ${isSelected ? "#0d6efd" : "#adb5bd"}`, // Use theme primary or a neutral border
+    backgroundColor: isSelected ? "#0d6efd" : "rgba(255, 255, 255, 0.7)", // Semi-transparent white for unselected
+    color: isSelected ? "white" : "transparent", // Checkmark color
+    zIndex: 10, // Ensure it's above the image
   };
 
   return (
@@ -41,25 +64,26 @@ const SelectableImageCard: React.FC<SelectableImageCardProps> = ({
     >
       <div
         style={{
-          height: "200px",
+          height: "200px", // Or your preferred image container height
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           overflow: "hidden",
           borderBottom: "1px solid rgba(0,0,0,.125)",
-          position: "relative",
+          position: "relative", // For positioning the selection indicator
         }}
       >
         {image.thumbnail_url ? (
           <img
             src={image.thumbnail_url}
-            className="card-img-top"
+            className="card-img-top" // Ensures responsiveness within the div
             alt={image.title}
-            height={image.thumbnail_height}
-            width={image.thumbnail_width}
             style={{
               maxHeight: "100%",
-              objectFit: "contain",
+              maxWidth: "100%", // Ensure image does not overflow its container
+              objectFit: "contain", // Was 'contain', ensures whole image is visible
+              height: image.thumbnail_height, // Set explicit height/width if available
+              width: image.thumbnail_width, // and if it makes sense for your layout
             }}
           />
         ) : (
@@ -72,48 +96,46 @@ const SelectableImageCard: React.FC<SelectableImageCardProps> = ({
               justifyContent: "center",
               alignItems: "center",
               fontSize: "0.9em",
+              height: "100%", // Ensure placeholder takes full height
             }}
           >
+            <i className="bi bi-image-alt" style={{ fontSize: "2em" }}></i>
+            No Thumbnail
+          </div>
+        )}
+
+        {/* Selection Indicator Circle */}
+        <div style={selectionIndicatorStyle}>
+          {isSelected && (
             <svg
-              className="bi mb-1"
-              width="2em"
-              height="2em"
+              width="14" // Slightly smaller to fit well within the 24px circle
+              height="14"
               fill="currentColor"
               viewBox="0 0 16 16"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.028 11.02a.5.5 0 0 0-.04.28.99.99 0 0 0 .841.839c.295.054.584.04.84-.028l1.898-2.093a.25.25 0 0 1 .372 0l1.898 2.093c.256.068.545.082.84.028a.99.99 0 0 0 .84-.84.5.5 0 0 0-.04-.28l-1.898-2.092a.25.25 0 0 1 0-.372L10.972 6.98a.5.5 0 0 0 .04-.28.99.99 0 0 0-.841-.839c-.295-.054-.584-.04-.84.028L8.376 8.908a.25.25 0 0 1-.372 0L6.106 6.815c-.256-.068-.545-.082-.84-.028a.99.99 0 0 0-.84.84.5.5 0 0 0 .04.28l1.898 2.092a.25.25 0 0 1 0 .372z" />
-            </svg>
-            No Thumbnail
-            <br />
-            Available
-          </div>
-        )}
-        {isSelected && (
-          <div
-            style={{
-              position: "absolute",
-              top: "8px",
-              right: "8px",
-              backgroundColor: "#0d6efd",
-              color: "white",
-              borderRadius: "50%",
-              width: "24px",
-              height: "24px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
               <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
             </svg>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-      <Card.Body className="d-flex flex-column">
-        <h6 className="card-title">{image.title}</h6>
+      <Card.Body className="d-flex flex-column p-2">
+        {" "}
+        {/* Reduced padding for smaller cards */}
+        <h6
+          className="card-title text-truncate mb-2"
+          title={image.title}
+          style={{ fontSize: "0.9rem" }}
+        >
+          {image.title || "Untitled Image"}
+        </h6>
         {showViewButton && (
-          <Button variant="primary" size="sm" className="mt-auto" onClick={handleViewClick}>
+          <Button
+            variant="primary"
+            size="sm"
+            className="mt-auto w-100" // Make button take full width of its container
+            onClick={handleViewClick}
+          >
             View
           </Button>
         )}

@@ -4,11 +4,14 @@ import zipfile
 from http import HTTPStatus
 from pathlib import Path
 
+from django.db import transaction
 from django.db.models import Case
+from django.db.models import F
 from django.db.models import IntegerField
 from django.db.models import Max
 from django.db.models import Prefetch
 from django.db.models import When
+from django.db.models.functions import Coalesce
 from django.http import FileResponse
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
@@ -80,7 +83,7 @@ def get_album(request: HttpRequest, album_id: int):
     Retrieve a single album including its images and group permissions.
     Fails with 404 if the album is not viewable by the user.
     """
-    qs = Album.objects.permitted(request.user).with_images().prefetch_related(*group_prefetch)
+    qs = Album.objects.permitted(request.user).with_images().with_image_count().prefetch_related(*group_prefetch)
     return get_object_or_404(qs, id=album_id)
 
 
@@ -121,13 +124,13 @@ def create_album(request: HttpRequest, data: AlbumCreateInSchema):
     operation_id="update_album_info",
     auth=active_user_auth,
 )
-async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateInSchema):
+def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateInSchema):
     """
     Update album metadata (name, description) and/or group permissions.
     Only editors can modify album details.
     """
     qs = Album.objects.editable_by(request.user)
-    album: Album = await aget_object_or_404(qs, id=album_id)
+    album: Album = get_object_or_404(qs, id=album_id)
     fields_to_update = []
     if data.name is not None:
         album.name = data.name
@@ -136,12 +139,12 @@ async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateInS
         album.description = data.description
         fields_to_update.append("description")
     if fields_to_update:
-        await album.asave(update_fields=fields_to_update)
+        album.save(update_fields=fields_to_update)
     if data.view_group_ids is not None:
-        await album.view_groups.aset(data.view_group_ids)
+        album.view_groups.set(data.view_group_ids)
     if data.edit_group_ids is not None:
-        await album.edit_groups.aset(data.edit_group_ids)
-    await album.arefresh_from_db()
+        album.edit_groups.set(data.edit_group_ids)
+    album.refresh_from_db()
     return Album.objects.filter(id=album.pk).with_image_count().prefetch_related(*group_prefetch).first()
 
 
@@ -152,14 +155,77 @@ async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateInS
     auth=active_user_auth,
 )
 def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageInSchema):
-    qs = Album.objects.editable_by(request.user).prefetch_related("images", image_in_album_prefetch, *group_prefetch)
+    # Get album with permission check
+    qs = Album.objects.editable_by(request.user).prefetch_related(
+        "images",
+        image_in_album_prefetch,
+        *group_prefetch,
+    )
     album = get_object_or_404(qs, id=album_id)
-    max_order = ImageInAlbum.objects.filter(album=album).aggregate(max_order=Max("sort_order"))["max_order"] or -1
-    sort_order = max_order + 1
-    for img in Image.objects.filter(id__in=data.image_ids):
-        ImageInAlbum.objects.get_or_create(album=album, image=img, defaults={"sort_order": sort_order})
-        sort_order += 1
-    return Album.objects.editable_by(request.user).with_images().prefetch_related(*group_prefetch).get(id=album_id)
+
+    # Validate that all requested images exist and are accessible
+    accessible_images = Image.objects.viewable_by(request.user).filter(
+        id__in=data.image_ids,
+    )
+
+    if accessible_images.count() != len(data.image_ids):
+        raise HttpBadRequestError("Some images were not found or are not accessible")
+
+    # Get existing image IDs to avoid duplicates
+    existing_image_ids = set(
+        ImageInAlbum.objects.filter(album=album).values_list("image_id", flat=True),
+    )
+
+    # Filter out images already in the album while preserving order
+    new_image_ids = [img_id for img_id in data.image_ids if img_id not in existing_image_ids]
+
+    if not new_image_ids:
+        logger.info(f"No new images to add to album {album_id}")
+        # Return current album state
+        return (
+            Album.objects.editable_by(request.user)
+            .with_images()
+            .with_image_count()
+            .prefetch_related(*group_prefetch)
+            .get(id=album_id)
+        )
+
+    # Use transaction for atomicity
+    with transaction.atomic():
+        # Get max sort order within transaction to avoid race conditions
+
+        max_order = ImageInAlbum.objects.filter(album=album).aggregate(
+            max_order=Coalesce(Max("sort_order"), -1),
+        )["max_order"]
+
+        # Create ImageInAlbum objects in batch
+        image_in_album_objects = []
+        sort_order = max_order + 1
+
+        # Maintain the order from data.image_ids
+        for img_id in new_image_ids:
+            image_in_album_objects.append(
+                ImageInAlbum(
+                    album=album,
+                    image_id=img_id,
+                    sort_order=sort_order,
+                ),
+            )
+            sort_order += 1
+
+        # Bulk create for better performance
+        ImageInAlbum.objects.bulk_create(image_in_album_objects)
+
+        logger.info(f"Added {len(image_in_album_objects)} images to album {album_id}")
+
+    # Return updated album
+    return (
+        Album.objects.editable_by(request.user)
+        .with_images()
+        .with_image_count()
+        .prefetch_related(*group_prefetch)
+        .get(id=album_id)
+    )
 
 
 @router.patch(
@@ -169,15 +235,39 @@ def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageI
     auth=active_user_auth,
 )
 def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemoveImageInSchema):
+    # Get album with permission check
     qs = Album.objects.editable_by(request.user).prefetch_related("images", *group_prefetch)
-    album: Album = get_object_or_404(qs, id=album_id)
-    img: Image
-    for img in Image.objects.filter(id__in=data.image_ids):
-        if album.images.filter(pk=img.pk).exists():
-            album.images.remove(img)
-        else:
-            logger.warning(f"Image {img.pk} not in album {album.pk}")
-    return Album.objects.editable_by(request.user).with_images().prefetch_related(*group_prefetch).get(id=album_id)
+    album = get_object_or_404(qs, id=album_id)
+
+    # Get existing ImageInAlbum records to remove
+    images_to_remove = ImageInAlbum.objects.filter(
+        album=album,
+        image_id__in=data.image_ids,
+    )
+
+    removed_count = images_to_remove.count()
+    requested_count = len(data.image_ids)
+
+    if removed_count == 0:
+        logger.warning(f"No images from {data.image_ids} found in album {album_id}")
+    elif removed_count < requested_count:
+        removed_ids = set(images_to_remove.values_list("image_id", flat=True))
+        missing_ids = [img_id for img_id in data.image_ids if img_id not in removed_ids]
+        logger.warning(f"Images {missing_ids} not found in album {album_id}")
+
+    # Remove in transaction for consistency
+    with transaction.atomic():
+        images_to_remove.delete()
+        logger.info(f"Removed {removed_count} images from album {album_id}")
+
+    # Return updated album
+    return (
+        Album.objects.editable_by(request.user)
+        .with_images()
+        .with_image_count()
+        .prefetch_related(*group_prefetch)
+        .get(id=album_id)
+    )
 
 
 @router.patch(
@@ -202,23 +292,35 @@ def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpd
     Reorder images in an album based on the provided list of image IDs.
     The new list must exactly match the current contents. Requires edit permissions.
     """
-    # Efficient single-query reordering using Case/When
     qs = Album.objects.editable_by(request.user)
     album = get_object_or_404(qs, id=album_id)
-
     existing_ids = list(ImageInAlbum.objects.filter(album=album).values_list("image_id", flat=True))
+
     if set(existing_ids) != set(data.sorting) or len(existing_ids) != len(data.sorting):
         msg = f"Album contains {len(existing_ids)} images, but {len(data.sorting)} provided."
         logger.error(msg)
         raise HttpBadRequestError(msg)
 
-    # Build CASE expressions
-    cases = [When(image_id=img_id, then=pos) for pos, img_id in enumerate(data.sorting)]
-    ImageInAlbum.objects.filter(album=album, image_id__in=data.sorting).update(
-        sort_order=Case(*cases, output_field=IntegerField()),
-    )
+    # First, offset all sort_order values to avoid conflicts
+    with transaction.atomic():
+        max_sort = len(data.sorting)
+        ImageInAlbum.objects.filter(album=album).update(
+            sort_order=F("sort_order") + max_sort + 1000,
+        )
 
-    return Album.objects.editable_by(request.user).with_images().prefetch_related(*group_prefetch).get(id=album_id)
+        # Then apply the new sorting
+        cases = [When(image_id=img_id, then=pos) for pos, img_id in enumerate(data.sorting)]
+        ImageInAlbum.objects.filter(album=album, image_id__in=data.sorting).update(
+            sort_order=Case(*cases, output_field=IntegerField()),
+        )
+
+    return (
+        Album.objects.editable_by(request.user)
+        .with_images()
+        .with_image_count()
+        .prefetch_related(*group_prefetch)
+        .get(id=album_id)
+    )
 
 
 @router.delete(

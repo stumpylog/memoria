@@ -14,13 +14,16 @@ tasks:
       - uv run manage.py migrate
   indexholmes:
     cmds:
-      - uv run manage.py index --hash-threads 16 --view-group "Holmes Viewers" --edit-group "Holmes Editors" --top-lvl-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Parents'"
+      - uv run manage.py index --hash-threads 16 --view-group "Holmes Viewers" --edit-group "Holmes Editors" --root-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Parents'"
   indexclaudia:
     cmds:
-      - uv run manage.py index --hash-threads 16 --view-group "Claudia Viewers" --edit-group "Claudia Editors" --top-lvl-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Grandma's"
+      - uv run manage.py index --hash-threads 16 --view-group "Claudia Viewers" --edit-group "Claudia Editors" --root-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Grandma's"
   indexanderson:
     cmds:
-      - uv run manage.py index --hash-threads 16 --view-group "Anderson Viewers" --edit-group "Anderson Editors" --top-lvl-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Anderson Family"
+      - uv run manage.py index --hash-threads 16 --view-group "Anderson Viewers" --edit-group "Anderson Editors" --root-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Anderson Family"
+  indexsubset:
+    cmds:
+      - uv run manage.py index --hash-threads 16 --view-group "Anderson Viewers" --edit-group "Anderson Editors" --root-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Anderson Family\Box 6\2002 - 08"
   makemigrations:
     cmds:
       - uv run manage.py makemigrations

@@ -155,8 +155,10 @@ const AddToAlbumModal: React.FC<AddToAlbumModalProps> = ({
               </Spinner>
               <span className="ms-2">Adding...</span>
             </>
+          ) : selectedAlbum ? (
+            `Add to "${selectedAlbum.name}"`
           ) : (
-            `Add to "${selectedAlbum?.name || ""}"`
+            "Add to Album"
           )}
         </Button>
       </Modal.Footer>
