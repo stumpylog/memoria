@@ -1,59 +1,65 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import React from "react";
 import { Card } from "react-bootstrap";
 
-import type { ImageThumbnailSchemaOut } from "../../api"; //
+import type { ImageThumbnailSchemaOut } from "../../api";
 
 interface SortableImageListItemProps {
   image: ImageThumbnailSchemaOut;
-  onDragStart: (event: React.DragEvent<HTMLDivElement>, imageId: number) => void;
-  onDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
-  onDrop: (event: React.DragEvent<HTMLDivElement>, targetImageId: number) => void;
-  onDragEnd: (event: React.DragEvent<HTMLDivElement>) => void;
-  isDragging?: boolean; // Optional: for styling the dragged item
+  isDragging?: boolean;
 }
 
 const SortableImageListItem: React.FC<SortableImageListItemProps> = ({
   image,
-  onDragStart,
-  onDragOver,
-  onDrop,
-  onDragEnd,
-  isDragging,
+  isDragging = false,
 }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({ id: image.id.toString() });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging || isSortableDragging ? 0.5 : 1,
+    cursor: "grab",
+  };
+
   return (
-    <Card
-      draggable
-      onDragStart={(e) => onDragStart(e, image.id)}
-      onDragOver={onDragOver}
-      onDrop={(e) => onDrop(e, image.id)}
-      onDragEnd={onDragEnd}
-      className="mb-2"
-      style={{
-        cursor: "grab",
-        opacity: isDragging ? 0.5 : 1,
-        transition: "opacity 0.2s ease-in-out",
-      }}
-    >
-      <Card.Img
-        variant="top"
-        src={image.thumbnail_url}
-        alt={image.title}
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="mb-2">
+      <Card
+        className={`${isSortableDragging ? "shadow-lg" : ""}`}
         style={{
-          height: "150px",
-          objectFit: "contain",
-          pointerEvents: "none", // Prevents image's default drag behavior
+          transition: "box-shadow 0.2s ease, opacity 0.2s ease-in-out",
         }}
-      />
-      <Card.Body className="p-2">
-        <Card.Text
-          className="text-truncate small"
-          title={image.title}
-          style={{ pointerEvents: "none" }}
-        >
-          {image.title || "Untitled"}
-        </Card.Text>
-      </Card.Body>
-    </Card>
+      >
+        <Card.Img
+          variant="top"
+          src={image.thumbnail_url}
+          alt={image.title}
+          style={{
+            height: "150px",
+            maxHeight: "100%",
+            objectFit: "contain",
+            pointerEvents: "none",
+          }}
+        />
+        <Card.Body className="p-2">
+          <Card.Text
+            className="text-truncate small"
+            title={image.title}
+            style={{ pointerEvents: "none" }}
+          >
+            {image.title || "Untitled"}
+          </Card.Text>
+        </Card.Body>
+      </Card>
+    </div>
   );
 };
 

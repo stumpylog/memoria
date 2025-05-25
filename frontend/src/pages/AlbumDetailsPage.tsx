@@ -1,3 +1,20 @@
+import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+
+import {
+  closestCenter,
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  rectSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { Alert, Button, Card, Col, Container, Row, Spinner } from "react-bootstrap";
@@ -30,9 +47,19 @@ const AlbumDetailsPage: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [sortError, setSortError] = useState<string | null>(null);
-  const [isSortDirty, setIsSortDirty] = useState<boolean>(false); // New state to track sort changes
+  const [isSortDirty, setIsSortDirty] = useState<boolean>(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
-  const [draggedImageId, setDraggedImageId] = useState<number | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   const {
     data: album,
@@ -59,7 +86,6 @@ const AlbumDetailsPage: React.FC = () => {
     ImageThumbnailSchemaOut[],
     Error
   >({
-    // Added Error type
     queryKey: ["albumImageThumbnails", albumId, album?.image_ids],
     queryFn: async (): Promise<ImageThumbnailSchemaOut[]> => {
       if (!album || !album.image_ids || album.image_ids.length === 0) return [];
@@ -88,7 +114,7 @@ const AlbumDetailsPage: React.FC = () => {
   useEffect(() => {
     if (imageThumbnails) {
       setDisplayedImages(imageThumbnails);
-      setIsSortDirty(false); // Reset dirty state when original thumbnails load or change
+      setIsSortDirty(false);
     }
   }, [imageThumbnails]);
 
@@ -117,12 +143,12 @@ const AlbumDetailsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["albumDetails", albumId] });
       setSortError(null);
-      setIsSortDirty(false); // Sort changes saved, reset dirty state
+      setIsSortDirty(false);
     },
     onError: (error: Error) => {
       setSortError(error.message || "Failed to save image order.");
-      if (imageThumbnails) setDisplayedImages(imageThumbnails); // Revert on error
-      setIsSortDirty(false); // Revert dirty state on error
+      if (imageThumbnails) setDisplayedImages(imageThumbnails);
+      setIsSortDirty(false);
     },
   });
 
@@ -130,37 +156,25 @@ const AlbumDetailsPage: React.FC = () => {
     await updateAlbumInfoMutation.mutateAsync({ albumIdToUpdate: id, data });
   };
 
-  const handleDragStart = (event: React.DragEvent<HTMLDivElement>, imageId: number) => {
-    setDraggedImageId(imageId);
-    event.dataTransfer.effectAllowed = "move";
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id.toString());
   };
 
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
-  };
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>, targetImageId: number) => {
-    event.preventDefault();
-    if (draggedImageId === null || draggedImageId === targetImageId) {
-      return;
+    if (over && active.id !== over.id) {
+      setDisplayedImages((images) => {
+        const oldIndex = images.findIndex((img) => img.id.toString() === active.id);
+        const newIndex = images.findIndex((img) => img.id.toString() === over.id);
+
+        const newImages = arrayMove(images, oldIndex, newIndex);
+        setIsSortDirty(true);
+        return newImages;
+      });
     }
 
-    const newImages = [...displayedImages];
-    const draggedItemIndex = newImages.findIndex((img) => img.id === draggedImageId);
-    const targetItemIndex = newImages.findIndex((img) => img.id === targetImageId);
-
-    if (draggedItemIndex === -1 || targetItemIndex === -1) return;
-
-    const [draggedItem] = newImages.splice(draggedItemIndex, 1);
-    newImages.splice(targetItemIndex, 0, draggedItem);
-
-    setDisplayedImages(newImages);
-    setIsSortDirty(true); // User has reordered, set dirty state
-  };
-
-  const handleDragEnd = () => {
-    setDraggedImageId(null);
+    setActiveId(null);
   };
 
   const handleSaveChanges = () => {
@@ -168,7 +182,7 @@ const AlbumDetailsPage: React.FC = () => {
     updateSortMutation.mutate(newImageIds);
   };
 
-  const canEditAlbum = user?.is_staff || user?.is_superuser || false; // Simplified permission check
+  const canEditAlbum = user?.is_staff || user?.is_superuser || false;
 
   if (
     isLoadingAlbum ||
@@ -206,6 +220,10 @@ const AlbumDetailsPage: React.FC = () => {
     displayedImages.filter((_, imgIndex) => imgIndex % numColumns === colIndex),
   );
 
+  const activeImage = activeId
+    ? displayedImages.find((img) => img.id.toString() === activeId)
+    : null;
+
   return (
     <Container fluid className="py-4">
       <Helmet>
@@ -231,7 +249,7 @@ const AlbumDetailsPage: React.FC = () => {
             <Button
               variant="primary"
               onClick={handleSaveChanges}
-              disabled={!isSortDirty || updateSortMutation.isPending} // Enable only when dirty and not saving
+              disabled={!isSortDirty || updateSortMutation.isPending}
             >
               {updateSortMutation.isPending ? (
                 <>
@@ -260,30 +278,51 @@ const AlbumDetailsPage: React.FC = () => {
         <div className="text-center my-2">
           <Spinner size="sm" /> Saving new order...
         </div>
-      )}{" "}
-      {/* Only show saving message if no error */}
+      )}
       <Card>
         <Card.Header>Images</Card.Header>
         <Card.Body>
           <p className="text-muted small">Drag and drop images to reorder them.</p>
           {displayedImages.length > 0 ? (
-            <Row>
-              {columnIndexes.map((colIdx) => (
-                <Col key={colIdx} md={12 / numColumns}>
-                  {imagesByColumn[colIdx].map((image) => (
-                    <SortableImageListItem
-                      key={image.id}
-                      image={image}
-                      onDragStart={handleDragStart}
-                      onDragOver={handleDragOver}
-                      onDrop={handleDrop}
-                      onDragEnd={handleDragEnd}
-                      isDragging={draggedImageId === image.id}
-                    />
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={displayedImages.map((img) => img.id.toString())}
+                strategy={rectSortingStrategy}
+              >
+                <Row>
+                  {columnIndexes.map((colIdx) => (
+                    <Col key={colIdx} md={12 / numColumns}>
+                      {imagesByColumn[colIdx].map((image) => (
+                        <SortableImageListItem
+                          key={image.id}
+                          image={image}
+                          isDragging={activeId === image.id.toString()}
+                        />
+                      ))}
+                    </Col>
                   ))}
-                </Col>
-              ))}
-            </Row>
+                </Row>
+              </SortableContext>
+              <DragOverlay>
+                {activeImage ? (
+                  <div
+                    style={{
+                      opacity: 0.8,
+                      transform: "rotate(1deg)",
+                      border: "2px solid #007bff",
+                      borderRadius: "4px",
+                    }}
+                  >
+                    <SortableImageListItem image={activeImage} isDragging={false} />
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           ) : (
             <Alert variant="info">This album is empty.</Alert>
           )}
