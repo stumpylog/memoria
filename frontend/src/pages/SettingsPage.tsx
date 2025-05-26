@@ -1,7 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 // src/pages/SettingsPage.tsx
-import React, { useState } from "react";
-import { Alert, Button, Card, Container, Spinner, Table } from "react-bootstrap";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useEffect, useState } from "react";
+import { Alert, Button, Card, Col, Container, Form, Row, Spinner, Table } from "react-bootstrap";
+import { useForm } from "react-hook-form";
 import { Navigate } from "react-router-dom";
 
 // Types
@@ -9,6 +10,9 @@ import type {
   GroupCreateInSchema,
   GroupOutSchema,
   GroupUpdateInSchema,
+  ImageScaledSideMaxEnum,
+  SiteSettingsUpdateSchemaIn,
+  ThumbnailSizeEnum,
   UserGroupAssignInSchema,
   UserInCreateSchemaWritable,
   UserOutSchema,
@@ -17,45 +21,85 @@ import type {
 
 // API functions
 import {
-  groupDeleteSingle, // Assuming this function exists
-  groupGetAll, // Already exists and used
-  // New API functions for group management
-  groupsCreate, // Assuming this function exists
-  groupUpdateSingle, // Assuming this function exists
+  getSystemSettings,
+  groupDeleteSingle,
+  groupGetAll,
+  groupsCreate,
+  groupUpdateSingle,
+  updateSystemSettings,
   userCreate,
   userGetAll,
   userGetGroups,
   userSetGroups,
   userSetInfo,
-  // groupGetSingle, // Not strictly needed for this implementation but available
 } from "../api";
-// We will need new modals for group management:
-import CreateGroupModal from "../components/group-management/CreateGroupModal"; // Placeholder - need to create
-import DeleteGroupModal from "../components/group-management/DeleteGroupModal"; // Placeholder - need to create
-import EditGroupModal from "../components/group-management/EditGroupModal"; // Placeholder - need to create
-// Components
+import CreateGroupModal from "../components/group-management/CreateGroupModal";
+import DeleteGroupModal from "../components/group-management/DeleteGroupModal";
+import EditGroupModal from "../components/group-management/EditGroupModal";
 import CreateUserModal from "../components/user-management/CreateUserModal";
 import EditUserModal from "../components/user-management/EditUserModal";
-import ManageGroupsModal from "../components/user-management/ManageGroupsModal"; // This is for user group assignment
+import ManageGroupsModal from "../components/user-management/ManageGroupsModal";
 import { useAuth } from "../hooks/useAuth";
+
+type SystemSettingsFormData = {
+  large_image_max_size: ImageScaledSideMaxEnum;
+  large_image_quality: number;
+  thumbnail_max_size: ThumbnailSizeEnum;
+};
 
 const SettingsPage: React.FC = () => {
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
+
+  // React Hook Form setup
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isDirty, dirtyFields },
+  } = useForm<SystemSettingsFormData>();
 
   // --- User Management State ---
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [showManageUserGroupsModal, setShowManageUserGroupsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserOutSchema | null>(null);
-  const [userError, setUserError] = useState<string | null>(null); // Dedicated user error state
+  const [userError, setUserError] = useState<string | null>(null);
 
   // --- Group Management State ---
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [showEditGroupModal, setShowEditGroupModal] = useState(false);
   const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<GroupOutSchema | null>(null);
-  const [groupError, setGroupError] = useState<string | null>(null); // Dedicated group error state
+  const [groupError, setGroupError] = useState<string | null>(null);
+
+  // --- System Settings State ---
+  const [systemSettingsError, setSystemSettingsError] = useState<string | null>(null);
+  const [systemSettingsSuccess, setSystemSettingsSuccess] = useState<string | null>(null);
+
+  // --- System Settings Query ---
+  const {
+    data: systemSettings,
+    isLoading: systemSettingsLoading,
+    error: systemSettingsQueryError,
+  } = useQuery({
+    queryKey: ["systemSettings"],
+    queryFn: async () => {
+      const response = await getSystemSettings();
+      return response?.data;
+    },
+  });
+
+  // Reset form when systemSettings data is loaded
+  useEffect(() => {
+    if (systemSettings) {
+      reset({
+        large_image_max_size: systemSettings.large_image_max_size,
+        large_image_quality: systemSettings.large_image_quality,
+        thumbnail_max_size: systemSettings.thumbnail_max_size,
+      });
+    }
+  }, [systemSettings, reset]);
 
   // --- User Management Queries ---
   const {
@@ -75,15 +119,13 @@ const SettingsPage: React.FC = () => {
     queryFn: async () => {
       if (!selectedUser) return [];
       const response = await userGetGroups({ path: { user_id: selectedUser.id } });
-      // Assuming the response data is an array of group objects with an 'id' property
       return response?.data?.map((group) => group.id) || [];
     },
-    enabled: !!selectedUser && showManageUserGroupsModal, // Only run when a user is selected and the modal is open
+    enabled: !!selectedUser && showManageUserGroupsModal,
   });
 
-  // --- Group Management Queries ---
   const {
-    data: groups = [], // Renamed from allGroups for clarity in this section
+    data: groups = [],
     isLoading: groupsLoading,
     error: groupsQueryError,
   } = useQuery({
@@ -91,6 +133,23 @@ const SettingsPage: React.FC = () => {
     queryFn: async () => {
       const response = await groupGetAll();
       return response?.data || [];
+    },
+  });
+
+  // --- System Settings Mutation ---
+  const updateSystemSettingsMutation = useMutation({
+    mutationFn: (settingsData: SiteSettingsUpdateSchemaIn) =>
+      updateSystemSettings({ body: settingsData }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["systemSettings"] });
+      setSystemSettingsError(null);
+      setSystemSettingsSuccess("System settings updated successfully!");
+      // Clear success message after 3 seconds
+      setTimeout(() => setSystemSettingsSuccess(null), 3000);
+    },
+    onError: (err: any) => {
+      setSystemSettingsError(err.message || "Failed to update system settings.");
+      setSystemSettingsSuccess(null);
     },
   });
 
@@ -165,6 +224,28 @@ const SettingsPage: React.FC = () => {
       setGroupError(err.message || `Failed to delete group.`);
     },
   });
+
+  // --- System Settings Handlers ---
+  const onSubmitSystemSettings = (data: SystemSettingsFormData) => {
+    // Only send fields that have been modified
+    const changedFields: Partial<SiteSettingsUpdateSchemaIn> = {};
+
+    if (dirtyFields.large_image_max_size) {
+      changedFields.large_image_max_size = data.large_image_max_size;
+    }
+    if (dirtyFields.large_image_quality) {
+      changedFields.large_image_quality = data.large_image_quality;
+    }
+    if (dirtyFields.thumbnail_max_size) {
+      changedFields.thumbnail_max_size = data.thumbnail_max_size;
+    }
+
+    if (Object.keys(changedFields).length > 0) {
+      setSystemSettingsError(null);
+      setSystemSettingsSuccess(null);
+      updateSystemSettingsMutation.mutate(changedFields as SiteSettingsUpdateSchemaIn);
+    }
+  };
 
   // --- User Management Modal Handlers ---
   const handleShowCreateUserModal = () => {
@@ -278,6 +359,23 @@ const SettingsPage: React.FC = () => {
     await deleteGroupMutation.mutateAsync(groupId);
   };
 
+  // Define the actual enum values for iteration
+  const imageSizeOptions = [
+    { value: 768, label: "768px (Tablet/Small Screen)" },
+    { value: 1024, label: "1024px (Tablet Landscape/Laptop)" },
+    { value: 1920, label: "1920px (HD/Desktop)" },
+    { value: 2560, label: "2560px (QHD/Large Desktop)" },
+    { value: 3840, label: "3840px (4K/HiDPI Desktop)" },
+  ];
+
+  const thumbnailSizeOptions = [
+    { value: 128, label: "128px (Tiny)" },
+    { value: 256, label: "256px (Small)" },
+    { value: 512, label: "512px (Medium)" },
+    { value: 640, label: "640px (Large)" },
+    { value: 800, label: "800px (X-Large)" },
+  ];
+
   // --- Auth Check ---
   if (currentUser === undefined) {
     return (
@@ -300,6 +398,109 @@ const SettingsPage: React.FC = () => {
         <Card.Header as="h2">Application Settings</Card.Header>
         <Card.Body>
           <Alert variant="info">This page is available to staff and superusers only.</Alert>
+
+          {/* System Settings Section */}
+          <h3 className="mt-4">System Settings</h3>
+          {systemSettingsError && <Alert variant="danger">{systemSettingsError}</Alert>}
+          {systemSettingsSuccess && <Alert variant="success">{systemSettingsSuccess}</Alert>}
+
+          {systemSettingsLoading ? (
+            <div className="d-flex justify-content-center">
+              <Spinner animation="border" role="status">
+                <span className="visually-hidden">Loading System Settings...</span>
+              </Spinner>
+            </div>
+          ) : systemSettingsQueryError ? (
+            <Alert variant="danger">
+              {systemSettingsQueryError instanceof Error
+                ? systemSettingsQueryError.message
+                : "Failed to load system settings."}
+            </Alert>
+          ) : systemSettings ? (
+            <Card className="mb-4">
+              <Card.Header>
+                <h5 className="mb-0">Image Processing Settings</h5>
+              </Card.Header>
+              <Card.Body>
+                <Form onSubmit={handleSubmit(onSubmitSystemSettings)}>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Large Image Maximum Size</Form.Label>
+                        <Form.Select
+                          {...register("large_image_max_size", {
+                            valueAsNumber: true,
+                          })}
+                        >
+                          {imageSizeOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </Form.Select>
+                        <Form.Text className="text-muted">
+                          The largest side dimension of generated large images
+                        </Form.Text>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Large Image Quality</Form.Label>
+                        <Form.Control
+                          type="number"
+                          min="1"
+                          max="100"
+                          {...register("large_image_quality", {
+                            valueAsNumber: true,
+                            min: 1,
+                            max: 100,
+                          })}
+                        />
+                        <Form.Text className="text-muted">
+                          The WebP quality setting for generated large images (1-100)
+                        </Form.Text>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Thumbnail Maximum Size</Form.Label>
+                        <Form.Select
+                          {...register("thumbnail_max_size", {
+                            valueAsNumber: true,
+                          })}
+                        >
+                          {thumbnailSizeOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </Form.Select>
+                        <Form.Text className="text-muted">
+                          The largest side dimension of generated image thumbnails
+                        </Form.Text>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={updateSystemSettingsMutation.isPending || !isDirty}
+                  >
+                    {updateSystemSettingsMutation.isPending ? (
+                      <>
+                        <Spinner animation="border" size="sm" className="me-2" />
+                        Updating...
+                      </>
+                    ) : (
+                      "Update System Settings"
+                    )}
+                  </Button>
+                </Form>
+              </Card.Body>
+            </Card>
+          ) : null}
 
           {/* User Management Section */}
           <h3 className="mt-4">User Management</h3>
@@ -478,8 +679,7 @@ const SettingsPage: React.FC = () => {
         userGroupIds={userGroupIds}
       />
 
-      {/* --- Group Management Modals (Placeholders) --- */}
-      {/* You will need to create these components */}
+      {/* --- Group Management Modals --- */}
       <CreateGroupModal
         show={showCreateGroupModal}
         handleClose={handleCloseCreateGroupModal}

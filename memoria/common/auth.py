@@ -1,6 +1,7 @@
 import logging
 from typing import Any
 
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.http import HttpRequest
 from ninja.security import APIKeyCookie
@@ -67,7 +68,81 @@ class SessionAuthIsActiveSuperUserOrStaff(SessionAuthIsActive):
         return user
 
 
+# Async-first authentication classes
+class AsyncSessionAuthIsActive(APIKeyCookie):
+    """
+    Async-first session authentication for active users
+    """
+
+    param_name: str = settings.SESSION_COOKIE_NAME
+
+    async def authenticate(self, request: HttpRequest, key: str | None) -> Any | None:
+        def _sync_auth():
+            if request.user.is_authenticated and request.user.is_active:
+                return request.user
+            return None
+
+        return await sync_to_async(_sync_auth, thread_sensitive=True)()
+
+
+class AsyncSessionAuthIsActiveStaff(APIKeyCookie):
+    """
+    Async-first session authentication for staff users
+    """
+
+    param_name: str = settings.SESSION_COOKIE_NAME
+
+    async def authenticate(self, request: HttpRequest, key: str | None) -> Any | None:
+        def _sync_auth():
+            if request.user.is_authenticated and request.user.is_active and request.user.is_staff:
+                return request.user
+            return None
+
+        return await sync_to_async(_sync_auth, thread_sensitive=True)()
+
+
+class AsyncSessionAuthIsActiveSuperUser(APIKeyCookie):
+    """
+    Async-first session authentication for superusers
+    """
+
+    param_name: str = settings.SESSION_COOKIE_NAME
+
+    async def authenticate(self, request: HttpRequest, key: str | None) -> Any | None:
+        def _sync_auth():
+            if request.user.is_authenticated and request.user.is_active and request.user.is_superuser:
+                return request.user
+            return None
+
+        return await sync_to_async(_sync_auth, thread_sensitive=True)()
+
+
+class AsyncSessionAuthIsActiveSuperUserOrStaff(APIKeyCookie):
+    """
+    Async-first session authentication for superusers or staf
+    f"""
+
+    param_name: str = settings.SESSION_COOKIE_NAME
+
+    async def authenticate(self, request: HttpRequest, key: str | None) -> Any | None:
+        def _sync_auth():
+            if (
+                request.user.is_authenticated
+                and request.user.is_active
+                and (request.user.is_superuser or request.user.is_staff)
+            ):
+                return request.user
+            return None
+
+        return await sync_to_async(_sync_auth, thread_sensitive=True)()
+
+
 active_user_auth = SessionAuthIsActive()
 active_staff_auth = SessionAuthIsActiveStaff()
 active_superuser_auth = SessionAuthIsActiveSuperUser()
 active_staff_or_superuser_auth = SessionAuthIsActiveSuperUserOrStaff()
+# Async instances
+async_active_user_auth = AsyncSessionAuthIsActive()
+async_active_staff_auth = AsyncSessionAuthIsActiveStaff()
+async_active_superuser_auth = AsyncSessionAuthIsActiveSuperUser()
+async_active_staff_or_superuser_auth = AsyncSessionAuthIsActiveSuperUserOrStaff()

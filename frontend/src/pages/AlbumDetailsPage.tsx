@@ -18,7 +18,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { Alert, Button, Card, Col, Container, Row, Spinner } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import type {
   AlbumUpdateInSchema,
@@ -41,6 +41,7 @@ const AlbumDetailsPage: React.FC = () => {
   const albumId = parseInt(albumIdParam || "0", 10);
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [displayedImages, setDisplayedImages] = useState<ImageThumbnailSchemaOut[]>([]);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -299,6 +300,9 @@ const AlbumDetailsPage: React.FC = () => {
                           key={image.id}
                           image={image}
                           isDragging={activeId === image.id.toString()}
+                          onViewClick={(id) => {
+                            navigate(`/images/${id}`);
+                          }}
                         />
                       ))}
                     </Col>

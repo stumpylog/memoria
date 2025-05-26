@@ -48,9 +48,15 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
   } = useForm<CreateUserFormData>({
     defaultValues: defaultValues,
   });
+
+  // Watch required fields to enable/disable save button
+  const username = watch("username");
+  const password = watch("password");
+  const isFormValid = username.trim() !== "" && password.trim() !== "";
 
   // Reset the form when the modal is opened using the memoized defaultValues
   useEffect(() => {
@@ -179,7 +185,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
             )}
           </Form.Group>
 
-          <Button variant="primary" type="submit" disabled={loading}>
+          <Button variant="primary" type="submit" disabled={loading || !isFormValid}>
             {loading ? "Saving..." : "Create User"}
           </Button>
         </Form>

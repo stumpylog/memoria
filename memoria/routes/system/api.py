@@ -8,6 +8,7 @@ from django.http import HttpRequest
 from ninja import Router
 
 from memoria.common.auth import active_staff_or_superuser_auth
+from memoria.common.auth import async_active_staff_or_superuser_auth
 from memoria.models import Album
 from memoria.models import Image
 from memoria.models import ImageFolder
@@ -60,14 +61,15 @@ def get_system_settings(
     "/settings/",
     response=SiteSettingsSchemaOut,
     operation_id="update_system_settings",
-    auth=active_staff_or_superuser_auth,
+    auth=async_active_staff_or_superuser_auth,
 )
-def update_system_settings(
+async def update_system_settings(
     request: HttpRequest,
     data: SiteSettingsUpdateSchemaIn,
 ):
-    settings_obj = SiteSettings.objects.first()
+    settings_obj = await SiteSettings.objects.afirst()
     if TYPE_CHECKING:
+        # This is created via migration and must exist.  It's also a singleton
         assert settings_obj is not None
     if data.large_image_max_size is not None:
         settings_obj.large_image_max_size = data.large_image_max_size.value
@@ -78,7 +80,7 @@ def update_system_settings(
     if data.thumbnail_max_size is not None:
         settings_obj.thumbnail_max_size = data.thumbnail_max_size.value
 
-    settings_obj.save()
+    await settings_obj.asave()
 
     return settings_obj
 
