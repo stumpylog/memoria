@@ -303,20 +303,20 @@ class RoughLocation(AbstractTimestampMixin, ObjectPermissionModelMixin, models.M
         return ", ".join(parts)
 
 
-class ImageFolder(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, ObjectPermissionModelMixin, TreeNodeModel):
+class ImageFolder(AbstractTimestampMixin, ObjectPermissionModelMixin, TreeNodeModel):
     # Required TreeNodeModel attributes
     treenode_display_field = "name"
+
+    name = models.CharField(max_length=150, db_index=True)
+
+    description = models.TextField(  # noqa: DJ001
+        blank=True,
+        null=True,
+        db_index=True,
+    )
 
     objects: PermittedQueryset = PermittedQueryset.as_manager()
 
     class Meta:
         verbose_name = "Folder"
         verbose_name_plural = "Folders"
-
-    def move_to(self, target_folder: ImageFolder | None = None):
-        """
-        Move this folder to become a child of the target folder.
-        If target_folder is None, this will become a root folder.
-        """
-        self.set_parent(target_folder)
-        self.save()

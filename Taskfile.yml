@@ -8,7 +8,7 @@ vars:
 tasks:
   reset:
     cmds:
-      - rm db.sqlite3 || true
+      - rm data/db.sqlite3 || true
       - rm -r ./logs/ || true
       - rm -r ./media/ || true
       - uv run manage.py migrate

@@ -30,10 +30,6 @@ erDiagram
         float height
         float width
         string description
-        float top_percent_value
-        float left_percent_value
-        float width_percent_value
-        float height_percent_value
     }
 
     ObjectPermissionModelMixin {
