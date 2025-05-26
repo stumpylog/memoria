@@ -1,7 +1,6 @@
 // src/pages/ProfilePage.tsx
 import React from "react";
 import { Card, Container } from "react-bootstrap";
-import { Helmet } from "react-helmet-async";
 
 import { useAuth } from "../hooks/useAuth";
 
@@ -10,9 +9,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <Container fluid className="p-4">
-      <Helmet>
-        <title>Profile: {user?.username}</title>
-      </Helmet>
+      <title>Profile: {user?.username}</title>
       <Card>
         <Card.Header as="h2">User Profile</Card.Header>
         <Card.Body>

@@ -142,6 +142,7 @@ const AlbumsPage: React.FC = () => {
 
   return (
     <Container className="mt-4">
+      <title>Memoria - All Albums</title>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Albums</h2>
         <Button variant="primary" onClick={handleShowModal}>

@@ -3,7 +3,6 @@
 import { useQueries } from "@tanstack/react-query";
 import React, { useEffect, useMemo, useState } from "react";
 import { Col, Container, Row, Spinner } from "react-bootstrap";
-import { Helmet } from "react-helmet-async";
 import { useParams } from "react-router-dom";
 
 import type {
@@ -159,9 +158,7 @@ const ImageDetailPage: React.FC = () => {
 
   return (
     <Container fluid className="py-4">
-      <Helmet>
-        <title>Memoria - Image: {metadata.title}</title>
-      </Helmet>
+      <title>Memoria - Image: {metadata.title}</title>
       <Row className="mb-4">
         {/* Image Section (Left Column) */}
         <ImageDisplaySection

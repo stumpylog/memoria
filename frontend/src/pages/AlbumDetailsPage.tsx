@@ -18,7 +18,6 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { Alert, Button, Card, Col, Container, Row, Spinner } from "react-bootstrap";
-import { Helmet } from "react-helmet-async";
 import { useParams } from "react-router-dom";
 
 import type {
@@ -226,9 +225,7 @@ const AlbumDetailsPage: React.FC = () => {
 
   return (
     <Container fluid className="py-4">
-      <Helmet>
-        <title>Album: {album.name}</title>
-      </Helmet>
+      <title>Memoria Album: {album.name}</title>
       <Row className="mb-3 align-items-center">
         <Col>
           <h1>{album.name}</h1>

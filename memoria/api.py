@@ -13,6 +13,7 @@ from memoria.routes.images.api import router as images_router
 # from memoria.routes.tags.api import router as tags_router
 from memoria.routes.locations.api import router as locations_router
 from memoria.routes.people.api import router as person_router
+from memoria.routes.system.api import router as system_router
 from memoria.routes.users.api import router as user_router
 
 api = NinjaAPI(title="Memoria API", renderer=OrjsonRenderer(), parser=OrjsonParser(), csrf=True)
@@ -25,6 +26,7 @@ api.add_router("/user/", user_router)
 api.add_router("/groups/", group_router)
 api.add_router("/folder/", folder_router)
 api.add_router("/location/", locations_router)
+api.add_router("/system/", system_router)
 # api.add_router("/tag/", tags_router)
 # api.add_router("/pet/", pets_router)
 

@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { Alert, Container, Spinner } from "react-bootstrap";
-import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 
 import type { RootFolderSchema } from "../api";
@@ -74,9 +73,7 @@ const FoldersPage: React.FC<FoldersPageProps> = ({
 
   return (
     <Container fluid>
-      <Helmet>
-        <title>Memoria - All Folders</title>
-      </Helmet>
+      <title>Memoria - All Folders</title>
       <h2 className="mb-4">Folders</h2>
       <FolderWall
         folders={folders}

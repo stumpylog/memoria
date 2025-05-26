@@ -230,6 +230,14 @@ export type ImageMetadataUpdateSchemaIn = {
   title: string | null;
 };
 
+/**
+ * IntEnum for the maximum side length of a scaled image,
+ * commonly used for responsive image breakpoints.
+ *
+ * Sync with ImageScaledSideMaxChoices
+ */
+export type ImageScaledSideMaxEnum = 768 | 1024 | 1920 | 2560 | 3840;
+
 export type ImageSizeSchemaOut = {
   large_version_height: number;
   large_version_width: number;
@@ -335,10 +343,90 @@ export type RootFolderSchema = {
  */
 export type RotationEnum = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
+/**
+ * Schema for outputting site-wide image and quality settings.
+ * Used for retrieving the current configuration.
+ */
+export type SiteSettingsSchemaOut = {
+  /**
+   * The largest side dimension of generated large images
+   */
+  large_image_max_size: ImageScaledSideMaxEnum;
+  /**
+   * The WebP quality setting for generate large images
+   */
+  large_image_quality: number;
+  /**
+   * The largest side dimension of generated image thumbnails
+   */
+  thumbnail_max_size: ThumbnailSizeEnum;
+};
+
+/**
+ * Schema for updating site settings. All fields are optional to allow
+ * partial updates (PATCH requests), using Python 3.10+ `| None` syntax.
+ */
+export type SiteSettingsUpdateSchemaIn = {
+  /**
+   * The largest side dimension of generated large images
+   */
+  large_image_max_size?: ImageScaledSideMaxEnum | null;
+  /**
+   * The WebP quality setting for generate large images
+   */
+  large_image_quality?: number | null;
+  /**
+   * The largest side dimension of generated image thumbnails
+   */
+  thumbnail_max_size?: ThumbnailSizeEnum | null;
+};
+
+/**
+ * Combined schema for system and user-specific statistics.
+ */
+export type StatisticsResponseSchema = {
+  /**
+   * Overall system-level statistics, such as disk usage.
+   */
+  system_statistics: SystemStatisticsSchema;
+  /**
+   * Statistics related to the current user's view and edit permissions.
+   */
+  user_statistics: UserStatisticsSchema;
+};
+
 export type SubdivisionListItemSchemaOut = {
   code: string;
   name: string;
 };
+
+/**
+ * Schema for overall system statistics.
+ * This now only includes non-sensitive system-level information like disk space.
+ */
+export type SystemStatisticsSchema = {
+  /**
+   * Disk space currently free in GB where media files are stored.
+   */
+  disk_free_space_gb?: number | null;
+  /**
+   * Total disk space available in GB where media files are stored.
+   */
+  disk_total_space_gb?: number | null;
+  /**
+   * Disk space currently used in GB where media files are stored.
+   */
+  disk_used_space_gb?: number | null;
+};
+
+/**
+ * Defines standard pixel dimensions for image thumbnails using an IntEnum.
+ * The value represents the maximum dimension (width or height)
+ * of the thumbnail, with aspect ratio preserved.
+ *
+ * Sync with ThumbnailSizeChoices
+ */
+export type ThumbnailSizeEnum = 128 | 256 | 512 | 640 | 800;
 
 export type TimezoneChoices =
   | "Africa/Abidjan"
@@ -624,6 +712,84 @@ export type UserProfileUpdateSchema = {
   bio?: string | null;
   items_per_page?: ImagesPerPageChoices | null;
   timezone_name?: TimezoneChoices | null;
+};
+
+/**
+ * Schema for user-specific statistics.
+ */
+export type UserStatisticsSchema = {
+  /**
+   * Total number of albums the current user can edit.
+   */
+  total_albums_editable: number;
+  /**
+   * Total number of albums the current user can view.
+   */
+  total_albums_viewable: number;
+  /**
+   * Total number of image folders the current user can edit.
+   */
+  total_folders_editable: number;
+  /**
+   * Total number of image folders the current user can view.
+   */
+  total_folders_viewable: number;
+  /**
+   * Total number of images the current user can edit.
+   */
+  total_images_editable: number;
+  /**
+   * Total number of images the current user can view.
+   */
+  total_images_viewable: number;
+  /**
+   * Total number of people the current user can edit.
+   */
+  total_people_editable: number;
+  /**
+   * Total number of people the current user can view.
+   */
+  total_people_viewable: number;
+  /**
+   * Total number of pets the current user can edit.
+   */
+  total_pets_editable: number;
+  /**
+   * Total number of pets the current user can view.
+   */
+  total_pets_viewable: number;
+  /**
+   * Total number of rough dates the current user can edit.
+   */
+  total_rough_dates_editable: number;
+  /**
+   * Total number of rough dates the current user can view.
+   */
+  total_rough_dates_viewable: number;
+  /**
+   * Total number of rough locations the current user can edit.
+   */
+  total_rough_locations_editable: number;
+  /**
+   * Total number of rough locations the current user can view.
+   */
+  total_rough_locations_viewable: number;
+  /**
+   * Total number of image sources the current user can edit.
+   */
+  total_sources_editable: number;
+  /**
+   * Total number of image sources the current user can view.
+   */
+  total_sources_viewable: number;
+  /**
+   * Total number of tags the current user can edit.
+   */
+  total_tags_editable: number;
+  /**
+   * Total number of tags the current user can view.
+   */
+  total_tags_viewable: number;
 };
 
 export type UserUpdateInSchemeReadable = {
@@ -1390,6 +1556,57 @@ export type GetPersonImagesResponses = {
 };
 
 export type GetPersonImagesResponse = GetPersonImagesResponses[keyof GetPersonImagesResponses];
+
+export type GetSystemSettingsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/system/settings/";
+};
+
+export type GetSystemSettingsResponses = {
+  /**
+   * OK
+   */
+  200: SiteSettingsSchemaOut;
+};
+
+export type GetSystemSettingsResponse =
+  GetSystemSettingsResponses[keyof GetSystemSettingsResponses];
+
+export type UpdateSystemSettingsData = {
+  body: SiteSettingsUpdateSchemaIn;
+  path?: never;
+  query?: never;
+  url: "/api/system/settings/";
+};
+
+export type UpdateSystemSettingsResponses = {
+  /**
+   * OK
+   */
+  200: SiteSettingsSchemaOut;
+};
+
+export type UpdateSystemSettingsResponse =
+  UpdateSystemSettingsResponses[keyof UpdateSystemSettingsResponses];
+
+export type GetSystemStatisticsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/system/statistics/";
+};
+
+export type GetSystemStatisticsResponses = {
+  /**
+   * OK
+   */
+  200: StatisticsResponseSchema;
+};
+
+export type GetSystemStatisticsResponse =
+  GetSystemStatisticsResponses[keyof GetSystemStatisticsResponses];
 
 export type UserGetAllData = {
   body?: never;

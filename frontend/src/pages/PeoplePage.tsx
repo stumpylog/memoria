@@ -3,7 +3,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import React from "react";
 import { Button, Card, Col, Container, Row } from "react-bootstrap";
-import { Helmet } from "react-helmet-async";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import type { PagedPersonReadOutSchema, PersonReadOutSchema } from "../api";
@@ -167,9 +166,7 @@ const PeoplePage: React.FC = () => {
 
   return (
     <Container className="mt-4">
-      <Helmet>
-        <title>Memoria - People</title>
-      </Helmet>
+      <title>Memoria - People</title>
       <h2>People List</h2>
       <Row xs={1} md={2} lg={3} className="g-4">
         {data.items.map((person: PersonReadOutSchema) => (

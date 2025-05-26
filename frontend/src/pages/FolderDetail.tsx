@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { Alert, Breadcrumb, Button, Container, Spinner } from "react-bootstrap";
-import { Helmet } from "react-helmet-async";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import type { AlbumAddImageInSchema } from "../api";
@@ -138,9 +137,7 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
 
   return (
     <Container fluid>
-      <Helmet>
-        <title>Memoria - Folder: {folderDetail.name}</title>
-      </Helmet>
+      <title>Memoria - Folder: {folderDetail.name}</title>
 
       {/* Breadcrumb navigation */}
       <Breadcrumb className="mt-3 mb-4">

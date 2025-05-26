@@ -18,7 +18,7 @@ from memoria.models.abstract import ObjectPermissionModelMixin
 from memoria.models.abstract import PermittedQueryset
 
 
-class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, TreeNodeModel):
+class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, ObjectPermissionModelMixin, TreeNodeModel):
     """
     Holds the information about a Tag, roughly a tag, in a tree structure,
     whose structure makes sense to the user
@@ -33,6 +33,8 @@ class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, TreeNodeModel):
         null=True,
         db_index=True,
     )
+
+    objects: PermittedQueryset = PermittedQueryset.as_manager()
 
     class Meta(TreeNodeModel.Meta):
         verbose_name = "Tag"
@@ -118,7 +120,7 @@ class Pet(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, ObjectPermissio
         help_text="The type of pet this is",
     )
 
-    objects = PermittedQueryset.as_manager()
+    objects: PermittedQueryset = PermittedQueryset.as_manager()
 
     def __str__(self) -> str:
         return f"Pet {self.name}"
@@ -143,7 +145,7 @@ class PetInImage(AbstractBoxInImage):
 class ImageSource(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, ObjectPermissionModelMixin, models.Model):
     """ """
 
-    objects = PermittedQueryset.as_manager()
+    objects: PermittedQueryset = PermittedQueryset.as_manager()
 
     def __str__(self) -> str:
         return f"Source {self.name}"
@@ -168,7 +170,7 @@ class RoughDate(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model
         help_text="Is the day of this date valid?",
     )
 
-    objects = PermittedQueryset.as_manager()
+    objects: PermittedQueryset = PermittedQueryset.as_manager()
 
     class Meta:
         ordering: Sequence = ["date"]

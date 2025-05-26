@@ -681,6 +681,12 @@
         "title": "ImageMetadataUpdateSchemaIn",
         "type": "object"
       },
+      "ImageScaledSideMaxEnum": {
+        "description": "IntEnum for the maximum side length of a scaled image,\ncommonly used for responsive image breakpoints.\n\nSync with ImageScaledSideMaxChoices",
+        "enum": [768, 1024, 1920, 2560, 3840],
+        "title": "ImageScaledSideMaxEnum",
+        "type": "integer"
+      },
       "ImageSizeSchemaOut": {
         "properties": {
           "large_version_height": {
@@ -1018,6 +1024,88 @@
         "title": "RotationEnum",
         "type": "integer"
       },
+      "SiteSettingsSchemaOut": {
+        "description": "Schema for outputting site-wide image and quality settings.\nUsed for retrieving the current configuration.",
+        "properties": {
+          "large_image_max_size": {
+            "$ref": "#/components/schemas/ImageScaledSideMaxEnum",
+            "description": "The largest side dimension of generated large images"
+          },
+          "large_image_quality": {
+            "description": "The WebP quality setting for generate large images",
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Large Image Quality",
+            "type": "integer"
+          },
+          "thumbnail_max_size": {
+            "$ref": "#/components/schemas/ThumbnailSizeEnum",
+            "description": "The largest side dimension of generated image thumbnails"
+          }
+        },
+        "required": ["large_image_max_size", "large_image_quality", "thumbnail_max_size"],
+        "title": "SiteSettingsSchemaOut",
+        "type": "object"
+      },
+      "SiteSettingsUpdateSchemaIn": {
+        "description": "Schema for updating site settings. All fields are optional to allow\npartial updates (PATCH requests), using Python 3.10+ `| None` syntax.",
+        "properties": {
+          "large_image_max_size": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImageScaledSideMaxEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The largest side dimension of generated large images"
+          },
+          "large_image_quality": {
+            "anyOf": [
+              {
+                "maximum": 100,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The WebP quality setting for generate large images",
+            "title": "Large Image Quality"
+          },
+          "thumbnail_max_size": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ThumbnailSizeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The largest side dimension of generated image thumbnails"
+          }
+        },
+        "title": "SiteSettingsUpdateSchemaIn",
+        "type": "object"
+      },
+      "StatisticsResponseSchema": {
+        "description": "Combined schema for system and user-specific statistics.",
+        "properties": {
+          "system_statistics": {
+            "$ref": "#/components/schemas/SystemStatisticsSchema",
+            "description": "Overall system-level statistics, such as disk usage."
+          },
+          "user_statistics": {
+            "$ref": "#/components/schemas/UserStatisticsSchema",
+            "description": "Statistics related to the current user's view and edit permissions."
+          }
+        },
+        "required": ["user_statistics", "system_statistics"],
+        "title": "StatisticsResponseSchema",
+        "type": "object"
+      },
       "SubdivisionListItemSchemaOut": {
         "properties": {
           "code": {
@@ -1032,6 +1120,55 @@
         "required": ["code", "name"],
         "title": "SubdivisionListItemSchemaOut",
         "type": "object"
+      },
+      "SystemStatisticsSchema": {
+        "description": "Schema for overall system statistics.\nThis now only includes non-sensitive system-level information like disk space.",
+        "properties": {
+          "disk_free_space_gb": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Disk space currently free in GB where media files are stored.",
+            "title": "Disk Free Space Gb"
+          },
+          "disk_total_space_gb": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total disk space available in GB where media files are stored.",
+            "title": "Disk Total Space Gb"
+          },
+          "disk_used_space_gb": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Disk space currently used in GB where media files are stored.",
+            "title": "Disk Used Space Gb"
+          }
+        },
+        "title": "SystemStatisticsSchema",
+        "type": "object"
+      },
+      "ThumbnailSizeEnum": {
+        "description": "Defines standard pixel dimensions for image thumbnails using an IntEnum.\nThe value represents the maximum dimension (width or height)\nof the thumbnail, with aspect ratio preserved.\n\nSync with ThumbnailSizeChoices",
+        "enum": [128, 256, 512, 640, 800],
+        "title": "ThumbnailSizeEnum",
+        "type": "integer"
       },
       "TimezoneChoices": {
         "enum": [
@@ -1464,6 +1601,123 @@
           }
         },
         "title": "UserProfileUpdateSchema",
+        "type": "object"
+      },
+      "UserStatisticsSchema": {
+        "description": "Schema for user-specific statistics.",
+        "properties": {
+          "total_albums_editable": {
+            "description": "Total number of albums the current user can edit.",
+            "title": "Total Albums Editable",
+            "type": "integer"
+          },
+          "total_albums_viewable": {
+            "description": "Total number of albums the current user can view.",
+            "title": "Total Albums Viewable",
+            "type": "integer"
+          },
+          "total_folders_editable": {
+            "description": "Total number of image folders the current user can edit.",
+            "title": "Total Folders Editable",
+            "type": "integer"
+          },
+          "total_folders_viewable": {
+            "description": "Total number of image folders the current user can view.",
+            "title": "Total Folders Viewable",
+            "type": "integer"
+          },
+          "total_images_editable": {
+            "description": "Total number of images the current user can edit.",
+            "title": "Total Images Editable",
+            "type": "integer"
+          },
+          "total_images_viewable": {
+            "description": "Total number of images the current user can view.",
+            "title": "Total Images Viewable",
+            "type": "integer"
+          },
+          "total_people_editable": {
+            "description": "Total number of people the current user can edit.",
+            "title": "Total People Editable",
+            "type": "integer"
+          },
+          "total_people_viewable": {
+            "description": "Total number of people the current user can view.",
+            "title": "Total People Viewable",
+            "type": "integer"
+          },
+          "total_pets_editable": {
+            "description": "Total number of pets the current user can edit.",
+            "title": "Total Pets Editable",
+            "type": "integer"
+          },
+          "total_pets_viewable": {
+            "description": "Total number of pets the current user can view.",
+            "title": "Total Pets Viewable",
+            "type": "integer"
+          },
+          "total_rough_dates_editable": {
+            "description": "Total number of rough dates the current user can edit.",
+            "title": "Total Rough Dates Editable",
+            "type": "integer"
+          },
+          "total_rough_dates_viewable": {
+            "description": "Total number of rough dates the current user can view.",
+            "title": "Total Rough Dates Viewable",
+            "type": "integer"
+          },
+          "total_rough_locations_editable": {
+            "description": "Total number of rough locations the current user can edit.",
+            "title": "Total Rough Locations Editable",
+            "type": "integer"
+          },
+          "total_rough_locations_viewable": {
+            "description": "Total number of rough locations the current user can view.",
+            "title": "Total Rough Locations Viewable",
+            "type": "integer"
+          },
+          "total_sources_editable": {
+            "description": "Total number of image sources the current user can edit.",
+            "title": "Total Sources Editable",
+            "type": "integer"
+          },
+          "total_sources_viewable": {
+            "description": "Total number of image sources the current user can view.",
+            "title": "Total Sources Viewable",
+            "type": "integer"
+          },
+          "total_tags_editable": {
+            "description": "Total number of tags the current user can edit.",
+            "title": "Total Tags Editable",
+            "type": "integer"
+          },
+          "total_tags_viewable": {
+            "description": "Total number of tags the current user can view.",
+            "title": "Total Tags Viewable",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_images_viewable",
+          "total_images_editable",
+          "total_albums_viewable",
+          "total_albums_editable",
+          "total_tags_viewable",
+          "total_tags_editable",
+          "total_people_viewable",
+          "total_people_editable",
+          "total_pets_viewable",
+          "total_pets_editable",
+          "total_folders_viewable",
+          "total_folders_editable",
+          "total_sources_viewable",
+          "total_sources_editable",
+          "total_rough_dates_viewable",
+          "total_rough_dates_editable",
+          "total_rough_locations_viewable",
+          "total_rough_locations_editable"
+        ],
+        "title": "UserStatisticsSchema",
         "type": "object"
       },
       "UserUpdateInScheme": {
@@ -2970,6 +3224,85 @@
         },
         "summary": "Get Person Images",
         "tags": ["people"]
+      }
+    },
+    "/api/system/settings/": {
+      "get": {
+        "operationId": "get_system_settings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteSettingsSchemaOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActiveSuperUserOrStaff": []
+          }
+        ],
+        "summary": "Get System Settings",
+        "tags": ["system"]
+      },
+      "patch": {
+        "operationId": "update_system_settings",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiteSettingsUpdateSchemaIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteSettingsSchemaOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActiveSuperUserOrStaff": []
+          }
+        ],
+        "summary": "Update System Settings",
+        "tags": ["system"]
+      }
+    },
+    "/api/system/statistics/": {
+      "get": {
+        "description": "Returns statistics about the system, including counts of various objects\nand disk space usage, filtered by the current user's view/edit permissions.\nSystem-wide object counts are no longer exposed to prevent information leakage.",
+        "operationId": "get_system_statistics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatisticsResponseSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get System Statistics",
+        "tags": ["system"]
       }
     },
     "/api/user/": {

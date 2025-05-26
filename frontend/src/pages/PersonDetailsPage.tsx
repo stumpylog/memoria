@@ -3,7 +3,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, Button, Col, Container, Row, Spinner } from "react-bootstrap";
-import { Helmet } from "react-helmet-async";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import type {
@@ -321,9 +320,7 @@ const PersonDetailsPage: React.FC = () => {
 
   return (
     <Container className="mt-4">
-      <Helmet>
-        <title>Memoria - {person?.name || "Loading..."}</title>
-      </Helmet>
+      <title>Memoria - {person?.name || "Loading..."}</title>
       <h2>{person?.name || "Loading..."}</h2>
 
       {/* Display description or "No description" */}

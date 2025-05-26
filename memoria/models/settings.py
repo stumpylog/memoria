@@ -29,6 +29,19 @@ class SiteSettings(AbstractTimestampMixin, models.Model):
         # XXXLARGE = 4500, _("4500px (Very Large)")
         # QUADHD = 5120, _("5120px (5K/2x QHD)")
 
+    class ThumbnailSizeChoices(models.IntegerChoices):
+        """
+        Defines standard pixel dimensions for image thumbnails.
+        The value represents the maximum dimension (width or height)
+        of the thumbnail, with aspect ratio preserved.
+        """
+
+        TINY = 128, "128px (Tiny)"
+        SMALL = 256, "256px (Small)"
+        MEDIUM = 512, "512px (Medium)"
+        LARGE = 640, "640px (Large)"
+        XLARGE = 800, "800px (X-Large)"
+
     large_image_max_size = models.PositiveSmallIntegerField(
         verbose_name=_("The largest side dimension of generated large images"),
         choices=ImageScaledSideMaxChoices.choices,
@@ -43,8 +56,8 @@ class SiteSettings(AbstractTimestampMixin, models.Model):
 
     thumbnail_max_size = models.PositiveSmallIntegerField(
         verbose_name=_("The largest side dimension of generated image thumbnails"),
-        validators=[MinValueValidator(1), MaxValueValidator(800)],
-        default=500,
+        choices=ThumbnailSizeChoices.choices,
+        default=ThumbnailSizeChoices.MEDIUM,
     )
 
     class Meta:
