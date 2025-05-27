@@ -10,49 +10,63 @@ from ninja.testing import TestClient
 
 from memoria.models import Album
 from memoria.models import Image
-from memoria.tests.api.types import AlbumApiGeneratorProtocol
+from tests.api.conftest import AlbumFactory
+from tests.api.conftest import GroupFactory
+from tests.api.conftest import UserFactory
 
 
 @pytest.mark.django_db
 class TestApiAlbumRead:
-    def test_read_no_albums(self, client: TestClient, album_base_url: str) -> None:
-        """
-        GIVEN:
-            - No albums in the database
-        WHEN:
-            - Requesting to read all albums
-        THEN:
-            - Return an empty list of albums
-        """
+    def test_read_no_albums_not_logged_in(self, client: TestClient, album_base_url: str) -> None:
         resp = client.get(album_base_url)
+
+        assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+    def test_read_no_albums(self, logged_in_client: TestClient, album_base_url: str) -> None:
+        resp = logged_in_client.get(album_base_url)
 
         assert resp.status_code == HTTPStatus.OK
 
-        assert resp.json() == {"count": 0, "items": []}
+        assert resp.json() == []
 
-    def test_read_albums(self, client: Client, faker: Faker, album_base_url: str):
-        """
-        GIVEN:
-            - Albums in the database
-        WHEN:
-            - Requesting to read all albums
-        THEN:
-            - Return a list of albums
-        """
-        count = 11
-        names = []
-        for _ in range(count):
-            name = faker.unique.name()
-            Album.objects.create(name=name)
-            names.append(name)
-        resp = client.get(album_base_url)
+    def test_read_albums_no_access(self, logged_in_client: Client, album_factory: AlbumFactory, album_base_url: str):
+        album_factory.create_batch(size=2)
+        resp = logged_in_client.get(album_base_url)
 
         assert resp.status_code == HTTPStatus.OK
 
-        assert resp.json() == {
-            "count": count,
-            "items": [{"description": None, "id": idx + 1, "name": name} for idx, name in enumerate(names)],
-        }
+        # No view/edit access
+        assert resp.json() == []
+
+    def test_read_albums_some_access(
+        self,
+        client: Client,
+        album_factory: AlbumFactory,
+        album_base_url: str,
+        user_factory: UserFactory,
+        group_factory: GroupFactory,
+    ):
+        edit_group = group_factory.create()
+        view_group = group_factory.create()
+        user = user_factory.create(groups=[view_group])
+        client.login(username=user.username, password="password123")
+
+        viewable_album = album_factory.create(view_groups=[view_group], edit_groups=[edit_group])
+        album_factory.create()
+
+        resp = client.get(album_base_url)
+
+        assert resp.status_code == HTTPStatus.OK
+        data = resp.json()
+
+        assert len(data) == 1
+        data = data[0]
+        assert data["id"] == viewable_album.id
+        assert data["name"] == viewable_album.name
+        assert data["description"] == viewable_album.description
+        assert data["view_group_ids"] == [view_group.pk]
+        assert data["edit_group_ids"] == [edit_group.pk]
+        assert data["image_count"] == 0
 
     def test_get_single_album(self, client: Client, faker: Faker, album_base_url: str):
         instance = Album.objects.create(name=faker.unique.name())
@@ -93,7 +107,7 @@ class TestApiAlbumRead:
 
 @pytest.mark.django_db
 class TestApiAlbumCreate:
-    def test_create_album(self, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
+    def test_create_album(self, faker: Faker, album_api_create_factory):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
 
@@ -105,7 +119,7 @@ class TestApiAlbumCreate:
         assert Album.objects.get(id=data["id"]).name == album_name
         assert Album.objects.get(id=data["id"]).images.count() == 0
 
-    def test_create_album_with_description(self, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
+    def test_create_album_with_description(self, faker: Faker, album_api_create_factory):
         album_name = faker.unique.name()
         desc = faker.unique.sentence()
         resp = album_api_create_factory(album_name, desc)
@@ -122,7 +136,7 @@ class TestApiAlbumCreate:
 
 @pytest.mark.django_db
 class TestApiAlbumUpdate:
-    def test_update_album(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
+    def test_update_album(self, client: Client, faker: Faker, album_api_create_factory):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
 
@@ -157,7 +171,7 @@ class TestApiAlbumUpdate:
         self,
         client: Client,
         faker: Faker,
-        album_api_create_factory: AlbumApiGeneratorProtocol,
+        album_api_create_factory,
     ):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
@@ -187,7 +201,7 @@ class TestApiAlbumUpdate:
         self,
         client: Client,
         faker: Faker,
-        album_api_create_factory: AlbumApiGeneratorProtocol,
+        album_api_create_factory,
     ):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
@@ -205,7 +219,7 @@ class TestApiAlbumUpdate:
 
 @pytest.mark.django_db
 class TestApiAlbumDelete:
-    def test_delete_album(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
+    def test_delete_album(self, client: Client, faker: Faker, album_api_create_factory):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
 
@@ -227,7 +241,7 @@ class TestApiAlbumDelete:
 @pytest.mark.usefixtures("sample_image_database")
 @pytest.mark.django_db
 class TestApiAlbumImages:
-    def test_add_single_image(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
+    def test_add_single_image(self, client: Client, faker: Faker, album_api_create_factory):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
 
@@ -254,7 +268,7 @@ class TestApiAlbumImages:
         self,
         client: Client,
         faker: Faker,
-        album_api_create_factory: AlbumApiGeneratorProtocol,
+        album_api_create_factory,
     ):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
@@ -283,7 +297,7 @@ class TestApiAlbumImages:
 
         assert album.images.count() == 2
 
-    def test_remove_image(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
+    def test_remove_image(self, client: Client, faker: Faker, album_api_create_factory):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
 
@@ -318,7 +332,7 @@ class TestApiAlbumImages:
         caplog: pytest.LogCaptureFixture,
         client: Client,
         faker: Faker,
-        album_api_create_factory: AlbumApiGeneratorProtocol,
+        album_api_create_factory,
     ):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
@@ -361,7 +375,7 @@ class TestApiAlbumImages:
         self,
         client: Client,
         faker: Faker,
-        album_api_create_factory: AlbumApiGeneratorProtocol,
+        album_api_create_factory,
     ):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
@@ -396,7 +410,7 @@ class TestApiAlbumImages:
         self,
         client: Client,
         faker: Faker,
-        album_api_create_factory: AlbumApiGeneratorProtocol,
+        album_api_create_factory,
     ):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
@@ -435,7 +449,7 @@ class TestApiAlbumSorting:
         self,
         client: Client,
         faker: Faker,
-        album_api_create_factory: AlbumApiGeneratorProtocol,
+        album_api_create_factory,
     ):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
@@ -481,7 +495,7 @@ class TestApiAlbumSorting:
             == resp.json()
         )
 
-    def test_custom_sorting(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
+    def test_custom_sorting(self, client: Client, faker: Faker, album_api_create_factory):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
 
@@ -522,7 +536,7 @@ class TestApiAlbumSorting:
         self,
         client: Client,
         faker: Faker,
-        album_api_create_factory: AlbumApiGeneratorProtocol,
+        album_api_create_factory,
     ):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
@@ -549,7 +563,7 @@ class TestApiAlbumSorting:
         self,
         client: Client,
         faker: Faker,
-        album_api_create_factory: AlbumApiGeneratorProtocol,
+        album_api_create_factory,
     ):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
@@ -583,7 +597,7 @@ class TestApiAlbumDownload:
         client: Client,
         faker: Faker,
         tmp_path: Path,
-        album_api_create_factory: AlbumApiGeneratorProtocol,
+        album_api_create_factory,
         *,
         use_original_download=False,
     ):
@@ -630,7 +644,7 @@ class TestApiAlbumDownload:
         client: Client,
         faker: Faker,
         tmp_path: Path,
-        album_api_create_factory: AlbumApiGeneratorProtocol,
+        album_api_create_factory,
     ):
         self.download_test_common(client, faker, tmp_path, album_api_create_factory, use_original_download=False)
 
@@ -639,11 +653,11 @@ class TestApiAlbumDownload:
         client: Client,
         faker: Faker,
         tmp_path: Path,
-        album_api_create_factory: AlbumApiGeneratorProtocol,
+        album_api_create_factory,
     ):
         self.download_test_common(client, faker, tmp_path, album_api_create_factory, use_original_download=True)
 
-    def test_album_no_images(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
+    def test_album_no_images(self, client: Client, faker: Faker, album_api_create_factory):
         album_name = faker.unique.name()
         resp = album_api_create_factory(album_name)
 

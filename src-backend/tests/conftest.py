@@ -14,9 +14,9 @@ from memoria.models import RoughLocation
 from memoria.signals.handlers import mark_image_as_dirty
 from memoria.signals.handlers import mark_images_as_dirty_on_fk_change
 from memoria.signals.handlers import mark_images_as_dirty_on_m2m_change
-from memoria.tests.types import DjangoDirectories
-from memoria.tests.types import SampleFile
-from memoria.tests.utils import disable_signal
+from tests.types import DjangoDirectories
+from tests.types import SampleFile
+from tests.utils import disable_signal
 
 
 @pytest.fixture(scope="session", autouse=True)

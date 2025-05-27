@@ -182,8 +182,8 @@ lint.isort.known-first-party = [ "memoria" ]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-testpaths = [ "memoria/tests" ]
-addopts = "--pythonwarnings=all --cov --cov-report=html --cov-report=json --cov-report=term -n auto --maxprocesses=8 -p no:legacypath"
+# -n auto --maxprocesses=8 --pythonwarnings=all
+addopts = " --cov --cov-report=html --cov-report=json --cov-report=term  -p no:legacypath"
 asyncio_mode = "auto"
 DJANGO_SETTINGS_MODULE = "memoria.settings"
 
