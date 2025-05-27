@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from memoria.models.image import Image  # noqa: F401
 
 from django.db import models
+from django.db.models import Q
 from simpleiso3166 import Country
 from treenode.models import TreeNodeModel
 
@@ -233,13 +234,29 @@ class RoughLocation(AbstractTimestampMixin, models.Model):
             "sub_location",
         ]
         constraints: Sequence = [
-            # Enforce uniqueness on the combination of all four fields.
-            # This allows for cities with the same name in different subdivisions,
-            # and different sub_locations within the same city/subdivision.
-            # It prevents identical entries at the most granular level provided.
+            # 1. All four fields provided (sub_location NOT NULL)
             models.UniqueConstraint(
                 fields=["country_code", "subdivision_code", "city", "sub_location"],
-                name="unique-location",
+                name="unique_location_all_fields",
+                condition=Q(sub_location__isnull=False),
+            ),
+            # 2. sub_location is NULL, but city is NOT NULL
+            models.UniqueConstraint(
+                fields=["country_code", "subdivision_code", "city"],
+                name="unique_location_no_sub_location",
+                condition=Q(sub_location__isnull=True, city__isnull=False),
+            ),
+            # 3. sub_location and city are NULL, but subdivision_code is NOT NULL
+            models.UniqueConstraint(
+                fields=["country_code", "subdivision_code"],
+                name="unique_location_no_city_sub_location",
+                condition=Q(sub_location__isnull=True, city__isnull=True, subdivision_code__isnull=False),
+            ),
+            # 4. sub_location, city, and subdivision_code are NULL (only country_code provided)
+            models.UniqueConstraint(
+                fields=["country_code"],
+                name="unique_location_only_country",
+                condition=Q(sub_location__isnull=True, city__isnull=True, subdivision_code__isnull=True),
             ),
         ]
 
@@ -314,3 +331,19 @@ class ImageFolder(AbstractTimestampMixin, ObjectPermissionModelMixin, TreeNodeMo
     class Meta:
         verbose_name = "Folder"
         verbose_name_plural = "Folders"
+        constraints: Sequence = [
+            # Constraint 1: For non-root folders (where tn_parent is NOT NULL)
+            # Ensures uniqueness of 'name' within a specific parent folder.
+            models.UniqueConstraint(
+                fields=["tn_parent", "name"],
+                name="unique_folder_name_per_parent",
+                condition=~Q(tn_parent__isnull=True),
+            ),
+            # Constraint 2: For root-level folders (where tn_parent IS NULL)
+            # Ensures that root folders have unique names.
+            models.UniqueConstraint(
+                fields=["name"],  # Only 'name' needs to be unique for root folders
+                name="unique_root_folder_name",
+                condition=Q(tn_parent__isnull=True),
+            ),
+        ]
