@@ -1,5 +1,6 @@
 import logging
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -18,6 +19,9 @@ from memoria.routes.users.schemas import UserOutSchema
 from memoria.routes.users.schemas import UserProfileOutSchema
 from memoria.routes.users.schemas import UserProfileUpdateSchema
 from memoria.routes.users.schemas import UserUpdateInScheme
+
+if TYPE_CHECKING:
+    from memoria.models import UserProfile
 
 router = Router(tags=["users"])
 logger = logging.getLogger(__name__)
@@ -159,7 +163,7 @@ def set_user_info(
     if data.is_active is not None:
         user.is_active = data.is_active
     if data.is_staff is not None:
-        if not request.user.is_staff or not request.user.is_superuser:
+        if not (request.user.is_staff or request.user.is_superuser):
             raise HttpNotAuthorizedError("Only a staff or superuser may designate another staff")
         user.is_staff = data.is_staff
     if data.is_superuser is not None:
@@ -185,6 +189,17 @@ def edit_profile(
     data: UserProfileUpdateSchema,
 ):
     user: UserModelT = get_object_or_404(UserModelT.objects.select_related("profile"), pk=user_id)
+    if request.user.id != user.id and not (request.user.is_superuser or request.user.is_staff):
+        raise HttpNotAuthorizedError("Cannot edit another user's profile")
+    if TYPE_CHECKING:
+        assert isinstance(user.profile, UserProfile)
+    if data.bio:
+        user.profile.bio = data.bio
+    if data.timezone_name and (data.timezone_name != user.profile.timezone):
+        user.profile.timezone = data.timezone_name
+    if data.items_per_page and (data.items_per_page != user.profile.items_per_page):
+        user.profile.items_per_page = data.items_per_page
+    user.profile.save()
     return request.user
 
 

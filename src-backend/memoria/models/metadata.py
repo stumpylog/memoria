@@ -18,7 +18,7 @@ from memoria.models.abstract import ObjectPermissionModelMixin
 from memoria.models.abstract import PermittedQueryset
 
 
-class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, ObjectPermissionModelMixin, TreeNodeModel):
+class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, TreeNodeModel):
     """
     Holds the information about a Tag, roughly a tag, in a tree structure,
     whose structure makes sense to the user
@@ -33,8 +33,6 @@ class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, ObjectPermissio
         null=True,
         db_index=True,
     )
-
-    objects: PermittedQueryset = PermittedQueryset.as_manager()
 
     class Meta(TreeNodeModel.Meta):
         verbose_name = "Tag"
@@ -151,7 +149,7 @@ class ImageSource(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, ObjectP
         return f"Source {self.name}"
 
 
-class RoughDate(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
+class RoughDate(AbstractTimestampMixin, models.Model):
     """
     The rough date of the image
     """
@@ -169,8 +167,6 @@ class RoughDate(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model
         default=False,
         help_text="Is the day of this date valid?",
     )
-
-    objects: PermittedQueryset = PermittedQueryset.as_manager()
 
     class Meta:
         ordering: Sequence = ["date"]
@@ -195,7 +191,7 @@ class RoughDate(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model
         return f"RoughDate: {self!s}"
 
 
-class RoughLocation(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
+class RoughLocation(AbstractTimestampMixin, models.Model):
     """
     Holds the information about a Location where an image was.
 
@@ -228,8 +224,6 @@ class RoughLocation(AbstractTimestampMixin, ObjectPermissionModelMixin, models.M
         blank=True,
         help_text="Detailed location within a city or town",
     )
-
-    objects: PermittedQueryset = PermittedQueryset.as_manager()
 
     class Meta:
         ordering: Sequence = [

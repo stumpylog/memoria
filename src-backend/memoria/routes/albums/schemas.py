@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 
 from ninja import Field
 from ninja import Schema
@@ -20,6 +21,8 @@ class AlbumCreateInSchema(Schema):
 class AlbumBasicReadOutSchema(AlbumCreateInSchema):
     id: int = Field(description="The id of the album")
     image_count: int = Field(description="The count of images in this album")
+    created_at: datetime
+    updated_at: datetime
 
 
 class AlbumWithImagesReadInSchema(AlbumBasicReadOutSchema):

@@ -86,3 +86,6 @@ tasks:
   indexsubset:
     cmds:
       - uv run manage.py index --hash-threads 16 --view-group "Anderson Viewers" --edit-group "Anderson Editors" --root-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Anderson Family\Box 6\2002 - 08"
+  repomix:
+    cmds:
+      - repomix --style markdown --remove-comments --ignore memoria/migrations/,memoria/routes/.todo/ --remove-empty-lines .

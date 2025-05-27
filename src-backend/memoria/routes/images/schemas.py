@@ -3,6 +3,7 @@ from datetime import date
 
 # TODO: use HttpUrl for the URLs, except orjson doesn't serialize them
 from exifmwg.models import RotationEnum
+from ninja import Field
 from ninja import Schema
 from pydantic import FilePath
 from pydantic import field_serializer
@@ -72,6 +73,8 @@ class ImageMetadataSchemaOut(Schema):
     image_fs_id: str
     can_edit: bool
     folder: ImageFolderSchemaOut
+    view_group_ids: list[int] = Field(default_factory=list, description="IDs of Groups allowed to view")
+    edit_group_ids: list[int] = Field(default_factory=list, description="IDs of Groups allowed to edit")
 
     @field_serializer("original_path")
     def convert_path_to_str(self, v) -> str:
