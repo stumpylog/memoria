@@ -17,6 +17,12 @@
       },
       "AlbumBasicReadOutSchema": {
         "properties": {
+          "created_at": {
+            "description": "Timestamp when the object was created",
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
           "description": {
             "anyOf": [
               {
@@ -29,16 +35,16 @@
             "description": "The description of the album",
             "title": "Description"
           },
-          "edit_group_ids": {
-            "description": "IDs of Groups allowed to edit",
+          "edit_groups": {
+            "description": "Groups allowed to edit this object",
             "items": {
-              "type": "integer"
+              "$ref": "#/components/schemas/GroupSchemaOut"
             },
-            "title": "Edit Group Ids",
+            "title": "Edit Groups",
             "type": "array"
           },
           "id": {
-            "description": "The id of the album",
+            "description": "The unique identifier of the object",
             "title": "Id",
             "type": "integer"
           },
@@ -52,16 +58,22 @@
             "title": "Name",
             "type": "string"
           },
-          "view_group_ids": {
-            "description": "IDs of Groups allowed to view",
+          "updated_at": {
+            "description": "Timestamp when the object was last updated",
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "view_groups": {
+            "description": "Groups allowed to view this object",
             "items": {
-              "type": "integer"
+              "$ref": "#/components/schemas/GroupSchemaOut"
             },
-            "title": "View Group Ids",
+            "title": "View Groups",
             "type": "array"
           }
         },
-        "required": ["name", "id", "image_count"],
+        "required": ["id", "created_at", "updated_at", "name", "image_count"],
         "title": "AlbumBasicReadOutSchema",
         "type": "object"
       },
@@ -194,8 +206,14 @@
         "title": "AlbumUpdateInSchema",
         "type": "object"
       },
-      "AlbumWithImagesReadInSchema": {
+      "AlbumWithImagesOutSchema": {
         "properties": {
+          "created_at": {
+            "description": "Timestamp when the object was created",
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
           "description": {
             "anyOf": [
               {
@@ -208,16 +226,16 @@
             "description": "The description of the album",
             "title": "Description"
           },
-          "edit_group_ids": {
-            "description": "IDs of Groups allowed to edit",
+          "edit_groups": {
+            "description": "Groups allowed to edit this object",
             "items": {
-              "type": "integer"
+              "$ref": "#/components/schemas/GroupSchemaOut"
             },
-            "title": "Edit Group Ids",
+            "title": "Edit Groups",
             "type": "array"
           },
           "id": {
-            "description": "The id of the album",
+            "description": "The unique identifier of the object",
             "title": "Id",
             "type": "integer"
           },
@@ -239,17 +257,23 @@
             "title": "Name",
             "type": "string"
           },
-          "view_group_ids": {
-            "description": "IDs of Groups allowed to view",
+          "updated_at": {
+            "description": "Timestamp when the object was last updated",
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "view_groups": {
+            "description": "Groups allowed to view this object",
             "items": {
-              "type": "integer"
+              "$ref": "#/components/schemas/GroupSchemaOut"
             },
-            "title": "View Group Ids",
+            "title": "View Groups",
             "type": "array"
           }
         },
-        "required": ["name", "id", "image_count", "image_ids"],
-        "title": "AlbumWithImagesReadInSchema",
+        "required": ["id", "created_at", "updated_at", "name", "image_count", "image_ids"],
+        "title": "AlbumWithImagesOutSchema",
         "type": "object"
       },
       "AuthLoginSchema": {
@@ -313,7 +337,7 @@
         "title": "CsrfTokenOutSchema",
         "type": "object"
       },
-      "FolderDetailSchema": {
+      "FolderDetailSchemaOut": {
         "properties": {
           "breadcrumbs": {
             "items": {
@@ -324,9 +348,34 @@
           },
           "child_folders": {
             "items": {
-              "$ref": "#/components/schemas/RootFolderSchema"
+              "$ref": "#/components/schemas/RootFolderSchemaOut"
             },
             "title": "Child Folders",
+            "type": "array"
+          },
+          "created_at": {
+            "description": "Timestamp when the object was created",
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "edit_groups": {
+            "description": "Groups allowed to edit this object",
+            "items": {
+              "$ref": "#/components/schemas/GroupSchemaOut"
+            },
+            "title": "Edit Groups",
             "type": "array"
           },
           "folder_images": {
@@ -347,17 +396,92 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "updated_at": {
+            "description": "Timestamp when the object was last updated",
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "view_groups": {
+            "description": "Groups allowed to view this object",
+            "items": {
+              "$ref": "#/components/schemas/GroupSchemaOut"
+            },
+            "title": "View Groups",
+            "type": "array"
           }
         },
         "required": [
+          "created_at",
+          "updated_at",
           "id",
           "name",
+          "description",
           "child_folders",
           "folder_images",
           "breadcrumbs",
           "has_children"
         ],
-        "title": "FolderDetailSchema",
+        "title": "FolderDetailSchemaOut",
+        "type": "object"
+      },
+      "FolderUpdateSchemaIn": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "edit_group_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New list of Group IDs allowed to edit",
+            "title": "Edit Group Ids"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "view_group_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New list of Group IDs allowed to view",
+            "title": "View Group Ids"
+          }
+        },
+        "title": "FolderUpdateSchemaIn",
         "type": "object"
       },
       "GroupCreateInSchema": {
@@ -384,6 +508,23 @@
         },
         "required": ["id", "name"],
         "title": "GroupOutSchema",
+        "type": "object"
+      },
+      "GroupSchemaOut": {
+        "properties": {
+          "id": {
+            "description": "The unique identifier of the object",
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "description": "The name of the group",
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": ["id", "name"],
+        "title": "GroupSchemaOut",
         "type": "object"
       },
       "GroupUpdateInSchema": {
@@ -584,6 +725,14 @@
             ],
             "title": "Description"
           },
+          "edit_groups": {
+            "description": "Groups allowed to edit this object",
+            "items": {
+              "$ref": "#/components/schemas/GroupSchemaOut"
+            },
+            "title": "Edit Groups",
+            "type": "array"
+          },
           "file_size": {
             "title": "File Size",
             "type": "integer"
@@ -592,6 +741,7 @@
             "$ref": "#/components/schemas/ImageFolderSchemaOut"
           },
           "id": {
+            "description": "The unique identifier of the object",
             "title": "Id",
             "type": "integer"
           },
@@ -630,6 +780,14 @@
             "format": "date-time",
             "title": "Updated At",
             "type": "string"
+          },
+          "view_groups": {
+            "description": "Groups allowed to view this object",
+            "items": {
+              "$ref": "#/components/schemas/GroupSchemaOut"
+            },
+            "title": "View Groups",
+            "type": "array"
           }
         },
         "required": [
@@ -665,6 +823,21 @@
             ],
             "title": "Description"
           },
+          "edit_group_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New list of Group IDs allowed to edit",
+            "title": "Edit Group Ids"
+          },
           "title": {
             "anyOf": [
               {
@@ -675,6 +848,21 @@
               }
             ],
             "title": "Title"
+          },
+          "view_group_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New list of Group IDs allowed to view",
+            "title": "View Group Ids"
           }
         },
         "required": ["title", "description"],
@@ -718,6 +906,7 @@
       "ImageThumbnailSchemaOut": {
         "properties": {
           "id": {
+            "description": "The unique identifier of the object",
             "title": "Id",
             "type": "integer"
           },
@@ -803,6 +992,12 @@
       },
       "PersonDetailOutSchema": {
         "properties": {
+          "created_at": {
+            "description": "Timestamp when the object was created",
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
           "description": {
             "anyOf": [
               {
@@ -813,6 +1008,14 @@
               }
             ],
             "title": "Description"
+          },
+          "edit_groups": {
+            "description": "Groups allowed to edit this object",
+            "items": {
+              "$ref": "#/components/schemas/GroupSchemaOut"
+            },
+            "title": "Edit Groups",
+            "type": "array"
           },
           "id": {
             "title": "Id",
@@ -825,9 +1028,23 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "updated_at": {
+            "description": "Timestamp when the object was last updated",
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "view_groups": {
+            "description": "Groups allowed to view this object",
+            "items": {
+              "$ref": "#/components/schemas/GroupSchemaOut"
+            },
+            "title": "View Groups",
+            "type": "array"
           }
         },
-        "required": ["id", "name", "image_count"],
+        "required": ["created_at", "updated_at", "id", "name", "image_count"],
         "title": "PersonDetailOutSchema",
         "type": "object"
       },
@@ -924,6 +1141,21 @@
             ],
             "title": "Description"
           },
+          "edit_group_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New list of Group IDs allowed to edit",
+            "title": "Edit Group Ids"
+          },
           "name": {
             "anyOf": [
               {
@@ -934,6 +1166,21 @@
               }
             ],
             "title": "Name"
+          },
+          "view_group_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New list of Group IDs allowed to view",
+            "title": "View Group Ids"
           }
         },
         "title": "PersonUpdateInSchema",
@@ -982,12 +1229,18 @@
         "title": "PetInImageSchemaOut",
         "type": "object"
       },
-      "RootFolderSchema": {
+      "RootFolderSchemaOut": {
         "properties": {
           "child_count": {
             "default": 0,
             "title": "Child Count",
             "type": "integer"
+          },
+          "created_at": {
+            "description": "Timestamp when the object was created",
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
           },
           "description": {
             "anyOf": [
@@ -999,6 +1252,14 @@
               }
             ],
             "title": "Description"
+          },
+          "edit_groups": {
+            "description": "Groups allowed to edit this object",
+            "items": {
+              "$ref": "#/components/schemas/GroupSchemaOut"
+            },
+            "title": "Edit Groups",
+            "type": "array"
           },
           "id": {
             "title": "Id",
@@ -1012,10 +1273,24 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "updated_at": {
+            "description": "Timestamp when the object was last updated",
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "view_groups": {
+            "description": "Groups allowed to view this object",
+            "items": {
+              "$ref": "#/components/schemas/GroupSchemaOut"
+            },
+            "title": "View Groups",
+            "type": "array"
           }
         },
-        "required": ["id", "name", "description"],
-        "title": "RootFolderSchema",
+        "required": ["created_at", "updated_at", "id", "name", "description"],
+        "title": "RootFolderSchemaOut",
         "type": "object"
       },
       "RotationEnum": {
@@ -1959,7 +2234,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AlbumWithImagesReadInSchema"
+                  "$ref": "#/components/schemas/AlbumWithImagesOutSchema"
                 }
               }
             },
@@ -2054,7 +2329,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AlbumWithImagesReadInSchema"
+                  "$ref": "#/components/schemas/AlbumWithImagesOutSchema"
                 }
               }
             },
@@ -2138,7 +2413,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AlbumWithImagesReadInSchema"
+                  "$ref": "#/components/schemas/AlbumWithImagesOutSchema"
                 }
               }
             },
@@ -2184,7 +2459,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AlbumWithImagesReadInSchema"
+                  "$ref": "#/components/schemas/AlbumWithImagesOutSchema"
                 }
               }
             },
@@ -2284,7 +2559,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/RootFolderSchema"
+                    "$ref": "#/components/schemas/RootFolderSchemaOut"
                   },
                   "title": "Response",
                   "type": "array"
@@ -2318,7 +2593,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FolderDetailSchema"
+                  "$ref": "#/components/schemas/FolderDetailSchemaOut"
                 }
               }
             },
@@ -2326,6 +2601,44 @@
           }
         },
         "summary": "Get Image Folder",
+        "tags": ["folders"]
+      },
+      "patch": {
+        "operationId": "update_folder_info",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "folder_id",
+            "required": true,
+            "schema": {
+              "title": "Folder Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FolderUpdateSchemaIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderDetailSchemaOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Update Folder",
         "tags": ["folders"]
       }
     },

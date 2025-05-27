@@ -20,15 +20,15 @@ import {
   imageGetPeople,
   imageGetPets,
 } from "../api";
-import DateEditModal from "../components/image/DateEditModal"; // Adjust the import path as needed
+import DateEditModal from "../components/image/DateEditModal";
+import GroupPermissionsModal from "../components/image/GroupPermissionsModal"; // New import
 import ImageBasicInfoCard from "../components/image/ImageBasicInfoCard";
 import ImageDisplaySection from "../components/image/ImageDisplaySection";
 import ImagePeopleCard from "../components/image/ImagePeopleCard";
 import ImagePetsCard from "../components/image/ImagePetsCard";
 import ImageTechnicalDetails from "../components/image/ImageTechnicalDetails";
-// Import the modal components
-import LocationEditModal from "../components/image/LocationEditModal"; // Adjust the import path as needed
-import MetadataEditModal from "../components/image/MetadataEditModal"; // Adjust the import path as needed
+import LocationEditModal from "../components/image/LocationEditModal";
+import MetadataEditModal from "../components/image/MetadataEditModal";
 import { useAuth } from "../hooks/useAuth";
 
 const ImageDetailPage: React.FC = () => {
@@ -50,14 +50,15 @@ const ImageDetailPage: React.FC = () => {
 
   // State for modal visibility
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [showDateModal, setShowDateModal] = useState(false); // State for date modal
-  const [showMetadataModal, setShowMetadataModal] = useState(false); // State for metadata modal
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [showMetadataModal, setShowMetadataModal] = useState(false);
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false); // New state
 
   // Function to toggle visibility of a specific person's bounding box
   const togglePersonVisibility = (personId: number) => {
     setIndividualPeopleVisibility((prevMap) => {
       const newMap = new Map(prevMap);
-      newMap.set(personId, !(newMap.get(personId) ?? false)); // Toggle state, default to false if not set
+      newMap.set(personId, !(newMap.get(personId) ?? false));
       return newMap;
     });
   };
@@ -66,7 +67,7 @@ const ImageDetailPage: React.FC = () => {
   const togglePetVisibility = (petId: number) => {
     setIndividualPetsVisibility((prevMap) => {
       const newMap = new Map(prevMap);
-      newMap.set(petId, !(newMap.get(petId) ?? false)); // Toggle state, default to false if not set
+      newMap.set(petId, !(newMap.get(petId) ?? false));
       return newMap;
     });
   };
@@ -109,34 +110,38 @@ const ImageDetailPage: React.FC = () => {
   // Memoize people and pets data
   const people: PersonInImageSchemaOut[] = useMemo(
     () => peopleRes.data?.data ?? [],
-    [peopleRes.data?.data], // Recompute only if the underlying data changes
+    [peopleRes.data?.data],
   );
 
   const pets: PetInImageSchemaOut[] = useMemo(
     () => petsRes.data?.data ?? [],
-    [petsRes.data?.data], // Recompute only if the underlying data changes
+    [petsRes.data?.data],
   );
 
-  // Reset individual visibility when people/pets data changes (e.g., on image ID change)
+  // Reset individual visibility when people/pets data changes
   useEffect(() => {
     setIndividualPeopleVisibility(new Map());
     setIndividualPetsVisibility(new Map());
-    // Optionally, you could set the global toggles to false here too if desired
     setShowPeople(false);
     setShowPets(false);
-  }, [people, pets]); // Now depends on the memoized arrays
+  }, [people, pets]);
 
   // Handlers for modal updates
   const handleLocationUpdated = () => {
-    locationRes.refetch(); // Re-fetch the location data
+    locationRes.refetch();
   };
 
   const handleDateUpdated = () => {
-    dateRes.refetch(); // Re-fetch the date data
+    dateRes.refetch();
   };
 
   const handleMetadataUpdated = () => {
-    metadataRes.refetch(); // Re-fetch the metadata
+    metadataRes.refetch();
+  };
+
+  const handlePermissionsUpdated = () => {
+    // New handler
+    metadataRes.refetch();
   };
 
   if (isLoading) {
@@ -147,7 +152,6 @@ const ImageDetailPage: React.FC = () => {
     );
   }
 
-  // If metadata is null or there's an error from any query
   if (!metadata || isError) {
     return (
       <Container className="mt-5">
@@ -165,12 +169,12 @@ const ImageDetailPage: React.FC = () => {
           metadata={metadata}
           people={people}
           pets={pets}
-          showPeople={showPeople} // Global toggle state
-          setShowPeople={setShowPeople} // Setter for global toggle
-          showPets={showPets} // Global toggle state
-          setShowPets={setShowPets} // Setter for global toggle
-          individualPeopleVisibility={individualPeopleVisibility} // Individual visibility state
-          individualPetsVisibility={individualPetsVisibility} // Individual visibility state
+          showPeople={showPeople}
+          setShowPeople={setShowPeople}
+          showPets={showPets}
+          setShowPets={setShowPets}
+          individualPeopleVisibility={individualPeopleVisibility}
+          individualPetsVisibility={individualPetsVisibility}
         />
 
         {/* Info, People, Pets, Edit Section (Right Column) */}
@@ -181,10 +185,10 @@ const ImageDetailPage: React.FC = () => {
             location={location}
             dateInfo={dateInfo}
             profile={profile}
-            // Pass down the state setters to ImageBasicInfoCard
             setShowMetadataModal={setShowMetadataModal}
             setShowLocationModal={setShowLocationModal}
             setShowDateModal={setShowDateModal}
+            setShowPermissionsModal={setShowPermissionsModal} // New prop
           />
 
           {/* People Card */}
@@ -214,7 +218,7 @@ const ImageDetailPage: React.FC = () => {
         onHide={() => setShowMetadataModal(false)}
         imageId={imageId}
         currentMetadata={metadata}
-        onMetadataUpdated={handleMetadataUpdated} // Pass the handler here
+        onMetadataUpdated={handleMetadataUpdated}
       />
 
       <LocationEditModal
@@ -222,7 +226,7 @@ const ImageDetailPage: React.FC = () => {
         onHide={() => setShowLocationModal(false)}
         imageId={imageId}
         currentLocation={location}
-        onLocationUpdated={handleLocationUpdated} // Pass the handler here
+        onLocationUpdated={handleLocationUpdated}
       />
 
       <DateEditModal
@@ -230,7 +234,15 @@ const ImageDetailPage: React.FC = () => {
         onHide={() => setShowDateModal(false)}
         imageId={imageId}
         currentDate={dateInfo}
-        onDateUpdated={handleDateUpdated} // Pass the handler here
+        onDateUpdated={handleDateUpdated}
+      />
+
+      <GroupPermissionsModal
+        show={showPermissionsModal}
+        onHide={() => setShowPermissionsModal(false)}
+        imageId={imageId}
+        currentMetadata={metadata}
+        onPermissionsUpdated={handlePermissionsUpdated}
       />
     </Container>
   );

@@ -253,8 +253,6 @@ def update_image_location_from_mwg(
             sub_location=metadata.Location,
         )
 
-        handle_view_edit_groups(pkg, location, was_created=created)
-
         # Update image with location
         image_to_update.location = location
         image_to_update.save()
@@ -336,8 +334,6 @@ def update_image_location_from_keywords(
             city=city,
             sub_location=sub_location,
         )
-
-        handle_view_edit_groups(pkg, location, was_created=created)
 
         image_to_update.location = location
         image_to_update.save()
@@ -447,7 +443,6 @@ def update_image_date_from_keywords(
             month_valid=month_valid,
             day_valid=day_valid,
         )
-        handle_view_edit_groups(pkg, rough_date, was_created=created)
         if created:
             pkg.logger.debug(f"    Created new RoughDate: {rough_date}")
         else:

@@ -42,7 +42,10 @@ def get_person_detail(
     request: HttpRequest,
     person_id: int,
 ):
-    person: Person = get_object_or_404(Person.objects.permitted(request.user).with_images(), pk=person_id)
+    person: Person = get_object_or_404(
+        Person.objects.permitted(request.user).with_images().prefetch_related("view_groups", "edit_groups"),
+        pk=person_id,
+    )
     permitted_image_filter = PermittedQueryset.get_permitted_filter_q(request.user)
 
     person_images = person.images_featured_in.filter(permitted_image_filter).distinct()
@@ -52,6 +55,10 @@ def get_person_detail(
         "name": person.name,
         "description": person.description,
         "image_count": person_images.count(),
+        "updated_at": person.updated_at,
+        "created_at": person.created_at,
+        "view_groups": person.view_groups.all(),
+        "edit_groups": person.edit_groups.all(),
     }
 
 
@@ -69,7 +76,7 @@ def get_person_images(
 
 @router.patch("/{person_id}/", response=PersonDetailOutSchema, operation_id="update_person_detail")
 def update_person(request: HttpRequest, person_id: int, data: PersonUpdateInSchema):
-    person_to_update: Person = get_object_or_404(Person.objects.permitted(request.user), pk=person_id)
+    person_to_update: Person = get_object_or_404(Person.objects.editable_by(request.user), pk=person_id)
     permitted_image_filter = PermittedQueryset.get_permitted_filter_q(request.user)
 
     if data.name:
@@ -97,11 +104,14 @@ def update_person(request: HttpRequest, person_id: int, data: PersonUpdateInSche
                         person_in_image.person = existing_person
                         person_in_image.save()
                 person_to_update.delete()
+
                 return {
                     "id": existing_person.pk,
                     "name": existing_person.name,
                     "description": existing_person.description,
                     "image_count": existing_person.images_featured_in.filter(permitted_image_filter).distinct().count(),
+                    "view_groups": existing_person.view_groups.all(),
+                    "edit_groups": existing_person.edit_groups.all(),
                 }
         person_to_update.name = data.name
 
@@ -109,6 +119,11 @@ def update_person(request: HttpRequest, person_id: int, data: PersonUpdateInSche
         person_to_update.description = data.description
     elif person_to_update.description is not None:
         person_to_update.description = None
+
+    if data.view_group_ids:
+        person_to_update.view_groups.set(data.view_group_ids)
+    if data.edit_group_ids:
+        person_to_update.edit_groups.set(data.edit_group_ids)
 
     person_to_update.save()
 
@@ -119,4 +134,6 @@ def update_person(request: HttpRequest, person_id: int, data: PersonUpdateInSche
         "name": person_to_update.name,
         "description": person_to_update.description,
         "image_count": person_images.count(),
+        "view_groups": person_to_update.view_groups.all(),
+        "edit_groups": person_to_update.edit_groups.all(),
     }

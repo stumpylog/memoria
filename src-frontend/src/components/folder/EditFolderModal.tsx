@@ -1,105 +1,95 @@
-// src/components/EditPersonModal.tsx
+// src/components/EditFolderModal.tsx
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect } from "react";
-import { Badge, Button, Form, Modal, Spinner } from "react-bootstrap"; // Import Badge and Spinner
+import { Button, Form, Modal, Spinner } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
-import Select from "react-select"; // Import react-select
+import Select from "react-select";
 
-import type {
-  GroupSchemaOut, // Import GroupSchemaOut
-  PersonDetailOutSchema,
-  PersonUpdateInSchema,
-} from "../api";
+import type { FolderDetailSchemaOut, FolderUpdateSchemaIn, GroupSchemaOut } from "../../api";
 
-import { groupGetAll, updatePersonDetail } from "../api"; // Import groupGetAll
-import { useTheme } from "../hooks/useTheme"; // Import useTheme hook
+import { groupGetAll, updateFolderInfo } from "../../api";
+import { useTheme } from "../../hooks/useTheme";
 
-interface EditPersonModalProps {
+interface EditFolderModalProps {
   show: boolean;
   handleClose: () => void;
-  person: PersonDetailOutSchema;
-  onSaveSuccess: (updatedPerson: PersonDetailOutSchema) => void;
+  folder: FolderDetailSchemaOut;
+  onSaveSuccess: () => void; // No need to pass updated folder back if not redirecting
 }
 
 // Define form data type, adding group IDs
-interface EditPersonFormData {
+interface EditFolderFormData {
   name: string;
   description: string | null;
-  view_group_ids: number[]; // Add view_group_ids
-  edit_group_ids: number[]; // Add edit_group_ids
+  view_group_ids: number[];
+  edit_group_ids: number[];
 }
 
-const EditPersonModal: React.FC<EditPersonModalProps> = ({
+const EditFolderModal: React.FC<EditFolderModalProps> = ({
   show,
   handleClose,
-  person,
+  folder,
   onSaveSuccess,
 }) => {
-  const queryClient = useQueryClient(); // Initialize query client
-  const { effectiveTheme } = useTheme(); // Use the theme hook
-  const isDarkTheme = effectiveTheme === "dark"; // Determine if it's a dark theme
+  const queryClient = useQueryClient();
+  const { effectiveTheme } = useTheme();
+  const isDarkTheme = effectiveTheme === "dark";
 
   // Fetch all available groups
   const { data: groupsResponse, isLoading: groupsLoading } = useQuery({
     queryKey: ["groups"],
     queryFn: () => groupGetAll(),
-    enabled: show, // Only fetch when modal is open
+    enabled: show,
   });
 
   const groups: GroupSchemaOut[] = groupsResponse?.data ?? [];
 
-  const { register, handleSubmit, formState, reset, control } = useForm<EditPersonFormData>({
+  const { register, handleSubmit, formState, reset, control } = useForm<EditFolderFormData>({
     defaultValues: {
-      name: person.name,
-      description: person.description || "",
-      view_group_ids: person.view_groups?.map((g) => g.id) || [], // Initialize
-      edit_group_ids: person.edit_groups?.map((g) => g.id) || [], // Initialize
+      name: folder.name,
+      description: folder.description || "",
+      view_group_ids: folder.view_groups?.map((g) => g.id) || [],
+      edit_group_ids: folder.edit_groups?.map((g) => g.id) || [],
     },
   });
 
-  // Reset form when modal is opened or person data changes
+  // Reset form when modal is opened or folder data changes
   useEffect(() => {
     reset({
-      name: person.name,
-      description: person.description || "",
-      view_group_ids: person.view_groups?.map((g) => g.id) || [],
-      edit_group_ids: person.edit_groups?.map((g) => g.id) || [],
+      name: folder.name,
+      description: folder.description || "",
+      view_group_ids: folder.view_groups?.map((g) => g.id) || [],
+      edit_group_ids: folder.edit_groups?.map((g) => g.id) || [],
     });
-  }, [person, reset]);
+  }, [folder, reset]);
 
-  const updatePersonMutation = useMutation({
-    mutationFn: (data: PersonUpdateInSchema) =>
-      updatePersonDetail({
-        path: { person_id: person.id },
+  const updateFolderMutation = useMutation({
+    mutationFn: (data: FolderUpdateSchemaIn) =>
+      updateFolderInfo({
+        path: { folder_id: folder.id },
         body: data,
       }),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: ["person", person.id] }); // Invalidate person details
-      // Invalidate images that might be affected by permission changes
-      queryClient.invalidateQueries({ queryKey: ["person-image-ids"] });
-      queryClient.invalidateQueries({ queryKey: ["person-images-thumbnails"] });
-
-      if (response && response.data) {
-        onSaveSuccess(response.data);
-      } else {
-        onSaveSuccess(person);
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["folder", folder.id] });
+      queryClient.invalidateQueries({ queryKey: ["folderImages"] }); // Invalidate images associated with the folder
+      queryClient.invalidateQueries({ queryKey: ["folders"] }); // Invalidate parent folders that might list this folder
+      onSaveSuccess();
       handleClose();
     },
     onError: (error) => {
-      console.error("Error updating person:", error);
+      console.error("Error updating folder:", error);
       // TODO: Display error message to the user
     },
   });
 
-  const onSubmit = async (data: EditPersonFormData) => {
+  const onSubmit = async (data: EditFolderFormData) => {
     if (!formState.isDirty) {
       handleClose();
       return;
     }
 
-    const updatedData: PersonUpdateInSchema = {};
+    const updatedData: FolderUpdateSchemaIn = {};
 
     if (formState.dirtyFields.name) {
       updatedData.name = data.name;
@@ -107,7 +97,6 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
     if (formState.dirtyFields.description) {
       updatedData.description = data.description === "" ? null : data.description;
     }
-    // Add group IDs to updatedData if they are dirty
     if (formState.dirtyFields.view_group_ids) {
       updatedData.view_group_ids = data.view_group_ids;
     }
@@ -120,16 +109,14 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
       return;
     }
 
-    updatePersonMutation.mutate(updatedData); // Use the mutation
+    updateFolderMutation.mutate(updatedData);
   };
 
-  // Prepare options for react-select - Convert value to string
   const groupOptions = groups.map((group) => ({
-    value: String(group.id), // Convert number to string here
+    value: String(group.id),
     label: group.name,
   }));
 
-  // Custom styles for react-select to match theme
   const customStyles = {
     control: (provided: any, state: any) => ({
       ...provided,
@@ -203,7 +190,7 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
     return (
       <Modal show={show} onHide={handleClose} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Edit Person</Modal.Title>
+          <Modal.Title>Edit Folder</Modal.Title>
         </Modal.Header>
         <Modal.Body className="text-center">
           <Spinner animation="border" />
@@ -216,12 +203,12 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
   return (
     <Modal show={show} onHide={handleClose} size="lg">
       <Modal.Header closeButton>
-        <Modal.Title>Edit Person</Modal.Title>
+        <Modal.Title>Edit Folder</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={handleSubmit(onSubmit)}>
-          {updatePersonMutation.isError && (
-            <div className="alert alert-danger">Failed to update person. Please try again.</div>
+          {updateFolderMutation.isError && (
+            <div className="alert alert-danger">Failed to update folder. Please try again.</div>
           )}
 
           <Form.Group className="mb-3">
@@ -249,10 +236,10 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
             </Form.Control.Feedback>
           </Form.Group>
 
-          {/* View Permissions for Person */}
+          {/* View Permissions for Folder */}
           <Form.Group className="mb-4">
             <Form.Label>View Permissions</Form.Label>
-            <p className="text-muted small">Select groups that can view this person.</p>
+            <p className="text-muted small">Select groups that can view this folder.</p>
             <Controller
               name="view_group_ids"
               control={control}
@@ -285,10 +272,10 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
             />
           </Form.Group>
 
-          {/* Edit Permissions for Person */}
+          {/* Edit Permissions for Folder */}
           <Form.Group className="mb-3">
             <Form.Label>Edit Permissions</Form.Label>
-            <p className="text-muted small">Select groups that can edit this person.</p>
+            <p className="text-muted small">Select groups that can edit this folder.</p>
             <Controller
               name="edit_group_ids"
               control={control}
@@ -328,9 +315,9 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
             <Button
               variant="primary"
               type="submit"
-              disabled={formState.isSubmitting || updatePersonMutation.isPending}
+              disabled={formState.isSubmitting || updateFolderMutation.isPending}
             >
-              {formState.isSubmitting || updatePersonMutation.isPending
+              {formState.isSubmitting || updateFolderMutation.isPending
                 ? "Saving..."
                 : "Save Changes"}
             </Button>
@@ -342,4 +329,4 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
   );
 };
 
-export default EditPersonModal;
+export default EditFolderModal;

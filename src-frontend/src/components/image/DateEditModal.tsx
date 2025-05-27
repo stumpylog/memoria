@@ -118,15 +118,13 @@ const DateEditModal: React.FC<DateEditModalProps> = ({
             <Form.Label>Date</Form.Label>
             <Form.Control
               type="text"
-              placeholder="YYYY-MM-DD or descriptive date"
+              placeholder="YYYY-MM-DD"
               {...register("date", {
                 required: "Date is required",
               })}
               isInvalid={!!errors.date}
             />
-            <Form.Text className="text-muted">
-              Enter a date in YYYY-MM-DD format or a descriptive date like "Summer 1998"
-            </Form.Text>
+            <Form.Text className="text-muted">Enter a date in YYYY-MM-DD format</Form.Text>
             {errors.date && (
               <Form.Control.Feedback type="invalid">{errors.date.message}</Form.Control.Feedback>
             )}

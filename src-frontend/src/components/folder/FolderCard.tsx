@@ -1,10 +1,10 @@
 import React from "react";
 import { Button, Card } from "react-bootstrap";
 
-import type { RootFolderSchema } from "../../api";
+import type { RootFolderSchemaOut } from "../../api";
 
 interface FolderCardProps {
-  folder: RootFolderSchema;
+  folder: RootFolderSchemaOut;
   buttonText?: string;
   truncateDescription?: number;
   onButtonClick?: (id: number) => void;

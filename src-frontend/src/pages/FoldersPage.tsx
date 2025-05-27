@@ -3,7 +3,7 @@ import React from "react";
 import { Alert, Container, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
-import type { RootFolderSchema } from "../api";
+import type { RootFolderSchemaOut } from "../api";
 
 import { folderListRoots } from "../api";
 import FolderWall from "../components/folder/FolderWall";
@@ -25,7 +25,7 @@ const FoldersPage: React.FC<FoldersPageProps> = ({
     data: folders = [],
     isLoading,
     error,
-  } = useQuery<RootFolderSchema[]>({
+  } = useQuery<RootFolderSchemaOut[]>({
     queryKey: ["folders", "roots"],
     queryFn: async () => {
       const response = await folderListRoots();

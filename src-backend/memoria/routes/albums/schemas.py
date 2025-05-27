@@ -1,5 +1,4 @@
 import sys
-from datetime import datetime
 
 from ninja import Field
 from ninja import Schema
@@ -10,6 +9,11 @@ if sys.version_info > (3, 11):
 else:
     from typing import Self
 
+from memoria.routes.common.schemas import GroupPermissionReadOutMixin
+from memoria.routes.common.schemas import GroupPermissionUpdateInMixin
+from memoria.routes.common.schemas import IdMixin
+from memoria.routes.common.schemas import TimestampMixin
+
 
 class AlbumCreateInSchema(Schema):
     name: str = Field(description="The name of the album")
@@ -18,22 +22,19 @@ class AlbumCreateInSchema(Schema):
     edit_group_ids: list[int] = Field(default_factory=list, description="IDs of Groups allowed to edit")
 
 
-class AlbumBasicReadOutSchema(AlbumCreateInSchema):
-    id: int = Field(description="The id of the album")
+class AlbumBasicReadOutSchema(TimestampMixin, IdMixin, GroupPermissionReadOutMixin, Schema):
+    name: str = Field(description="The name of the album")
+    description: str | None = Field(default=None, description="The description of the album")
     image_count: int = Field(description="The count of images in this album")
-    created_at: datetime
-    updated_at: datetime
 
 
-class AlbumWithImagesReadInSchema(AlbumBasicReadOutSchema):
+class AlbumWithImagesOutSchema(AlbumBasicReadOutSchema):
     image_ids: list[int] = Field(description="The ids of the images in this album in sorted order")
 
 
-class AlbumUpdateInSchema(Schema):
+class AlbumUpdateInSchema(GroupPermissionUpdateInMixin, Schema):
     name: str | None = Field(default=None, description="The new name of the album")
     description: str | None = Field(default=None, description="The new description of the album")
-    view_group_ids: list[int] | None = Field(default=None, description="New list of Group IDs allowed to view")
-    edit_group_ids: list[int] | None = Field(default=None, description="New list of Group IDs allowed to edit")
 
     @model_validator(mode="after")
     def check_one_or_other(self) -> Self:

@@ -1,12 +1,9 @@
-import sys
-
 from ninja import Schema
 from pydantic import Field
 
-if sys.version_info > (3, 11):
-    pass
-else:
-    pass
+from memoria.routes.common.schemas import GroupPermissionReadOutMixin
+from memoria.routes.common.schemas import GroupPermissionUpdateInMixin
+from memoria.routes.common.schemas import TimestampMixin
 
 
 class PersonCreateInSchema(Schema):
@@ -29,7 +26,7 @@ class PersonReadOutSchema(Schema):
     description: str | None = None
 
 
-class PersonDetailOutSchema(Schema):
+class PersonDetailOutSchema(GroupPermissionReadOutMixin, TimestampMixin, Schema):
     id: int
     name: str
     image_count: int
@@ -40,7 +37,7 @@ class PersonImageOutSchema(Schema):
     id: int = Field(description="One image the person appears in")
 
 
-class PersonUpdateInSchema(Schema):
+class PersonUpdateInSchema(GroupPermissionUpdateInMixin, Schema):
     """
     Schema to update a person
     """

@@ -4,14 +4,16 @@ import { Alert, Breadcrumb, Button, Container, Spinner } from "react-bootstrap";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import type { AlbumAddImageInSchema } from "../api";
-import type { FolderDetailSchema, ImageThumbnailSchemaOut } from "../api";
+import type { FolderDetailSchemaOut, ImageThumbnailSchemaOut } from "../api";
 
 import { folderGetDetails, imageGetThumbInfo } from "../api";
 import { addImageToAlbum } from "../api";
+import EditFolderModal from "../components/folder/EditFolderModal";
 import FolderWall from "../components/folder/FolderWall";
 import AddToAlbumModal from "../components/image/AddToAlbumModal";
 import SelectableImageWall from "../components/image/SelectableImageWall";
 import { useAuth } from "../hooks/useAuth";
+import { formatDate } from "../utils/formatDate";
 import { getGridColumns } from "../utils/getGridColums";
 
 interface FolderDetailProps {}
@@ -25,15 +27,20 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
 
   const [selectedImageIds, setSelectedImageIds] = useState<number[]>([]);
   const [showAlbumModal, setShowAlbumModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false); // New state for edit modal
+
+  const handleShowEditModal = () => setShowEditModal(true); // New handler
+  const handleCloseEditModal = () => setShowEditModal(false); // New handler
 
   // Query for folder details
   const {
     data: folderDetail,
     isLoading: folderLoading,
     error: folderError,
+    refetch: refetchFolder, // Add refetch
   } = useQuery({
     queryKey: ["folder", folderId],
-    queryFn: async (): Promise<FolderDetailSchema> => {
+    queryFn: async (): Promise<FolderDetailSchemaOut> => {
       if (!folderId) {
         throw new Error("Invalid folder ID.");
       }
@@ -84,13 +91,18 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
     onSuccess: () => {
       setSelectedImageIds([]);
       setShowAlbumModal(false);
-      // Optionally invalidate related queries if needed
       queryClient.invalidateQueries({ queryKey: ["albums"] });
     },
     onError: (error) => {
       console.error("Failed to add images to album:", error);
     },
   });
+
+  // Handle successful save from EditFolderModal
+  const handleSaveSuccess = () => {
+    refetchFolder(); // Refetch folder details after a successful edit
+    queryClient.invalidateQueries({ queryKey: ["folderImages"] }); // Invalidate images too as permissions might change
+  };
 
   const handleSelectionChange = (newSelectedIds: number[]) => {
     setSelectedImageIds(newSelectedIds);
@@ -157,6 +169,32 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
       </Breadcrumb>
 
       <h1 className="mb-4">Current Folder: {folderDetail.name}</h1>
+
+      {/* Display description or "No description" */}
+      {folderDetail.description ? (
+        <p>{folderDetail.description}</p>
+      ) : (
+        <p className="text-muted font-italic">No description</p>
+      )}
+
+      {/* Display Created At and Updated At */}
+      {folderDetail && (
+        <div className="mb-3 text-muted small">
+          <p className="mb-0">
+            <strong>Created At:</strong> {formatDate(profile, folderDetail.created_at)}
+          </p>
+          <p className="mb-0">
+            <strong>Updated At:</strong> {formatDate(profile, folderDetail.updated_at)}
+          </p>
+        </div>
+      )}
+
+      {/* Edit button */}
+      {folderId && ( // Ensure folderId is available before rendering the button
+        <Button onClick={handleShowEditModal} className="mb-3">
+          Edit
+        </Button>
+      )}
 
       {/* Child Folders Section */}
       <>
@@ -243,6 +281,16 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
         isError={addToAlbumMutation.isError}
         error={addToAlbumMutation.error}
       />
+
+      {/* Edit Folder Modal */}
+      {folderDetail && (
+        <EditFolderModal
+          show={showEditModal}
+          handleClose={handleCloseEditModal}
+          folder={folderDetail}
+          onSaveSuccess={handleSaveSuccess}
+        />
+      )}
     </Container>
   );
 };

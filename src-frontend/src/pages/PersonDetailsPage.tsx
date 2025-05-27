@@ -19,6 +19,7 @@ import EditPersonModal from "../components/EditPersonModal";
 import AddToAlbumModal from "../components/image/AddToAlbumModal";
 import SelectableImageWall from "../components/image/SelectableImageWall";
 import { useAuth } from "../hooks/useAuth";
+import { formatDate } from "../utils/formatDate";
 import { getGridColumns } from "../utils/getGridColums";
 
 const PersonDetailsPage: React.FC = () => {
@@ -328,6 +329,18 @@ const PersonDetailsPage: React.FC = () => {
         <p>{person.description}</p>
       ) : (
         <p className="text-muted font-italic">No description</p>
+      )}
+
+      {/* Display Created At and Updated At */}
+      {person && (
+        <div className="mb-3 text-muted small">
+          <p className="mb-0">
+            <strong>Created At:</strong> {formatDate(profile, person.created_at)}
+          </p>
+          <p className="mb-0">
+            <strong>Updated At:</strong> {formatDate(profile, person.updated_at)}
+          </p>
+        </div>
       )}
 
       {/* Edit button */}

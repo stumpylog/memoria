@@ -1,20 +1,35 @@
 import datetime
 from datetime import date
+from typing import TYPE_CHECKING
 
-# TODO: use HttpUrl for the URLs, except orjson doesn't serialize them
 from exifmwg.models import RotationEnum
-from ninja import Field
 from ninja import Schema
 from pydantic import FilePath
 from pydantic import field_serializer
 
+from memoria.routes.common.schemas import GroupPermissionReadOutMixin
+from memoria.routes.common.schemas import GroupPermissionUpdateInMixin
+from memoria.routes.common.schemas import IdMixin
 
-class ImageThumbnailSchemaOut(Schema):
-    id: int
+if TYPE_CHECKING:
+    from django.http import HttpRequest
+
+
+class ImageThumbnailSchemaOut(IdMixin, Schema):
     title: str
     thumbnail_url: str
     thumbnail_height: int
     thumbnail_width: int
+
+    @staticmethod
+    def resolve_thumbnail_url(obj, context):
+        """
+        Build absolute URL for the thumbnail image
+        """
+        request: HttpRequest | None = context.get("request")
+        if request:
+            return request.build_absolute_uri(obj.thumbnail_url)
+        return obj.thumbnail_url
 
 
 class ImageDateSchemaOut(Schema):
@@ -57,8 +72,7 @@ class ImageFolderSchemaOut(Schema):
     name: str
 
 
-class ImageMetadataSchemaOut(Schema):
-    id: int
+class ImageMetadataSchemaOut(IdMixin, GroupPermissionReadOutMixin, Schema):
     larger_size_url: str
     orientation: RotationEnum
     size: ImageSizeSchemaOut
@@ -73,15 +87,45 @@ class ImageMetadataSchemaOut(Schema):
     image_fs_id: str
     can_edit: bool
     folder: ImageFolderSchemaOut
-    view_group_ids: list[int] = Field(default_factory=list, description="IDs of Groups allowed to view")
-    edit_group_ids: list[int] = Field(default_factory=list, description="IDs of Groups allowed to edit")
 
     @field_serializer("original_path")
     def convert_path_to_str(self, v) -> str:
         return str(v)
 
+    @staticmethod
+    def resolve_larger_size_url(obj, context):
+        """
+        Build absolute URL for the larger size image
+        """
+        request: HttpRequest | None = context.get("request")
+        if request:
+            return request.build_absolute_uri(obj.larger_size_url)
+        return obj.larger_size_url
 
-class ImageMetadataUpdateSchemaIn(Schema):
+    @staticmethod
+    def resolve_size(obj):
+        """
+        Create size object from individual model fields
+        """
+        return ImageSizeSchemaOut(
+            original_height=obj.original_height,
+            original_width=obj.original_width,
+            large_version_height=obj.large_version_height,
+            large_version_width=obj.large_version_width,
+        )
+
+    @staticmethod
+    def resolve_folder(obj):
+        """
+        Create folder object from annotated fields
+        """
+        return ImageFolderSchemaOut(
+            id=obj.folder.id,
+            name=obj.folder.name,
+        )
+
+
+class ImageMetadataUpdateSchemaIn(GroupPermissionUpdateInMixin, Schema):
     title: str | None
     description: str | None
 

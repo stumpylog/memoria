@@ -30,7 +30,7 @@ from memoria.routes.albums.schemas import AlbumCreateInSchema
 from memoria.routes.albums.schemas import AlbumRemoveImageInSchema
 from memoria.routes.albums.schemas import AlbumSortUpdateInSchema
 from memoria.routes.albums.schemas import AlbumUpdateInSchema
-from memoria.routes.albums.schemas import AlbumWithImagesReadInSchema
+from memoria.routes.albums.schemas import AlbumWithImagesOutSchema
 
 router = Router(tags=["albums"])
 logger = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ def get_albums(request: HttpRequest, album_name: str | None = None):
 
 @router.get(
     "/{album_id}/",
-    response=AlbumWithImagesReadInSchema,
+    response=AlbumWithImagesOutSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -150,7 +150,7 @@ def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateInSchema)
 
 @router.patch(
     "/{album_id}/add/",
-    response=AlbumWithImagesReadInSchema,
+    response=AlbumWithImagesOutSchema,
     operation_id="add_image_to_album",
     auth=active_user_auth,
 )
@@ -230,7 +230,7 @@ def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageI
 
 @router.patch(
     "/{album_id}/remove/",
-    response=AlbumWithImagesReadInSchema,
+    response=AlbumWithImagesOutSchema,
     operation_id="delete_image_from_album",
     auth=active_user_auth,
 )
@@ -272,7 +272,7 @@ def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemo
 
 @router.patch(
     "/{album_id}/sort/",
-    response=AlbumWithImagesReadInSchema,
+    response=AlbumWithImagesOutSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {

@@ -101,8 +101,6 @@ tasks:
     cmds:
       - task: backend:api:export-schema
       - task: frontend:api:generate-client
-    sources:
-      - schema.json
 
   repomix:
     cmds:

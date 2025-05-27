@@ -46,9 +46,9 @@ def get_existing_cities(
     if subdivision_code is not None and not country.contains_subdivision(subdivision_code):
         raise HttpBadRequestError(f"There is no {subdivision_code} in country {country_code}")
     return list(
-        RoughLocation.objects.permitted(request.user)
-        .filter(country_code=country_code, subdivision_code=subdivision_code, city__isnull=False)
-        .values_list("city", flat=True),
+        RoughLocation.objects.filter(
+            country_code=country_code, subdivision_code=subdivision_code, city__isnull=False
+        ).values_list("city", flat=True),
     )
 
 
@@ -65,8 +65,7 @@ def get_existing_sublocations(
     if subdivision_code is not None and not country.contains_subdivision(subdivision_code):
         raise HttpBadRequestError(f"There is no {subdivision_code} in country {country_code}")
     return list(
-        RoughLocation.objects.permitted(request.user)
-        .filter(
+        RoughLocation.objects.filter(
             country_code=country_code,
             subdivision_code=subdivision_code,
             city__icontains=city_name,

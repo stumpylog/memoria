@@ -6,14 +6,16 @@ from django.db.models import OuterRef
 from django.db.models import Q
 from django.db.models import Subquery
 from django.db.models.functions import Coalesce
+from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from ninja import Router
 
 from memoria.common.errors import HttpNotAuthorizedError
 from memoria.models import Image
 from memoria.models import ImageFolder
-from memoria.routes.folders.schemas import FolderDetailSchema
-from memoria.routes.folders.schemas import RootFolderSchema
+from memoria.routes.folders.schemas import FolderDetailSchemaOut
+from memoria.routes.folders.schemas import FolderUpdateSchemaIn
+from memoria.routes.folders.schemas import RootFolderSchemaOut
 
 router = Router(tags=["folders"])
 logger = logging.getLogger(__name__)
@@ -31,7 +33,9 @@ def get_permission_filter(user: UserModelT):
 
 
 def annotate_folder_counts(queryset, perm_filter):
-    """Annotate folders with child and image counts"""
+    """
+    Annotate folders with child and image counts
+    """
     # Subquery for direct child folders with permission check
     children_qs = (
         ImageFolder.objects.filter(
@@ -59,7 +63,7 @@ def annotate_folder_counts(queryset, perm_filter):
     )
 
 
-@router.get("/", response=list[RootFolderSchema], operation_id="folder_list_roots")
+@router.get("/", response=list[RootFolderSchemaOut], operation_id="folder_list_roots")
 def list_image_folders(request):
     """List root image folders with permission filtering"""
     user = request.user
@@ -77,7 +81,7 @@ def list_image_folders(request):
     return annotate_folder_counts(queryset, perm_filter)
 
 
-@router.get("/{folder_id}/", response=FolderDetailSchema, operation_id="folder_get_details")
+@router.get("/{folder_id}/", response=FolderDetailSchemaOut, operation_id="folder_get_details")
 def get_image_folder(request, folder_id: int):
     """Get details of a specific image folder with children and images"""
     user = request.user
@@ -130,4 +134,65 @@ def get_image_folder(request, folder_id: int):
         "folder_images": images.values_list("id", flat=True),
         "breadcrumbs": breadcrumbs,
         "has_children": child_folders.exists(),
+        "updated_at": folder.updated_at,
+        "created_at": folder.created_at,
+        "view_groups": folder.view_groups.all(),
+        "edit_groups": folder.edit_groups.all(),
+    }
+
+
+@router.patch("/{folder_id}/", response=FolderDetailSchemaOut, operation_id="update_folder_info")
+def update_folder(request: HttpRequest, folder_id: int, data: FolderUpdateSchemaIn):
+    folder_to_update: ImageFolder = get_object_or_404(ImageFolder.objects.editable_by(request.user), pk=folder_id)
+
+    # TODO: Maybe the name?
+
+    if data.description:
+        folder_to_update.description = data.description
+
+    if data.view_group_ids:
+        folder_to_update.view_groups.set(data.view_group_ids)
+    if data.edit_group_ids:
+        folder_to_update.edit_groups.set(data.edit_group_ids)
+
+    folder_to_update.save()
+    folder_to_update.refresh_from_db()
+
+    ancestors = list(folder_to_update.get_ancestors_queryset())
+    breadcrumb_objects = [*ancestors, folder_to_update]
+    breadcrumbs = []
+    for obj in breadcrumb_objects:
+        breadcrumbs.append(  # noqa: PERF401
+            {
+                "name": obj.name,
+                "id": obj.pk,
+            },
+        )
+
+    perm_filter = get_permission_filter(request.user)
+
+    # Get child folders with permission filtering
+    child_folders = ImageFolder.objects.filter(tn_parent=folder_to_update).order_by("name")
+    if not request.user.is_superuser:
+        child_folders = child_folders.filter(perm_filter).distinct()
+
+    images = Image.objects.filter(folder=folder_to_update)
+    if not request.user.is_superuser:
+        images = images.filter(perm_filter).distinct()
+
+    # Annotate child folders with counts
+    child_folders = annotate_folder_counts(child_folders, perm_filter)
+
+    return {
+        "id": folder_to_update.pk,
+        "name": folder_to_update.name,
+        "description": folder_to_update.description,
+        "child_folders": list(child_folders.values("id", "name", "child_count", "image_count", "description")),
+        "folder_images": images.values_list("id", flat=True),
+        "breadcrumbs": breadcrumbs,
+        "has_children": child_folders.exists(),
+        "view_groups": folder_to_update.view_groups.all(),
+        "edit_groups": folder_to_update.edit_groups.all(),
+        "updated_at": folder_to_update.updated_at,
+        "created_at": folder_to_update.created_at,
     }

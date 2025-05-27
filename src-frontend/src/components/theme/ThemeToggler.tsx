@@ -4,7 +4,7 @@ import { Dropdown } from "react-bootstrap";
 
 import type { Theme } from "../../contexts/ThemeContext";
 
-import { useTheme } from "../../hooks/useTheme"; // Ensure Theme type is exported
+import { useTheme } from "../../hooks/useTheme";
 
 const ThemeToggler: React.FC = () => {
   const { theme, effectiveTheme, setTheme } = useTheme();

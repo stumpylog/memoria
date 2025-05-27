@@ -2,3 +2,4 @@ repomix-output.md
 coverage_html_report/
 .coverage
 coverage.json
+.task

@@ -1,3 +1,4 @@
+// src/pages/AlbumDetailsPage.tsx
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 
 import {
@@ -22,7 +23,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import type {
   AlbumUpdateInSchema,
-  AlbumWithImagesReadInSchema,
+  AlbumWithImagesOutSchema,
   ImageThumbnailSchemaOut,
 } from "../api";
 
@@ -32,7 +33,7 @@ import {
   updateAlbumInfo,
   updateAlbumSorting,
 } from "../api";
-import EditAlbumInfoModal from "../components/album/EditAlbumInfoModal";
+import EditAlbumInfoModal from "../components/album/EditAlbumInfoModal"; // This modal now handles groups too
 import SortableImageListItem from "../components/album/SortableImageListItem";
 import { useAuth } from "../hooks/useAuth";
 
@@ -44,7 +45,7 @@ const AlbumDetailsPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [displayedImages, setDisplayedImages] = useState<ImageThumbnailSchemaOut[]>([]);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showEditInfoModal, setShowEditInfoModal] = useState(false); // Renamed for clarity
   const [editError, setEditError] = useState<string | null>(null);
   const [sortError, setSortError] = useState<string | null>(null);
   const [isSortDirty, setIsSortDirty] = useState<boolean>(false);
@@ -65,9 +66,9 @@ const AlbumDetailsPage: React.FC = () => {
     data: album,
     isLoading: isLoadingAlbum,
     error: albumError,
-  } = useQuery<AlbumWithImagesReadInSchema | null, Error>({
+  } = useQuery<AlbumWithImagesOutSchema | null, Error>({
     queryKey: ["albumDetails", albumId],
-    queryFn: async (): Promise<AlbumWithImagesReadInSchema | null> => {
+    queryFn: async (): Promise<AlbumWithImagesOutSchema | null> => {
       if (!albumId || isNaN(albumId)) return null;
       try {
         const response = await getSingleAlbumInfo({ path: { album_id: albumId } });
@@ -129,7 +130,7 @@ const AlbumDetailsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["albumDetails", albumId] });
       queryClient.invalidateQueries({ queryKey: ["albums"] });
-      setShowEditModal(false);
+      setShowEditInfoModal(false);
       setEditError(null);
     },
     onError: (error: Error) => {
@@ -237,10 +238,10 @@ const AlbumDetailsPage: React.FC = () => {
           {canEditAlbum && (
             <Button
               variant="outline-primary"
-              onClick={() => setShowEditModal(true)}
+              onClick={() => setShowEditInfoModal(true)} // Use the state for the single modal
               className="me-2"
             >
-              Edit Album Info
+              Edit Album Info & Groups
             </Button>
           )}
           {canEditAlbum && (
@@ -329,11 +330,11 @@ const AlbumDetailsPage: React.FC = () => {
           )}
         </Card.Body>
       </Card>
-      {showEditModal && canEditAlbum && (
+      {showEditInfoModal && canEditAlbum && (
         <EditAlbumInfoModal
-          show={showEditModal}
+          show={showEditInfoModal}
           onHide={() => {
-            setShowEditModal(false);
+            setShowEditInfoModal(false);
             setEditError(null);
           }}
           album={album}

@@ -9,15 +9,19 @@ export type AlbumAddImageInSchema = {
 
 export type AlbumBasicReadOutSchema = {
   /**
+   * Timestamp when the object was created
+   */
+  created_at: string;
+  /**
    * The description of the album
    */
   description?: string | null;
   /**
-   * IDs of Groups allowed to edit
+   * Groups allowed to edit this object
    */
-  edit_group_ids?: Array<number>;
+  edit_groups?: Array<GroupSchemaOut>;
   /**
-   * The id of the album
+   * The unique identifier of the object
    */
   id: number;
   /**
@@ -29,9 +33,13 @@ export type AlbumBasicReadOutSchema = {
    */
   name: string;
   /**
-   * IDs of Groups allowed to view
+   * Timestamp when the object was last updated
    */
-  view_group_ids?: Array<number>;
+  updated_at: string;
+  /**
+   * Groups allowed to view this object
+   */
+  view_groups?: Array<GroupSchemaOut>;
 };
 
 export type AlbumCreateInSchema = {
@@ -86,17 +94,21 @@ export type AlbumUpdateInSchema = {
   view_group_ids?: Array<number> | null;
 };
 
-export type AlbumWithImagesReadInSchema = {
+export type AlbumWithImagesOutSchema = {
+  /**
+   * Timestamp when the object was created
+   */
+  created_at: string;
   /**
    * The description of the album
    */
   description?: string | null;
   /**
-   * IDs of Groups allowed to edit
+   * Groups allowed to edit this object
    */
-  edit_group_ids?: Array<number>;
+  edit_groups?: Array<GroupSchemaOut>;
   /**
-   * The id of the album
+   * The unique identifier of the object
    */
   id: number;
   /**
@@ -112,9 +124,13 @@ export type AlbumWithImagesReadInSchema = {
    */
   name: string;
   /**
-   * IDs of Groups allowed to view
+   * Timestamp when the object was last updated
    */
-  view_group_ids?: Array<number>;
+  updated_at: string;
+  /**
+   * Groups allowed to view this object
+   */
+  view_groups?: Array<GroupSchemaOut>;
 };
 
 export type AuthLoginSchemaReadable = {
@@ -152,13 +168,43 @@ export type CsrfTokenOutSchema = {
   csrf_token: string;
 };
 
-export type FolderDetailSchema = {
+export type FolderDetailSchemaOut = {
   breadcrumbs: Array<BreadcrumbSchema>;
-  child_folders: Array<RootFolderSchema>;
+  child_folders: Array<RootFolderSchemaOut>;
+  /**
+   * Timestamp when the object was created
+   */
+  created_at: string;
+  description: string | null;
+  /**
+   * Groups allowed to edit this object
+   */
+  edit_groups?: Array<GroupSchemaOut>;
   folder_images: Array<number>;
   has_children: boolean;
   id: number;
   name: string;
+  /**
+   * Timestamp when the object was last updated
+   */
+  updated_at: string;
+  /**
+   * Groups allowed to view this object
+   */
+  view_groups?: Array<GroupSchemaOut>;
+};
+
+export type FolderUpdateSchemaIn = {
+  description?: string | null;
+  /**
+   * New list of Group IDs allowed to edit
+   */
+  edit_group_ids?: Array<number> | null;
+  name?: string | null;
+  /**
+   * New list of Group IDs allowed to view
+   */
+  view_group_ids?: Array<number> | null;
 };
 
 export type GroupCreateInSchema = {
@@ -167,6 +213,17 @@ export type GroupCreateInSchema = {
 
 export type GroupOutSchema = {
   id: number;
+  name: string;
+};
+
+export type GroupSchemaOut = {
+  /**
+   * The unique identifier of the object
+   */
+  id: number;
+  /**
+   * The name of the group
+   */
   name: string;
 };
 
@@ -211,8 +268,15 @@ export type ImageMetadataSchemaOut = {
   can_edit: boolean;
   created_at: string;
   description: string | null;
+  /**
+   * Groups allowed to edit this object
+   */
+  edit_groups?: Array<GroupSchemaOut>;
   file_size: number;
   folder: ImageFolderSchemaOut;
+  /**
+   * The unique identifier of the object
+   */
   id: number;
   image_fs_id: string;
   larger_size_url: string;
@@ -223,11 +287,23 @@ export type ImageMetadataSchemaOut = {
   size: ImageSizeSchemaOut;
   title: string;
   updated_at: string;
+  /**
+   * Groups allowed to view this object
+   */
+  view_groups?: Array<GroupSchemaOut>;
 };
 
 export type ImageMetadataUpdateSchemaIn = {
   description: string | null;
+  /**
+   * New list of Group IDs allowed to edit
+   */
+  edit_group_ids?: Array<number> | null;
   title: string | null;
+  /**
+   * New list of Group IDs allowed to view
+   */
+  view_group_ids?: Array<number> | null;
 };
 
 /**
@@ -246,6 +322,9 @@ export type ImageSizeSchemaOut = {
 };
 
 export type ImageThumbnailSchemaOut = {
+  /**
+   * The unique identifier of the object
+   */
   id: number;
   thumbnail_height: number;
   thumbnail_url: string;
@@ -271,10 +350,26 @@ export type PagedPersonReadOutSchema = {
 };
 
 export type PersonDetailOutSchema = {
+  /**
+   * Timestamp when the object was created
+   */
+  created_at: string;
   description?: string | null;
+  /**
+   * Groups allowed to edit this object
+   */
+  edit_groups?: Array<GroupSchemaOut>;
   id: number;
   image_count: number;
   name: string;
+  /**
+   * Timestamp when the object was last updated
+   */
+  updated_at: string;
+  /**
+   * Groups allowed to view this object
+   */
+  view_groups?: Array<GroupSchemaOut>;
 };
 
 export type PersonImageOutSchema = {
@@ -313,7 +408,15 @@ export type PersonReadOutSchema = {
  */
 export type PersonUpdateInSchema = {
   description?: string | null;
+  /**
+   * New list of Group IDs allowed to edit
+   */
+  edit_group_ids?: Array<number> | null;
   name?: string | null;
+  /**
+   * New list of Group IDs allowed to view
+   */
+  view_group_ids?: Array<number> | null;
 };
 
 /**
@@ -330,12 +433,28 @@ export type PetInImageSchemaOut = {
   width: number;
 };
 
-export type RootFolderSchema = {
+export type RootFolderSchemaOut = {
   child_count?: number;
+  /**
+   * Timestamp when the object was created
+   */
+  created_at: string;
   description: string | null;
+  /**
+   * Groups allowed to edit this object
+   */
+  edit_groups?: Array<GroupSchemaOut>;
   id: number;
   image_count?: number;
   name: string;
+  /**
+   * Timestamp when the object was last updated
+   */
+  updated_at: string;
+  /**
+   * Groups allowed to view this object
+   */
+  view_groups?: Array<GroupSchemaOut>;
 };
 
 /**
@@ -884,7 +1003,7 @@ export type GetSingleAlbumInfoResponses = {
   /**
    * OK
    */
-  200: AlbumWithImagesReadInSchema;
+  200: AlbumWithImagesOutSchema;
 };
 
 export type GetSingleAlbumInfoResponse =
@@ -928,7 +1047,7 @@ export type AddImageToAlbumResponses = {
   /**
    * OK
    */
-  200: AlbumWithImagesReadInSchema;
+  200: AlbumWithImagesOutSchema;
 };
 
 export type AddImageToAlbumResponse = AddImageToAlbumResponses[keyof AddImageToAlbumResponses];
@@ -964,7 +1083,7 @@ export type DeleteImageFromAlbumResponses = {
   /**
    * OK
    */
-  200: AlbumWithImagesReadInSchema;
+  200: AlbumWithImagesOutSchema;
 };
 
 export type DeleteImageFromAlbumResponse =
@@ -994,7 +1113,7 @@ export type UpdateAlbumSortingResponses = {
   /**
    * OK
    */
-  200: AlbumWithImagesReadInSchema;
+  200: AlbumWithImagesOutSchema;
 };
 
 export type UpdateAlbumSortingResponse =
@@ -1070,7 +1189,7 @@ export type FolderListRootsResponses = {
   /**
    * OK
    */
-  200: Array<RootFolderSchema>;
+  200: Array<RootFolderSchemaOut>;
 };
 
 export type FolderListRootsResponse = FolderListRootsResponses[keyof FolderListRootsResponses];
@@ -1088,10 +1207,28 @@ export type FolderGetDetailsResponses = {
   /**
    * OK
    */
-  200: FolderDetailSchema;
+  200: FolderDetailSchemaOut;
 };
 
 export type FolderGetDetailsResponse = FolderGetDetailsResponses[keyof FolderGetDetailsResponses];
+
+export type UpdateFolderInfoData = {
+  body: FolderUpdateSchemaIn;
+  path: {
+    folder_id: number;
+  };
+  query?: never;
+  url: "/api/folder/{folder_id}/";
+};
+
+export type UpdateFolderInfoResponses = {
+  /**
+   * OK
+   */
+  200: FolderDetailSchemaOut;
+};
+
+export type UpdateFolderInfoResponse = UpdateFolderInfoResponses[keyof UpdateFolderInfoResponses];
 
 export type GroupGetAllData = {
   body?: never;

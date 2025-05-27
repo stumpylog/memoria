@@ -1,12 +1,12 @@
 import React from "react";
 import { Container, Row } from "react-bootstrap";
 
-import type { RootFolderSchema } from "../../api";
+import type { RootFolderSchemaOut } from "../../api";
 
 import FolderCard from "./FolderCard";
 
 interface FolderWallProps {
-  folders: RootFolderSchema[];
+  folders: RootFolderSchemaOut[];
   buttonText?: string;
   truncateDescription?: number;
   onFolderClick?: (id: number) => void;

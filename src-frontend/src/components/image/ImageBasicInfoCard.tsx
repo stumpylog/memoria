@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Card } from "react-bootstrap";
+import { Badge, Button, Card } from "react-bootstrap";
 import { Nav } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
@@ -10,6 +10,8 @@ import type {
   UserProfileOutSchema,
 } from "../../api";
 
+import { formatDate } from "../../utils/formatDate";
+
 interface ImageBasicInfoCardProps {
   metadata: ImageMetadataSchemaOut;
   location: ImageLocationSchemaOut | null;
@@ -19,37 +21,8 @@ interface ImageBasicInfoCardProps {
   setShowMetadataModal: (show: boolean) => void;
   setShowLocationModal: (show: boolean) => void;
   setShowDateModal: (show: boolean) => void;
+  setShowPermissionsModal: (show: boolean) => void;
 }
-
-// Format date helper with timezone support
-const formatDate = (
-  profile: UserProfileOutSchema | null,
-  dateString: string | null | undefined,
-): string => {
-  if (!dateString) return "Not available";
-  if (!profile) return dateString;
-  try {
-    const date = new Date(dateString);
-
-    // Use the user's timezone if available
-    if (profile.timezone_name) {
-      return date.toLocaleString("en-US", {
-        timeZone: profile.timezone_name,
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-      });
-    }
-
-    // Fallback format if no timezone
-    return date.toLocaleString();
-  } catch (e) {
-    return dateString;
-  }
-};
 
 const formatImageDate = (dateInfo: ImageDateSchemaOut): React.ReactNode => {
   if (!dateInfo.date) return <span className="fst-italic">Not available</span>;
@@ -86,12 +59,8 @@ const ImageBasicInfoCard: React.FC<ImageBasicInfoCardProps> = ({
   setShowMetadataModal,
   setShowLocationModal,
   setShowDateModal,
+  setShowPermissionsModal,
 }) => {
-  // Remove local modal visibility states as they are now managed by the parent
-  // const [showMetadataModal, setShowMetadataModal] = useState(false);
-  // const [showLocationModal, setShowLocationModal] = useState(false);
-  // const [showDateModal, setShowDateModal] = useState(false);
-
   // Check if user has edit permissions
   const canEdit = metadata?.can_edit || false;
 
@@ -104,7 +73,7 @@ const ImageBasicInfoCard: React.FC<ImageBasicInfoCardProps> = ({
             <Button
               variant="outline-primary"
               size="sm"
-              onClick={() => setShowMetadataModal(true)} // Use the prop
+              onClick={() => setShowMetadataModal(true)}
               title="Edit title and description"
             >
               <i className="bi bi-pencil"></i>
@@ -133,7 +102,7 @@ const ImageBasicInfoCard: React.FC<ImageBasicInfoCardProps> = ({
               <Button
                 variant="outline-secondary"
                 size="sm"
-                onClick={() => setShowDateModal(true)} // Use the prop
+                onClick={() => setShowDateModal(true)}
                 title="Edit date"
               >
                 <i className="bi bi-pencil-fill"></i>
@@ -163,7 +132,7 @@ const ImageBasicInfoCard: React.FC<ImageBasicInfoCardProps> = ({
               <Button
                 variant="outline-secondary"
                 size="sm"
-                onClick={() => setShowLocationModal(true)} // Use the prop
+                onClick={() => setShowLocationModal(true)}
                 title="Edit location"
               >
                 <i className="bi bi-pencil-fill"></i>
@@ -181,6 +150,40 @@ const ImageBasicInfoCard: React.FC<ImageBasicInfoCardProps> = ({
             </div>
           </div>
 
+          {/* Permissions Section */}
+          <div className="mb-3">
+            <hr />
+            <h6>Permissions</h6>
+            <div className="mb-2">
+              <small className="text-muted">View Groups:</small>
+              <div>
+                {metadata.view_groups ? (
+                  metadata.view_groups.map((group) => (
+                    <Badge key={group.id} bg="info" className="me-1 mb-1">
+                      {group.name}
+                    </Badge>
+                  ))
+                ) : (
+                  <small className="text-muted">Unknown view groups</small>
+                )}
+              </div>
+            </div>
+            <div>
+              <small className="text-muted">Edit Groups:</small>
+              <div>
+                {metadata.edit_groups ? (
+                  metadata.edit_groups.map((group) => (
+                    <Badge key={group.id} bg="warning" className="me-1 mb-1">
+                      {group.name}
+                    </Badge>
+                  ))
+                ) : (
+                  <small className="text-muted">Unknown edit groups</small>
+                )}
+              </div>
+            </div>
+          </div>
+
           <hr />
 
           <p className="small mb-1">
@@ -192,6 +195,19 @@ const ImageBasicInfoCard: React.FC<ImageBasicInfoCardProps> = ({
             <strong>Updated:</strong>
             <span className="text-muted"> {formatDate(profile, metadata.updated_at)}</span>
           </p>
+
+          {/* Edit Permissions Button for Admins */}
+          {canEdit && (
+            <div className="d-grid gap-2 mt-3">
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={() => setShowPermissionsModal(true)}
+              >
+                <i className="bi bi-shield-lock"></i> Edit Permissions
+              </Button>
+            </div>
+          )}
         </Card.Body>
       </Card>
     </>

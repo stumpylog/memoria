@@ -3,6 +3,12 @@ from http import HTTPStatus
 from typing import cast
 
 from django.contrib.auth import get_user_model
+from django.db.models import BooleanField
+from django.db.models import Case
+from django.db.models import Exists
+from django.db.models import OuterRef
+from django.db.models import Value
+from django.db.models import When
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from ninja import Router
@@ -29,6 +35,23 @@ logger = logging.getLogger(__name__)
 UserModelT = get_user_model()
 
 
+def get_annotated_image_queryset(user: UserModelT):
+    return (
+        Image.objects.permitted(user)
+        .with_folder()
+        .annotate(
+            # Permission-based fields
+            can_edit=Case(
+                When(Value(user.is_superuser), then=Value(True)),
+                default=Exists(
+                    user.groups.filter(id__in=OuterRef("edit_groups")),
+                ),
+                output_field=BooleanField(),
+            ),
+        )
+    )
+
+
 @router.get(
     "/{image_id}/thumbnail/",
     response=ImageThumbnailSchemaOut,
@@ -36,14 +59,7 @@ UserModelT = get_user_model()
     operation_id="image_get_thumb_info",
 )
 def get_image_thumbnail_info(request: HttpRequest, image_id: int):
-    img = get_object_or_404(Image.objects.permitted(request.user), pk=image_id)
-    return {
-        "id": img.id,
-        "title": img.title,
-        "thumbnail_width": img.thumbnail_width,
-        "thumbnail_height": img.thumbnail_height,
-        "thumbnail_url": request.build_absolute_uri(img.thumbnail_url),
-    }
+    return get_object_or_404(Image.objects.permitted(request.user), pk=image_id)
 
 
 @router.get(
@@ -53,29 +69,7 @@ def get_image_thumbnail_info(request: HttpRequest, image_id: int):
     operation_id="image_get_metadata",
 )
 def get_image_details(request: HttpRequest, image_id: int):
-    img: Image = get_object_or_404(Image.objects.permitted(request.user).with_folder(), pk=image_id)
-    return {
-        "id": img.id,
-        "orientation": img.orientation,
-        "size": {
-            "original_height": img.original_height,
-            "original_width": img.original_width,
-            "large_version_height": img.large_version_height,
-            "large_version_width": img.large_version_width,
-        },
-        "title": img.title,
-        "file_size": img.file_size,
-        "description": img.description,
-        "created_at": img.created_at,
-        "updated_at": img.updated_at,
-        "original_checksum": img.original_checksum,
-        "phash": img.phash,
-        "original_path": img.original_path,
-        "image_fs_id": img.image_fs_id,
-        "larger_size_url": request.build_absolute_uri(img.larger_size_url),
-        "can_edit": request.user.groups.filter(id__in=img.edit_groups.all()).exists() or request.user.is_superuser,
-        "folder": {"id": img.folder.pk, "name": img.folder.name},
-    }
+    return get_object_or_404(get_annotated_image_queryset(request.user), pk=image_id)
 
 
 @router.get(
@@ -165,29 +159,9 @@ def update_image_details(request: HttpRequest, image_id: int, data: ImageMetadat
     if data.description is not None:
         img.description = data.description
     img.save()
-    # TODO: Deduplicate this
-    return {
-        "id": img.id,
-        "orientation": img.orientation,
-        "size": {
-            "original_height": img.original_height,
-            "original_width": img.original_width,
-            "large_version_height": img.large_version_height,
-            "large_version_width": img.large_version_width,
-        },
-        "title": img.title,
-        "file_size": img.file_size,
-        "description": img.description,
-        "created_at": img.created_at,
-        "updated_at": img.updated_at,
-        "original_checksum": img.original_checksum,
-        "phash": img.phash,
-        "original_path": img.original_path,
-        "image_fs_id": img.image_fs_id,
-        "larger_size_url": request.build_absolute_uri(img.larger_size_url),
-        "can_edit": request.user.groups.filter(id__in=img.edit_groups.all()).exists() or request.user.is_superuser,
-        "folder": {"id": img.folder.pk, "name": img.folder.name},
-    }
+
+    # Refresh the image with annotations for the response
+    return get_object_or_404(get_annotated_image_queryset(request.user), pk=image_id)
 
 
 @router.patch(

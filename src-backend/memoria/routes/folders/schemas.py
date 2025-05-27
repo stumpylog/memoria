@@ -1,5 +1,8 @@
-from ninja import Field
 from ninja import Schema
+
+from memoria.routes.common.schemas import GroupPermissionReadOutMixin
+from memoria.routes.common.schemas import GroupPermissionUpdateInMixin
+from memoria.routes.common.schemas import TimestampMixin
 
 
 class BreadcrumbSchema(Schema):
@@ -7,22 +10,24 @@ class BreadcrumbSchema(Schema):
     id: int
 
 
-class RootFolderSchema(Schema):
+class RootFolderSchemaOut(GroupPermissionReadOutMixin, TimestampMixin, Schema):
     id: int
     name: str
     description: str | None
     child_count: int = 0
     image_count: int = 0
-    view_group_ids: list[int] = Field(default_factory=list, description="IDs of Groups allowed to view")
-    edit_group_ids: list[int] = Field(default_factory=list, description="IDs of Groups allowed to edit")
 
 
-class FolderDetailSchema(Schema):
+class FolderDetailSchemaOut(GroupPermissionReadOutMixin, TimestampMixin, Schema):
     id: int
     name: str
-    child_folders: list[RootFolderSchema]
+    description: str | None
+    child_folders: list[RootFolderSchemaOut]
     folder_images: list[int]
     breadcrumbs: list[BreadcrumbSchema]
     has_children: bool
-    view_group_ids: list[int] = Field(default_factory=list, description="IDs of Groups allowed to view")
-    edit_group_ids: list[int] = Field(default_factory=list, description="IDs of Groups allowed to edit")
+
+
+class FolderUpdateSchemaIn(GroupPermissionUpdateInMixin, Schema):
+    name: str | None = None
+    description: str | None = None
