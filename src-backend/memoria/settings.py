@@ -317,7 +317,7 @@ HUEY = {
         "connection_pool": REDIS_CONNECTION_POOL,
     },
     "consumer": {
-        "workers": 2,
+        "workers": int(os.environ.get("MEMORIA_WORKER_COUNT", "2")),
         "worker_type": "process",
         "scheduler_interval": 60,
         "periodic": True,  # Enable crontab feature.

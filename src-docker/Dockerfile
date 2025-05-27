@@ -105,6 +105,7 @@ RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
       postgresql-client \
       exiftool \
       tzdata \
+      shadow \
   && echo "Installing build system packages" \
     && apk add --no-cache --virtual .python-build \
         postgresql-dev \
