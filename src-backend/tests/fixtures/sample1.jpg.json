@@ -1,0 +1,121 @@
+{
+  "SourceFile": "memoria/tests/samples/images/originals/sample1.jpg",
+  "ImageHeight": 683,
+  "ImageWidth": 1024,
+  "Title": null,
+  "Description": "President Barack Obama throws a ball for Bo, the family dog, in the Rose Garden of the White House, Sept. 9, 2010.  (Official White House Photo by Pete Souza)",
+  "RegionInfo": {
+    "AppliedToDimensions": { "H": 683.0, "W": 1024.0, "Unit": "pixel" },
+    "RegionList": [
+      {
+        "Area": {
+          "H": 0.0585652,
+          "Unit": "normalized",
+          "W": 0.0292969,
+          "X": 0.317383,
+          "Y": 0.303075,
+          "D": null
+        },
+        "Name": "Barack Obama",
+        "Type": "Face",
+        "Description": null
+      },
+      {
+        "Area": {
+          "H": 0.284041,
+          "Unit": "normalized",
+          "W": 0.202148,
+          "X": 0.616699,
+          "Y": 0.768668,
+          "D": null
+        },
+        "Name": "Bo",
+        "Type": "Pet",
+        "Description": "Bo was a pet dog of the Obama family"
+      }
+    ]
+  },
+  "Orientation": null,
+  "LastKeywordXMP": [
+    "People/Barack Obama",
+    "Locations/United States/District of Columbia/Washington DC",
+    "Dates/2010/09 - September/9",
+    "Pets/Dogs/Bo"
+  ],
+  "TagsList": [
+    "People/Barack Obama",
+    "Locations/United States/District of Columbia/Washington DC",
+    "Dates/2010/09 - September/9",
+    "Pets/Dogs/Bo"
+  ],
+  "CatalogSets": [
+    "People|Barack Obama",
+    "Locations|United States|District of Columbia|Washington DC",
+    "Dates|2010|09 - September|9",
+    "Pets|Dogs|Bo"
+  ],
+  "HierarchicalSubject": [
+    "People|Barack Obama",
+    "Locations|United States|District of Columbia|Washington DC",
+    "Dates|2010|09 - September|9",
+    "Pets|Dogs|Bo"
+  ],
+  "KeywordInfo": {
+    "Hierarchy": [
+      {
+        "Keyword": "People",
+        "Applied": null,
+        "Children": [{ "Keyword": "Barack Obama", "Applied": null, "Children": [] }]
+      },
+      {
+        "Keyword": "Locations",
+        "Applied": null,
+        "Children": [
+          {
+            "Keyword": "United States",
+            "Applied": null,
+            "Children": [
+              {
+                "Keyword": "District of Columbia",
+                "Applied": null,
+                "Children": [{ "Keyword": "Washington DC", "Applied": null, "Children": [] }]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "Keyword": "Dates",
+        "Applied": null,
+        "Children": [
+          {
+            "Keyword": "2010",
+            "Applied": null,
+            "Children": [
+              {
+                "Keyword": "09 - September",
+                "Applied": null,
+                "Children": [{ "Keyword": "9", "Applied": null, "Children": [] }]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "Keyword": "Pets",
+        "Applied": null,
+        "Children": [
+          {
+            "Keyword": "Dogs",
+            "Applied": null,
+            "Children": [{ "Keyword": "Bo", "Applied": null, "Children": [] }]
+          }
+        ]
+      }
+    ]
+  },
+  "Country": "USA",
+  "City": "WASHINGTON",
+  "State": "DC",
+  "Location": null
+}

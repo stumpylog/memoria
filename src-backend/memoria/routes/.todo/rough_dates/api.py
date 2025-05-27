@@ -6,12 +6,13 @@ from django.shortcuts import aget_object_or_404
 from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
-from scansteward.common.errors import HttpConflictError
-from scansteward.common.errors import HttpUnprocessableEntityError
-from scansteward.models import RoughDate
-from scansteward.routes.rough_dates.schema import RoughDateCreateInSchema
-from scansteward.routes.rough_dates.schema import RoughDateReadOutSchema
-from scansteward.routes.rough_dates.schema import RoughDateUpdateInSchema
+
+from memoria.common.errors import HttpConflictError
+from memoria.common.errors import HttpUnprocessableEntityError
+from memoria.models import RoughDate
+from memoria.routes.rough_dates.schema import RoughDateCreateInSchema
+from memoria.routes.rough_dates.schema import RoughDateReadOutSchema
+from memoria.routes.rough_dates.schema import RoughDateUpdateInSchema
 
 router = Router(tags=["dates"])
 

@@ -1,0 +1,73 @@
+{
+  "SourceFile": "memoria/tests/samples/images/originals/sample4.jpg",
+  "ImageHeight": 436,
+  "ImageWidth": 654,
+  "Title": null,
+  "Description": "CREATOR: gd-jpeg v1.0 (using IJG JPEG v62), quality = 100\n",
+  "RegionInfo": {
+    "AppliedToDimensions": { "H": 436.0, "W": 654.0, "Unit": "pixel" },
+    "RegionList": [
+      {
+        "Area": {
+          "H": 0.0940367,
+          "Unit": "normalized",
+          "W": 0.0428135,
+          "X": 0.466361,
+          "Y": 0.186927,
+          "D": null
+        },
+        "Name": "Barack Obama",
+        "Type": "Face",
+        "Description": null
+      }
+    ]
+  },
+  "Orientation": null,
+  "LastKeywordXMP": [
+    "Locations/United States/Washington DC",
+    "Pets/Dogs/Bo",
+    "People/Barack Obama"
+  ],
+  "TagsList": ["Locations/United States/Washington DC", "Pets/Dogs/Bo", "People/Barack Obama"],
+  "CatalogSets": ["Locations|United States|Washington DC", "Pets|Dogs|Bo", "People|Barack Obama"],
+  "HierarchicalSubject": [
+    "Locations|United States|Washington DC",
+    "Pets|Dogs|Bo",
+    "People|Barack Obama"
+  ],
+  "KeywordInfo": {
+    "Hierarchy": [
+      {
+        "Keyword": "Locations",
+        "Applied": null,
+        "Children": [
+          {
+            "Keyword": "United States",
+            "Applied": null,
+            "Children": [{ "Keyword": "Washington DC", "Applied": null, "Children": [] }]
+          }
+        ]
+      },
+      {
+        "Keyword": "Pets",
+        "Applied": null,
+        "Children": [
+          {
+            "Keyword": "Dogs",
+            "Applied": null,
+            "Children": [{ "Keyword": "Bo", "Applied": null, "Children": [] }]
+          }
+        ]
+      },
+      {
+        "Keyword": "People",
+        "Applied": null,
+        "Children": [{ "Keyword": "Barack Obama", "Applied": null, "Children": [] }]
+      }
+    ]
+  },
+  "Country": null,
+  "City": null,
+  "State": null,
+  "Location": null
+}

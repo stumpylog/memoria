@@ -1,0 +1,398 @@
+[
+  {
+    "model": "memoria.tag",
+    "pk": 1,
+    "fields": {
+      "created": "2024-08-19T17:49:46.656Z",
+      "modified": "2024-08-19T17:49:46.656Z",
+      "name": "Pets",
+      "description": null,
+      "parent": null
+    }
+  },
+  {
+    "model": "memoria.tag",
+    "pk": 2,
+    "fields": {
+      "created": "2024-08-19T17:49:46.657Z",
+      "modified": "2024-08-19T17:49:46.657Z",
+      "name": "Dogs",
+      "description": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "memoria.tag",
+    "pk": 3,
+    "fields": {
+      "created": "2024-08-19T17:49:46.658Z",
+      "modified": "2024-08-19T17:49:46.658Z",
+      "name": "Bo",
+      "description": null,
+      "parent": 2
+    }
+  },
+  {
+    "model": "memoria.tagonimage",
+    "pk": 1,
+    "fields": {
+      "tag": 1,
+      "image": 1,
+      "applied": false
+    }
+  },
+  {
+    "model": "memoria.tagonimage",
+    "pk": 2,
+    "fields": {
+      "tag": 2,
+      "image": 1,
+      "applied": false
+    }
+  },
+  {
+    "model": "memoria.tagonimage",
+    "pk": 3,
+    "fields": {
+      "tag": 3,
+      "image": 1,
+      "applied": true
+    }
+  },
+  {
+    "model": "memoria.tagonimage",
+    "pk": 4,
+    "fields": {
+      "tag": 1,
+      "image": 4,
+      "applied": false
+    }
+  },
+  {
+    "model": "memoria.tagonimage",
+    "pk": 5,
+    "fields": {
+      "tag": 2,
+      "image": 4,
+      "applied": false
+    }
+  },
+  {
+    "model": "memoria.tagonimage",
+    "pk": 6,
+    "fields": {
+      "tag": 3,
+      "image": 4,
+      "applied": true
+    }
+  },
+  {
+    "model": "memoria.person",
+    "pk": 1,
+    "fields": {
+      "created": "2024-08-19T17:49:46.652Z",
+      "modified": "2024-08-19T17:49:46.652Z",
+      "name": "Barack Obama",
+      "description": null
+    }
+  },
+  {
+    "model": "memoria.person",
+    "pk": 2,
+    "fields": {
+      "created": "2024-08-19T17:49:48.520Z",
+      "modified": "2024-08-19T17:49:48.520Z",
+      "name": "Denis McDonough",
+      "description": null
+    }
+  },
+  {
+    "model": "memoria.person",
+    "pk": 3,
+    "fields": {
+      "created": "2024-08-19T17:49:48.521Z",
+      "modified": "2024-08-19T17:49:48.521Z",
+      "name": "Hillary Clinton",
+      "description": null
+    }
+  },
+  {
+    "model": "memoria.person",
+    "pk": 4,
+    "fields": {
+      "created": "2024-08-19T17:49:48.522Z",
+      "modified": "2024-08-19T17:49:48.522Z",
+      "name": "Joseph R Biden",
+      "description": null
+    }
+  },
+  {
+    "model": "memoria.personinimage",
+    "pk": 1,
+    "fields": {
+      "created": "2024-08-19T17:49:46.653Z",
+      "modified": "2024-08-19T17:49:46.653Z",
+      "image": 1,
+      "center_x": 0.317383,
+      "center_y": 0.303075,
+      "height": 0.0585652,
+      "width": 0.0292969,
+      "description": null,
+      "person": 1,
+      "exclude_from_training": false
+    }
+  },
+  {
+    "model": "memoria.personinimage",
+    "pk": 2,
+    "fields": {
+      "created": "2024-08-19T17:49:48.031Z",
+      "modified": "2024-08-19T17:49:48.031Z",
+      "image": 2,
+      "center_x": 0.492857,
+      "center_y": 0.277968,
+      "height": 0.216459,
+      "width": 0.129714,
+      "description": null,
+      "person": 1,
+      "exclude_from_training": false
+    }
+  },
+  {
+    "model": "memoria.personinimage",
+    "pk": 3,
+    "fields": {
+      "created": "2024-08-19T17:49:48.519Z",
+      "modified": "2024-08-19T17:49:48.519Z",
+      "image": 3,
+      "center_x": 0.332667,
+      "center_y": 0.39,
+      "height": 0.072,
+      "width": 0.0386667,
+      "description": null,
+      "person": 1,
+      "exclude_from_training": false
+    }
+  },
+  {
+    "model": "memoria.personinimage",
+    "pk": 4,
+    "fields": {
+      "created": "2024-08-19T17:49:48.521Z",
+      "modified": "2024-08-19T17:49:48.521Z",
+      "image": 3,
+      "center_x": 0.489333,
+      "center_y": 0.1445,
+      "height": 0.079,
+      "width": 0.0386667,
+      "description": null,
+      "person": 2,
+      "exclude_from_training": false
+    }
+  },
+  {
+    "model": "memoria.personinimage",
+    "pk": 5,
+    "fields": {
+      "created": "2024-08-19T17:49:48.522Z",
+      "modified": "2024-08-19T17:49:48.522Z",
+      "image": 3,
+      "center_x": 0.780667,
+      "center_y": 0.484,
+      "height": 0.108,
+      "width": 0.0626667,
+      "description": null,
+      "person": 3,
+      "exclude_from_training": false
+    }
+  },
+  {
+    "model": "memoria.personinimage",
+    "pk": 6,
+    "fields": {
+      "created": "2024-08-19T17:49:48.523Z",
+      "modified": "2024-08-19T17:49:48.523Z",
+      "image": 3,
+      "center_x": 0.0916667,
+      "center_y": 0.419,
+      "height": 0.094,
+      "width": 0.0433333,
+      "description": null,
+      "person": 4,
+      "exclude_from_training": false
+    }
+  },
+  {
+    "model": "memoria.personinimage",
+    "pk": 7,
+    "fields": {
+      "created": "2024-08-19T17:49:48.787Z",
+      "modified": "2024-08-19T17:49:48.787Z",
+      "image": 4,
+      "center_x": 0.466361,
+      "center_y": 0.186927,
+      "height": 0.0940367,
+      "width": 0.0428135,
+      "description": null,
+      "person": 1,
+      "exclude_from_training": false
+    }
+  },
+  {
+    "model": "memoria.pet",
+    "pk": 1,
+    "fields": {
+      "created": "2024-08-19T17:49:46.654Z",
+      "modified": "2024-08-19T17:49:46.655Z",
+      "name": "Bo",
+      "description": "Bo was a pet dog of the Obama family",
+      "pet_type": null
+    }
+  },
+  {
+    "model": "memoria.petinimage",
+    "pk": 1,
+    "fields": {
+      "created": "2024-08-19T17:49:46.656Z",
+      "modified": "2024-08-19T17:49:46.656Z",
+      "image": 1,
+      "center_x": 0.616699,
+      "center_y": 0.768668,
+      "height": 0.284041,
+      "width": 0.202148,
+      "description": null,
+      "pet": 1
+    }
+  },
+  {
+    "model": "memoria.roughdate",
+    "pk": 1,
+    "fields": {
+      "created": "2024-08-19T17:49:46.677Z",
+      "modified": "2024-08-19T17:49:46.677Z",
+      "date": "2010-09-09",
+      "month_valid": true,
+      "day_valid": true
+    }
+  },
+  {
+    "model": "memoria.roughlocation",
+    "pk": 1,
+    "fields": {
+      "created": "2024-08-19T17:49:46.675Z",
+      "modified": "2024-08-19T17:49:46.675Z",
+      "country_code": "US",
+      "subdivision_code": "US-DC",
+      "city": "WASHINGTON",
+      "sub_location": null
+    }
+  },
+  {
+    "model": "memoria.roughlocation",
+    "pk": 2,
+    "fields": {
+      "created": "2024-08-19T17:49:48.790Z",
+      "modified": "2024-08-19T17:49:48.790Z",
+      "country_code": "US",
+      "subdivision_code": null,
+      "city": "Washington DC",
+      "sub_location": null
+    }
+  },
+  {
+    "model": "memoria.image",
+    "pk": 1,
+    "fields": {
+      "created": "2024-08-19T17:49:46.447Z",
+      "modified": "2024-08-19T17:49:46.678Z",
+      "original_checksum": "7345fd322813069270796fbf3c851efc08e8cc585da4c5715d4660640ece145c",
+      "thumbnail_checksum": "a800523c800ba12682e0b0c93964ae86051e98deda382ccca17d5b8059f330aa",
+      "full_size_checksum": "d410af04730225f3e5ad300f6d2f20e163448b52dd6342e7750dc12a404e6e03",
+      "phash": "dcd3a1250fa4e2cd",
+      "file_size": 643143,
+      "height": 683,
+      "width": 1024,
+      "orientation": 1,
+      "description": "President Barack Obama throws a ball for Bo, the family dog, in the Rose Garden of the White House, Sept. 9, 2010.  (Official White House Photo by Pete Souza)",
+      "original": "C:\\Users\\Trenton\\Documents\\Programming\\Python\\scan-steward\\src-backend\\memoria\\tests\\samples\\images\\originals\\sample1.jpg",
+      "is_dirty": false,
+      "deleted_at": null,
+      "is_starred": false,
+      "source": null,
+      "location": 1,
+      "date": 1
+    }
+  },
+  {
+    "model": "memoria.image",
+    "pk": 2,
+    "fields": {
+      "created": "2024-08-19T17:49:46.902Z",
+      "modified": "2024-08-19T17:49:48.032Z",
+      "original_checksum": "4870be2a939d740b29db678995f89cc5741388923b90e60f4c3386c2136f0aa7",
+      "thumbnail_checksum": "4745a653019294773b696168d4661137526de44a2aeaff17aadb6b3815c6580d",
+      "full_size_checksum": "5601f71b9d6fe7243bdbc3ca1952cf113d61ec9ec821e15adee392d1a10d3102",
+      "phash": "b9c293902cb61b6f",
+      "file_size": 934650,
+      "height": 2333,
+      "width": 3500,
+      "orientation": 1,
+      "description": "President Barack Obama signs a letter to a Cuban letter writer, in the Oval Office, March 14, 2016. (Official White House Photo by Pete Souza)\n\nThis official White House photograph is being made available only for publication by news organizations and/or for personal use printing by the subject(s) of the photograph. The photograph may not be manipulated in any way and may not be used in commercial or political materials, advertisements, emails, products, promotions that in any way suggests approval or endorsement of the President, the First Family, or the White House.",
+      "original": "C:\\Users\\Trenton\\Documents\\Programming\\Python\\scan-steward\\src-backend\\memoria\\tests\\samples\\images\\originals\\sample2.jpg",
+      "is_dirty": false,
+      "deleted_at": null,
+      "is_starred": false,
+      "source": null,
+      "location": 1,
+      "date": null
+    }
+  },
+  {
+    "model": "memoria.image",
+    "pk": 3,
+    "fields": {
+      "created": "2024-08-19T17:49:48.267Z",
+      "modified": "2024-08-19T17:49:48.523Z",
+      "original_checksum": "57e91a433365c59416d7b774da01275a5fe3eb0d14298c08df9742bb70bdded7",
+      "thumbnail_checksum": "435cb5a40193396a435b813de2e304f3c3b3f6c077437db3864431ac966eacb6",
+      "full_size_checksum": "608a168d7938a4f6a26470d13268571bb6964612cdeda434474f3b7b93d4a6fa",
+      "phash": "ecd186d9b60cc9b2",
+      "file_size": 369175,
+      "height": 1000,
+      "width": 1500,
+      "orientation": 1,
+      "description": "May 1, 2011\n\"Much has been made of this photograph that shows the President and Vice President and the national security team monitoring in real time the mission against Osama bin Laden. Some more background on the photograph: The White House Situation Room is actually comprised of several different conference rooms. The majority of the time, the President convenes meetings in the large conference room with assigned seats. But to monitor this mission, the group moved into the much smaller conference room. The President chose to sit next to Brigadier General Marshall B. �Brad� Webb, Assistant Commanding General of Joint Special Operations Command, who was point man for the communications taking place. WIth so few chairs, others just stood at the back of the room. I was jammed into a corner of the room with no room to move. During the mission itself, I made approximately 100 photographs, almost all from this cramped spot in the corner. There were several other meetings throughout the day, and we've put together a composite of several photographs (see next photo in this set) to give people a better sense of what the day was like.  Seated in this picture from left to right: Vice President Biden, the President, Brig. Gen. Webb, Deputy National Security Advisor Denis McDonough, Secretary of State Hillary Rodham Clinton, and then Secretary of Defense Robert Gates. Standing, from left, are: Admiral Mike Mullen, then Chairman of the Joint Chiefs of Staff; National Security Advisor Tom Donilon; Chief of Staff Bill Daley; Tony Blinken, National Security Advisor to the Vice President; Audrey Tomason Director for Counterterrorism; John Brennan, Assistant to the President for Homeland Security and Counterterrorism; and Director of National Intelligence James Clapper. Please note: a classified document seen in front of Sec. Clinton has been obscured.\" \n(Official White House Photo by Pete Souza)\n\nThis official White House photograph is being made available only for publication by news organizations and/or for personal use printing by the subject(s) of the photograph. The photograph may not be manipulated in any way and may not be used in commercial or political materials, advertisements, emails, products, promotions that in any way suggests approval or endorsement of the President, the First Family, or the White House.",
+      "original": "C:\\Users\\Trenton\\Documents\\Programming\\Python\\scan-steward\\src-backend\\memoria\\tests\\samples\\images\\originals\\sample3.jpg",
+      "is_dirty": false,
+      "deleted_at": null,
+      "is_starred": false,
+      "source": null,
+      "location": 1,
+      "date": null
+    }
+  },
+  {
+    "model": "memoria.image",
+    "pk": 4,
+    "fields": {
+      "created": "2024-08-19T17:49:48.691Z",
+      "modified": "2024-08-19T17:49:48.790Z",
+      "original_checksum": "6449856e09257ae81851d8fe0bb76f9fd1515cad435d0d16b2ae788fb3e5e482",
+      "thumbnail_checksum": "c9b158684db8be131200dbfa14451867db44104de2f4b035eed696c830a0d6b4",
+      "full_size_checksum": "80f8fcea3a722f937840a93a666fe6cdd206f93fe48e85d89982222c16e151e7",
+      "phash": "b459592626e5f31c",
+      "file_size": 316020,
+      "height": 436,
+      "width": 654,
+      "orientation": 1,
+      "description": "CREATOR: gd-jpeg v1.0 (using IJG JPEG v62), quality = 100\n",
+      "original": "C:\\Users\\Trenton\\Documents\\Programming\\Python\\scan-steward\\src-backend\\memoria\\tests\\samples\\images\\originals\\sample4.jpg",
+      "is_dirty": false,
+      "deleted_at": null,
+      "is_starred": false,
+      "source": null,
+      "location": 2,
+      "date": null
+    }
+  }
+]

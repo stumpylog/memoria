@@ -6,11 +6,12 @@ from django.shortcuts import aget_object_or_404
 from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
-from scansteward.common.errors import HttpConflictError
-from scansteward.models import ImageSource
-from scansteward.routes.sources.schema import ImageSourceCreateInSchema
-from scansteward.routes.sources.schema import ImageSourceReadOutSchema
-from scansteward.routes.sources.schema import ImageSourceUpdateInSchema
+
+from memoria.common.errors import HttpConflictError
+from memoria.models import ImageSource
+from memoria.routes.sources.schema import ImageSourceCreateInSchema
+from memoria.routes.sources.schema import ImageSourceReadOutSchema
+from memoria.routes.sources.schema import ImageSourceUpdateInSchema
 
 router = Router(tags=["sources"])
 

@@ -7,12 +7,13 @@ from ninja import Router
 from ninja.errors import HttpError
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
-from scansteward.models import Tag
-from scansteward.routes.tags.schemas import TagCreateInSchema
-from scansteward.routes.tags.schemas import TagNameFilter
-from scansteward.routes.tags.schemas import TagReadOutSchema
-from scansteward.routes.tags.schemas import TagTreeOutSchema
-from scansteward.routes.tags.schemas import TagUpdateInSchema
+
+from memoria.models import Tag
+from memoria.routes.tags.schemas import TagCreateInSchema
+from memoria.routes.tags.schemas import TagNameFilter
+from memoria.routes.tags.schemas import TagReadOutSchema
+from memoria.routes.tags.schemas import TagTreeOutSchema
+from memoria.routes.tags.schemas import TagUpdateInSchema
 
 router = Router(tags=["tags"])
 

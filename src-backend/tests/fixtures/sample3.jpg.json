@@ -1,0 +1,122 @@
+{
+  "SourceFile": "memoria/tests/samples/images/originals/sample3.jpg",
+  "ImageHeight": 1000,
+  "ImageWidth": 1500,
+  "Title": null,
+  "Description": "May 1, 2011\n\"Much has been made of this photograph that shows the President and Vice President and the national security team monitoring in real time the mission against Osama bin Laden. Some more background on the photograph: The White House Situation Room is actually comprised of several different conference rooms. The majority of the time, the President convenes meetings in the large conference room with assigned seats. But to monitor this mission, the group moved into the much smaller conference room. The President chose to sit next to Brigadier General Marshall B. �Brad� Webb, Assistant Commanding General of Joint Special Operations Command, who was point man for the communications taking place. WIth so few chairs, others just stood at the back of the room. I was jammed into a corner of the room with no room to move. During the mission itself, I made approximately 100 photographs, almost all from this cramped spot in the corner. There were several other meetings throughout the day, and we've put together a composite of several photographs (see next photo in this set) to give people a better sense of what the day was like.  Seated in this picture from left to right: Vice President Biden, the President, Brig. Gen. Webb, Deputy National Security Advisor Denis McDonough, Secretary of State Hillary Rodham Clinton, and then Secretary of Defense Robert Gates. Standing, from left, are: Admiral Mike Mullen, then Chairman of the Joint Chiefs of Staff; National Security Advisor Tom Donilon; Chief of Staff Bill Daley; Tony Blinken, National Security Advisor to the Vice President; Audrey Tomason Director for Counterterrorism; John Brennan, Assistant to the President for Homeland Security and Counterterrorism; and Director of National Intelligence James Clapper. Please note: a classified document seen in front of Sec. Clinton has been obscured.\" \n(Official White House Photo by Pete Souza)\n\nThis official White House photograph is being made available only for publication by news organizations and/or for personal use printing by the subject(s) of the photograph. The photograph may not be manipulated in any way and may not be used in commercial or political materials, advertisements, emails, products, promotions that in any way suggests approval or endorsement of the President, the First Family, or the White House.",
+  "RegionInfo": {
+    "AppliedToDimensions": { "H": 1000.0, "W": 1500.0, "Unit": "pixel" },
+    "RegionList": [
+      {
+        "Area": {
+          "H": 0.072,
+          "Unit": "normalized",
+          "W": 0.0386667,
+          "X": 0.332667,
+          "Y": 0.39,
+          "D": null
+        },
+        "Name": "Barack Obama",
+        "Type": "Face",
+        "Description": null
+      },
+      {
+        "Area": {
+          "H": 0.079,
+          "Unit": "normalized",
+          "W": 0.0386667,
+          "X": 0.489333,
+          "Y": 0.1445,
+          "D": null
+        },
+        "Name": "Denis McDonough",
+        "Type": "Face",
+        "Description": null
+      },
+      {
+        "Area": {
+          "H": 0.108,
+          "Unit": "normalized",
+          "W": 0.0626667,
+          "X": 0.780667,
+          "Y": 0.484,
+          "D": null
+        },
+        "Name": "Hillary Clinton",
+        "Type": "Face",
+        "Description": null
+      },
+      {
+        "Area": {
+          "H": 0.094,
+          "Unit": "normalized",
+          "W": 0.0433333,
+          "X": 0.0916667,
+          "Y": 0.419,
+          "D": null
+        },
+        "Name": "Joseph R Biden",
+        "Type": "Face",
+        "Description": null
+      }
+    ]
+  },
+  "Orientation": 1,
+  "LastKeywordXMP": [
+    "Locations/United States/Washington DC",
+    "People/Barack Obama",
+    "People/Denis McDonough",
+    "People/Hillary Clinton",
+    "People/Joseph R Biden"
+  ],
+  "TagsList": [
+    "Locations/United States/Washington DC",
+    "People/Barack Obama",
+    "People/Denis McDonough",
+    "People/Hillary Clinton",
+    "People/Joseph R Biden"
+  ],
+  "CatalogSets": [
+    "Locations|United States|Washington DC",
+    "People|Barack Obama",
+    "People|Denis McDonough",
+    "People|Hillary Clinton",
+    "People|Joseph R Biden"
+  ],
+  "HierarchicalSubject": [
+    "Locations|United States|Washington DC",
+    "People|Barack Obama",
+    "People|Denis McDonough",
+    "People|Hillary Clinton",
+    "People|Joseph R Biden"
+  ],
+  "KeywordInfo": {
+    "Hierarchy": [
+      {
+        "Keyword": "Locations",
+        "Applied": null,
+        "Children": [
+          {
+            "Keyword": "United States",
+            "Applied": null,
+            "Children": [{ "Keyword": "Washington DC", "Applied": null, "Children": [] }]
+          }
+        ]
+      },
+      {
+        "Keyword": "People",
+        "Applied": null,
+        "Children": [
+          { "Keyword": "Joseph R Biden", "Applied": null, "Children": [] },
+          { "Keyword": "Denis McDonough", "Applied": null, "Children": [] },
+          { "Keyword": "Hillary Clinton", "Applied": null, "Children": [] },
+          { "Keyword": "Barack Obama", "Applied": null, "Children": [] }
+        ]
+      }
+    ]
+  },
+  "Country": "USA",
+  "City": "WASHINGTON",
+  "State": "DC",
+  "Location": null
+}

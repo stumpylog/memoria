@@ -5,9 +5,10 @@ import sys
 from ninja import Field
 from ninja import Schema
 from pydantic import model_validator
-from scansteward.routes.locations.utils import subdivision_in_country
 from simpleiso3166.countries.types import CountryCodeAlpha2Type  # noqa: TC002
 from simpleiso3166.subdivisions.types import SubdivisionCodeType  # noqa: TC002
+
+from memoria.routes.locations.utils import subdivision_in_country
 
 if sys.version_info > (3, 11):
     from typing import Self

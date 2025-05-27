@@ -1,0 +1,54 @@
+{
+  "SourceFile": "memoria/tests/samples/images/originals/sample2.jpg",
+  "ImageHeight": 2333,
+  "ImageWidth": 3500,
+  "Title": null,
+  "Description": "President Barack Obama signs a letter to a Cuban letter writer, in the Oval Office, March 14, 2016. (Official White House Photo by Pete Souza)\n\nThis official White House photograph is being made available only for publication by news organizations and/or for personal use printing by the subject(s) of the photograph. The photograph may not be manipulated in any way and may not be used in commercial or political materials, advertisements, emails, products, promotions that in any way suggests approval or endorsement of the President, the First Family, or the White House.",
+  "RegionInfo": {
+    "AppliedToDimensions": { "H": 2333.0, "W": 3500.0, "Unit": "pixel" },
+    "RegionList": [
+      {
+        "Area": {
+          "H": 0.216459,
+          "Unit": "normalized",
+          "W": 0.129714,
+          "X": 0.492857,
+          "Y": 0.277968,
+          "D": null
+        },
+        "Name": "Barack Obama",
+        "Type": "Face",
+        "Description": null
+      }
+    ]
+  },
+  "Orientation": 1,
+  "LastKeywordXMP": ["Locations/United States/Washington DC", "People/Barack Obama"],
+  "TagsList": ["Locations/United States/Washington DC", "People/Barack Obama"],
+  "CatalogSets": ["Locations|United States|Washington DC", "People|Barack Obama"],
+  "HierarchicalSubject": ["Locations|United States|Washington DC", "People|Barack Obama"],
+  "KeywordInfo": {
+    "Hierarchy": [
+      {
+        "Keyword": "Locations",
+        "Applied": null,
+        "Children": [
+          {
+            "Keyword": "United States",
+            "Applied": null,
+            "Children": [{ "Keyword": "Washington DC", "Applied": null, "Children": [] }]
+          }
+        ]
+      },
+      {
+        "Keyword": "People",
+        "Applied": null,
+        "Children": [{ "Keyword": "Barack Obama", "Applied": null, "Children": [] }]
+      }
+    ]
+  },
+  "Country": "USA",
+  "City": "WASHINGTON",
+  "State": "DC",
+  "Location": null
+}

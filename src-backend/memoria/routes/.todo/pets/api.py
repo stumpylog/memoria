@@ -6,11 +6,12 @@ from django.shortcuts import aget_object_or_404
 from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
-from scansteward.common.errors import HttpConflictError
-from scansteward.models import Pet
-from scansteward.routes.pets.schemas import PetCreateInSchema
-from scansteward.routes.pets.schemas import PetReadOutSchema
-from scansteward.routes.pets.schemas import PetUpdateInSchema
+
+from memoria.common.errors import HttpConflictError
+from memoria.models import Pet
+from memoria.routes.pets.schemas import PetCreateInSchema
+from memoria.routes.pets.schemas import PetReadOutSchema
+from memoria.routes.pets.schemas import PetUpdateInSchema
 
 router = Router(tags=["pets"])
 

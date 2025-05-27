@@ -6,15 +6,16 @@ from django.shortcuts import aget_object_or_404
 from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
-from scansteward.common.errors import HttpBadRequestError
-from scansteward.common.errors import HttpConflictError
-from scansteward.models import RoughLocation
-from scansteward.routes.locations.schemas import LocationCreateInSchema
-from scansteward.routes.locations.schemas import LocationReadOutSchema
-from scansteward.routes.locations.schemas import LocationUpdateInSchema
-from scansteward.routes.locations.utils import subdivision_in_country
 from simpleiso3166.countries.types import CountryCodeAlpha2Type
 from simpleiso3166.subdivisions.types import SubdivisionCodeType
+
+from memoria.common.errors import HttpBadRequestError
+from memoria.common.errors import HttpConflictError
+from memoria.models import RoughLocation
+from memoria.routes.locations.schemas import LocationCreateInSchema
+from memoria.routes.locations.schemas import LocationReadOutSchema
+from memoria.routes.locations.schemas import LocationUpdateInSchema
+from memoria.routes.locations.utils import subdivision_in_country
 
 router = Router(tags=["locations"])
 
