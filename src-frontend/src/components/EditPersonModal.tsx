@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
 import React, { useEffect } from "react";
-import { Badge, Button, Form, Modal, Spinner } from "react-bootstrap"; // Import Badge and Spinner
+import { Button, Form, Modal, Spinner } from "react-bootstrap"; // Import Badge and Spinner
 import { Controller, useForm } from "react-hook-form";
 import Select from "react-select"; // Import react-select
 
