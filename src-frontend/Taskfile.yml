@@ -1,0 +1,51 @@
+# https://taskfile.dev
+version: "3"
+
+tasks:
+  default:
+    cmds:
+      - task --list-all
+    silent: true
+    desc: List frontend-specific tasks
+
+  deps:install:
+    desc: Installs frontend Node.js dependencies using pnpm.
+    dir: ./src-frontend
+    cmds:
+      - pnpm install --frozen-lockfile --strict-peer-dependencies=false
+
+  dev:
+    desc: Starts the Vite development server.
+    dir: ./src-frontend
+    cmds:
+      - pnpm dev
+    deps: [deps:install]
+
+  build:
+    desc: Builds the frontend for production.
+    dir: ./src-frontend
+    cmds:
+      - pnpm build
+    deps: [deps:install]
+
+  lint:
+    desc: Runs frontend linting checks.
+    dir: ./src-frontend
+    cmds:
+      - pnpm lint
+    deps: [deps:install]
+
+  clean:
+    desc: Cleans frontend build artifacts.
+    dir: ./src-frontend
+    cmds:
+      - rm -rf dist .turbo
+    silent: true
+
+  api:generate-client:
+    desc: Generates the frontend API client from the OpenAPI schema.
+    dir: ./src-frontend
+    cmds:
+      - pnpm run generate-api-client
+      - pnpm run format
+    deps: [deps:install]

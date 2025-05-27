@@ -1,46 +1,109 @@
 # https://taskfile.dev
-
 version: "3"
 
+# Variables that can be used across sub-Taskfiles (if passed down or read by them)
 vars:
-  GREETING: Hello, World!
+  PROJECT_NAME: memoria
+  PYTHON_VERSION: 3.12
+  DOCKER_IMAGE_NAME: "{{.PROJECT_NAME}}:{{.VERSION}}" # Dynamic image name
+
+includes:
+  backend: ./src-backend
+  frontend: ./src-frontend
+  docs: ./src-docs
 
 tasks:
-  reset:
+  default:
     cmds:
-      - rm data/db.sqlite3 || true
-      - rm -r ./logs/ || true
-      - rm -r ./media/ || true
-      - uv run manage.py migrate
-  indexholmes:
+      - task --list-all
+    silent: true
+    desc: List all available tasks
+
+  # -----------------------------------------------------------
+  # Version Management
+  # -----------------------------------------------------------
+  version:sync:
+    desc: Synchronizes the version to pyproject.toml and package.json files
     cmds:
-      - uv run manage.py index --hash-threads 16 --view-group "Holmes Viewers" --edit-group "Holmes Editors" --root-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Parents'"
-  indexclaudia:
+      - python scripts/sync_version.py {{.CLI_ARGS}}
+    sources:
+      - VERSION
+      - scripts/sync_version.py
+      - src-backend/pyproject.toml
+      - src-docs/pyproject.toml
+      - src-frontend/package.json
+
+  # -----------------------------------------------------------
+  # Global Dependency Management
+  # -----------------------------------------------------------
+  deps:install:
+    desc: Install all Python (uv workspace) and Node.js (pnpm) dependencies.
     cmds:
-      - uv run manage.py index --hash-threads 16 --view-group "Claudia Viewers" --edit-group "Claudia Editors" --root-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Grandma's"
-  indexanderson:
+      - task: backend:deps:install
+      - task: docs:deps:install
+      - task: frontend:deps:install
+      - echo "All dependencies installed."
+
+  # -----------------------------------------------------------
+  # Development Commands
+  # -----------------------------------------------------------
+  dev:
+    desc: Starts all development servers (backend, frontend, docs).
     cmds:
-      - uv run manage.py index --hash-threads 16 --view-group "Anderson Viewers" --edit-group "Anderson Editors" --root-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Anderson Family"
-  indexsubset:
+      - echo "Starting dev servers..."
+      - task: backend:dev &
+      - task: frontend:dev &
+      - task: docs:dev &
+      - wait # Wait for all background tasks to complete (or use Ctrl+C to stop)
+
+  # -----------------------------------------------------------
+  # Build Commands
+  # -----------------------------------------------------------
+  build:
+    desc: Builds all project artifacts (backend, frontend, docs).
     cmds:
-      - uv run manage.py index --hash-threads 16 --view-group "Anderson Viewers" --edit-group "Anderson Editors" --root-dir "D:\Pictures\Scans" "D:\Pictures\Scans\Anderson Family\Box 6\2002 - 08"
-  makemigrations:
+      - task: version:sync # Ensure versions are synced before building
+      - task: backend:build
+      - task: frontend:build
+      - task: docs:build
+      - echo "All projects built."
+
+  # -----------------------------------------------------------
+  # Testing & Linting
+  # -----------------------------------------------------------
+  test:
+    desc: Runs all tests across the backend.
     cmds:
-      - uv run manage.py makemigrations
-  exportschema:
-    deps:
-      - exportopenapi
-      - generateapiclient
-  exportopenapi:
-    env:
-      MEMORIA_DEBUG: "true"
+      - task: backend:test
+
+  lint:
+    desc: Runs all linting checks across the backend and frontend.
     cmds:
-      - uv run manage.py export_openapi_schema --output schema.json --sorted --indent 2
-  generateapiclient:
-    dir: "frontend"
+      - task: backend:lint
+      - task: frontend:lint
+
+  # -----------------------------------------------------------
+  # Cleanup
+  # -----------------------------------------------------------
+  clean:
+    desc: Cleans build artifacts and caches from all projects.
     cmds:
-      - pnpm run generate-api-client
-      - pnpm run format
+      - task: backend:clean
+      - task: frontend:clean
+      - task: docs:clean
+      - echo "All projects cleaned."
+
+  # -----------------------------------------------------------
+  # API Client Generation Workflow
+  # -----------------------------------------------------------
+  api:update-client:
+    desc: Exports backend OpenAPI schema and generates frontend API client.
+    cmds:
+      - task: backend:api:export-schema
+      - task: frontend:api:generate-client
+    sources:
+      - schema.json
+
   repomix:
     cmds:
       - repomix --style markdown --remove-comments --ignore frontend/.prettierignore,frontend/.stylelintignore,frontend/eslint.config.js,frontend/index.html,frontend/openapi-ts.config.ts,frontend/pnpm-workspace.yaml,frontend/README.md,frontend/vite.config.ts,frontend/tsconfig.app.json,frontend/tsconfig.json,frontend/tsconfig.node.json,frontend/public/,docker/,frontend/.env,frontend/.gitignore,memoria/migrations/,schema.json,docs/ --remove-empty-lines .

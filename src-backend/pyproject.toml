@@ -1,0 +1,220 @@
+[project]
+name = "memoria-backend"
+version = "0.0.1"
+description = "Memoria Backend Application"
+requires-python = ">=3.10"
+
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+  "blake3>=0.4.1",
+  "concurrent-log-handler~=0.9.6",
+  "django~=5.2",
+  "django-cors-headers~=4.7",
+  "django-ninja",
+  "django-timezone-field~=7.1",
+  "django-treenode",
+  "django-typer[rich]>=2.2.1",
+  "exifmwg",
+  "huey>=2.5.1",
+  "imagehash",
+  "orjson",
+  "pillow~=11.2.1",
+  "pydantic[email]",
+  "pydantic-extra-types",
+  "redis[hiredis]>=5.0.8",
+  "simpleiso3166[search]>=0.1",
+]
+
+# optional-dependencies.mariadb = [
+#   "mysqlclient~=2.2.7",
+# ]
+optional-dependencies.postgres = [
+  "psycopg[c,pool]~=3.2.8",
+]
+optional-dependencies.webserver = [
+  "granian[uvloop]~=2.3.0",
+]
+
+[dependency-groups]
+dev = [
+  { "include-group" = "testing" },
+  { "include-group" = "lint" },
+  { "include-group" = "typing" },
+]
+
+docs = [
+  "mike~=2.1",
+  "mkdocs-glightbox~=0.4.0",
+  "mkdocs-material~=9.6",
+  "mkdocs-minify-plugin~=0.8",
+]
+
+testing = [
+  "factory-boy~=3.3.1",
+  "faker>=27.4",
+  "pytest~=8.3.3",
+  "pytest-asyncio>=0.23.8",
+  "pytest-cov~=6.1.0",
+  "pytest-django~=4.11.0",
+  "pytest-env",
+  "pytest-mock",
+  "pytest-randomly>=3.15",
+  "pytest-rerunfailures",
+  "pytest-sugar",
+  "pytest-xdist",
+]
+
+lint = [
+  "codespell>=2.3",
+  "pre-commit~=4.1.0",
+  "pre-commit-uv~=4.1.3",
+  "ruff~=0.11",
+]
+
+typing = [
+  "django-stubs[compatible-mypy]",
+  "mypy",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+fix = true
+show-fixes = true
+
+output-format = "grouped"
+# https://docs.astral.sh/ruff/rules/
+lint.extend-select = [
+  "A",     # https://docs.astral.sh/ruff/rules/#flake8-builtins-a
+  "ARG",   # https://docs.astral.sh/ruff/rules/#flake8-unused-arguments-arg
+  "ASYNC", # https://docs.astral.sh/ruff/rules/#flake8-async-async
+  "B",     # https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
+  "BLE",   # https://docs.astral.sh/ruff/rules/#flake8-blind-except-ble
+  "C",     # https://docs.astral.sh/ruff/rules/#convention-c
+  "C4",    # https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
+  # "CPY",   # https://docs.astral.sh/ruff/rules/#flake8-copyright-cpy
+  "COM",  # https://docs.astral.sh/ruff/rules/#flake8-commas-com
+  "DJ",   # https://docs.astral.sh/ruff/rules/#flake8-django-dj
+  "DTZ",  # https://docs.astral.sh/ruff/rules/#flake8-datetimez-dtz
+  "E",    # https://docs.astral.sh/ruff/rules/#error-e
+  "EM",   # https://docs.astral.sh/ruff/rules/#flake8-errmsg-em
+  "ERA",  # https://docs.astral.sh/ruff/rules/#eradicate-era
+  "EXE",  # https://docs.astral.sh/ruff/rules/#flake8-executable-exe
+  "F",    # https://docs.astral.sh/ruff/rules/#pyflakes-f
+  "FA",   # https://docs.astral.sh/ruff/rules/#flake8-future-annotations-fa
+  "FBT",  # https://docs.astral.sh/ruff/rules/#flake8-boolean-trap-fbt
+  "FIX",  # https://docs.astral.sh/ruff/rules/#flake8-fixme-fix
+  "FLY",  # https://docs.astral.sh/ruff/rules/#flynt-fly
+  "G",    # https://docs.astral.sh/ruff/rules/#flake8-logging-format-g
+  "I",    # https://docs.astral.sh/ruff/rules/#isort-i
+  "ICN",  # https://docs.astral.sh/ruff/rules/#flake8-import-conventions-icn
+  "INP",  # https://docs.astral.sh/ruff/rules/#flake8-no-pep420-inp
+  "INT",  # https://docs.astral.sh/ruff/rules/#flake8-gettext-int
+  "ISC",  # https://docs.astral.sh/ruff/rules/#flake8-implicit-str-concat-isc
+  "LOG",  # https://docs.astral.sh/ruff/rules/#flake8-logging-log
+  "N",    # https://docs.astral.sh/ruff/rules/#pep8-naming-n
+  "PERF", # https://docs.astral.sh/ruff/rules/#perflint-perf
+  "PGH",  # https://docs.astral.sh/ruff/rules/#pygrep-hooks-pgh
+  "PIE",  # https://docs.astral.sh/ruff/rules/#flake8-pie-pie
+  "PL",   # https://docs.astral.sh/ruff/rules/#pylint-pl
+  "PLC",  # https://docs.astral.sh/ruff/rules/#convention-c
+  "PLE",  # https://docs.astral.sh/ruff/rules/#error-e_1
+  "PLR",  # https://docs.astral.sh/ruff/rules/#refactor-r
+  "PLW",  # https://docs.astral.sh/ruff/rules/#warning-w_1
+  "PT",   # https://docs.astral.sh/ruff/rules/#flake8-pytest-style-pt
+  "PTH",  # https://docs.astral.sh/ruff/rules/#flake8-use-pathlib-pth
+  "Q",    # https://docs.astral.sh/ruff/rules/#flake8-quotes-q
+  "RET",  # https://docs.astral.sh/ruff/rules/#flake8-return-ret
+  "RSE",  # https://docs.astral.sh/ruff/rules/#flake8-raise-rse
+  "RUF",  # https://docs.astral.sh/ruff/rules/#ruff-specific-rules-ruf
+  "S",    # https://docs.astral.sh/ruff/rules/#flake8-bandit-s
+  "SIM",  # https://docs.astral.sh/ruff/rules/#flake8-simplify-sim
+  "SLF",  # https://docs.astral.sh/ruff/rules/#flake8-self-slf
+  "SLOT", # https://docs.astral.sh/ruff/rules/#flake8-slots-slot
+  "T10",  # https://docs.astral.sh/ruff/rules/#flake8-debugger-t10
+  "T20",  # https://docs.astral.sh/ruff/rules/#flake8-print-t20
+  "TCH",  # https://docs.astral.sh/ruff/rules/#flake8-type-checking-tch
+  "TD",   # https://docs.astral.sh/ruff/rules/#flake8-todos-td
+  "TID",  # https://docs.astral.sh/ruff/rules/#flake8-tidy-imports-tid
+  "TRY",  # https://docs.astral.sh/ruff/rules/#tryceratops-try
+  "UP",   # https://docs.astral.sh/ruff/rules/#pyupgrade-up
+  "W",    # https://docs.astral.sh/ruff/rules/#warning-w
+  "YTT",  # https://docs.astral.sh/ruff/rules/#flake8-2020-ytt
+]
+lint.ignore = [
+  # Allow non-abstract empty methods in abstract base classes
+  "B027",
+  # Ignore complexity
+  "C901",
+  # Allow boolean positional values in function calls, like `dict.get(... True)`
+  "FBT003",
+  "FIX002",
+  "G004",
+  "PLR0911",
+  "PLR0912",
+  "PLR0913",
+  "PLR0915",
+  # Ignore checks for possible passwords
+  "S105",
+  "S106",
+  "S107",
+  # Ignore subprocess.run calls
+  "S603",
+  # Ignore no author and missing issue link in TODO tags
+  "TD002",
+  "TD003",
+]
+# Migrations can use mutable class attributes
+lint.per-file-ignores."**/migrations/*" = [ "RUF012" ]
+# Tests can use magic values, assertions, and relative imports
+lint.per-file-ignores."**/tests/**/*" = [ "ARG001", "PLR2004", "S101", "TID252" ]
+lint.flake8-pytest-style.mark-parentheses = false
+lint.flake8-tidy-imports.ban-relative-imports = "all"
+lint.isort.force-single-line = true
+lint.isort.known-first-party = [ "memoria" ]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = [ "memoria/tests" ]
+addopts = "--pythonwarnings=all --cov --cov-report=html --cov-report=json --cov-report=term -n auto --maxprocesses=8 -p no:legacypath"
+asyncio_mode = "auto"
+DJANGO_SETTINGS_MODULE = "memoria.settings"
+
+[tool.pytest_env]
+MEMORIA_DEBUG = 1
+
+[tool.coverage.run]
+branch = true
+omit = [ "*/tests/*" ]
+
+[tool.coverage.report]
+exclude_also = [
+  "def __repr__",
+  "def __str__",
+  "if TYPE_CHECKING",
+  "if proc.returncode != 0",
+  "if sys.version_info >",
+  "def __get_pydantic_json_schema__",
+]
+
+[tool.coverage.html]
+directory = "coverage_html_report"
+
+[tool.mypy]
+plugins = [ "pydantic.mypy", "mypy_django_plugin.main" ]
+exclude = [ "memoria/tests/" ]
+follow_imports = "silent"
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_reexport = true
+
+[tool.django-stubs]
+django_settings_module = "memoria.settings"

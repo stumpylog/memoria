@@ -1,7 +1,7 @@
 [project]
-name = "memoria"
+name = "memoria-docs"
 version = "0.0.1"
-description = "Memoria Monorepo Project"
+description = "Memoria Project Documentation"
 requires-python = ">=3.10"
 
 classifiers = [
@@ -11,9 +11,9 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
 ]
-
-[tool.uv.workspace]
-members = [
-  "src-backend",
-  "src-docs",
+dependencies = [
+  "mike~=2.1",
+  "mkdocs-glightbox~=0.4.0",
+  "mkdocs-material~=9.6",
+  "mkdocs-minify-plugin~=0.8",
 ]

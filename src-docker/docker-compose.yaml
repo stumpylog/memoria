@@ -1,0 +1,42 @@
+networks:
+  memoria-net:
+    name: "memoria-net"
+  reverse-proxy:
+    name: "reverse-proxy"
+    #external: true
+
+services:
+  memoria-db:
+    image: postgres:17-alpine
+    container_name: memoria-db
+    networks:
+      - memoria-net
+    environment:
+      POSTGRES_DB: memoria
+      POSTGRES_USER: memoria
+      POSTGRES_PASSWORD: memoria
+  memoria-valkey:
+    image: valkey/valkey:latest
+    container_name: memoria-valkey
+    networks:
+      - memoria-net
+  memoria:
+    image: memoria:latest
+    container_name: memoria
+    networks:
+      - memoria-net
+      - reverse-proxy
+    environment:
+      MEMORIA_URL: "https://memoria.holmesho.me"
+      MEMORIA_DATABASE_TYPE: "postgresql"
+      MEMORIA_DB_HOST: "memoria-db"
+      MEMORIA_DB_PASSWORD: "memoria"
+      MEMORIA_REDIS_URL: "redis://memoria-valkey:6379/0"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.memoria-rtr.rule=Host(`memoria.holmesho.me`)"
+      - "traefik.http.routers.memoria-rtr.entrypoints=websecure"
+      - "traefik.http.routers.memoria-rtr.tls.options=tlsv13only@file"
+      - "traefik.http.routers.memoria-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.memoria-rtr.service=memoria-svc"
+      - "traefik.http.services.memoria-svc.loadbalancer.server.port=8101"

@@ -1,0 +1,77 @@
+{
+  "folders": [
+    {
+      "name": "memoria",
+      "path": "."
+    },
+    {
+      "name": "Backend",
+      "path": "./src-backend/"
+    },
+    {
+      "name": "Frontend",
+      "path": "./src-frontend/"
+    },
+    {
+      "name": "Docker",
+      "path": "./src-docker/"
+    },
+    {
+      "name": "Documentation",
+      "path": "./src-docs/"
+    },
+    {
+      "name": "Actions",
+      "path": ".github/workflows/"
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": false,
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/.mypy_cache": true,
+      "**/.ruff_cache": true,
+      "**/.pytest_cache": true,
+      "**/.idea": true,
+      "**/.venv": true,
+      "**/.coverage": true,
+      "**/coverage.json": true
+    },
+    "[python]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "charliermarsh.ruff",
+      "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+      }
+    },
+    "[typescriptreact]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit"
+      }
+    },
+    "[html][typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[css]": {
+      "editor.defaultFormatter": "stylelint.vscode-stylelint"
+    },
+    "[scss]": {
+      "editor.defaultFormatter": "stylelint.vscode-stylelint"
+    },
+    "cSpell.words": [
+      "memoria"
+    ]
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "editorconfig.editorconfig",
+      "charliermarsh.ruff",
+      "esbenp.prettier-vscode",
+      "stylelint.vscode-stylelint"
+    ]
+  }
+}

@@ -18,3 +18,4 @@ postgresdb/
 
 # Docs
 site/
+.task/*

@@ -1,0 +1,5 @@
+#!/command/with-contenv /bin/ash
+
+cd /app/memoria/
+
+exec s6-setuidgid memoria python3 manage.py run_huey

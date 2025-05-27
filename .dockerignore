@@ -1,3 +1,9 @@
+# General
+.git
+.gitignore
+*.md
+.github/
+
 # Python-generated files
 **/__pycache__/
 *.py[oc]
@@ -10,16 +16,18 @@ wheels/
 .venv
 
 # Development
-db.sqlite3
-logs/
-media/
+src-backend/logs/
+src-backend/media/
+src-backend/data/
+src-backend/samples/
 
 # Docs
-site/
+src-docs/*
 
 # Frontend
-node_modules
-.git
-.gitignore
-*.md
-dist
+src-frontend/node_modules
+src-frontend/dist
+
+# Other
+Taskfile.yml
+**/task/*
