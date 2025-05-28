@@ -7,6 +7,7 @@ from ninja import Schema
 from pydantic import FilePath
 from pydantic import field_serializer
 
+from memoria.models import Image
 from memoria.routes.common.schemas import GroupPermissionReadOutMixin
 from memoria.routes.common.schemas import GroupPermissionUpdateInMixin
 from memoria.routes.common.schemas import IdMixin
@@ -22,7 +23,7 @@ class ImageThumbnailSchemaOut(IdMixin, Schema):
     thumbnail_width: int
 
     @staticmethod
-    def resolve_thumbnail_url(obj, context):
+    def resolve_thumbnail_url(obj: Image, context):
         """
         Build absolute URL for the thumbnail image
         """

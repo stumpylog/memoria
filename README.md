@@ -63,6 +63,12 @@ who has a slide projector anymore?
 - Make descriptions treated as Markdown text, with rendering and editor support
 - Allows more robust descriptions, links, etc
 
+### Bulk Operation Support
+
+- Bulk editing of permissions
+- Bulk adding to albums
+- Album sorting of sections of selected images
+
 ### More Region Support
 
 - Add, edit and delete boxes for faces and pets in images
