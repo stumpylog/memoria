@@ -91,9 +91,6 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
 
     const updatedData: FolderUpdateSchemaIn = {};
 
-    if (formState.dirtyFields.name) {
-      updatedData.name = data.name;
-    }
     if (formState.dirtyFields.description) {
       updatedData.description = data.description === "" ? null : data.description;
     }
@@ -215,12 +212,11 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
             <Form.Label>Name</Form.Label>
             <Form.Control
               type="text"
-              {...register("name", { required: "Name is required" })}
-              isInvalid={!!formState.errors.name}
+              value={folder.name}
+              readOnly
+              className="form-control-plaintext"
+              style={{ pointerEvents: "none", userSelect: "none" }}
             />
-            <Form.Control.Feedback type="invalid">
-              {formState.errors.name?.message}
-            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-3">
@@ -315,7 +311,11 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
             <Button
               variant="primary"
               type="submit"
-              disabled={formState.isSubmitting || updateFolderMutation.isPending}
+              disabled={
+                !formState.isDirty || // Disable if no changes
+                formState.isSubmitting ||
+                updateFolderMutation.isPending
+              }
             >
               {formState.isSubmitting || updateFolderMutation.isPending
                 ? "Saving..."

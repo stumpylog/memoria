@@ -8,11 +8,11 @@ from memoria.routes.folders.api import router as folder_router
 from memoria.routes.groups.api import router as group_router
 from memoria.routes.images.api import router as images_router
 
-# from memoria.routes.pets.api import router as pets_router
 # from memoria.routes.rough_dates.api import router as rough_dates_router
 # from memoria.routes.tags.api import router as tags_router
 from memoria.routes.locations.api import router as locations_router
 from memoria.routes.people.api import router as person_router
+from memoria.routes.pets.api import router as pets_router
 from memoria.routes.system.api import router as system_router
 from memoria.routes.users.api import router as user_router
 
@@ -28,6 +28,6 @@ api.add_router("/folder/", folder_router)
 api.add_router("/location/", locations_router)
 api.add_router("/system/", system_router)
 # api.add_router("/tag/", tags_router)
-# api.add_router("/pet/", pets_router)
+api.add_router("/pet/", pets_router)
 
 # api.add_router("/date/", rough_dates_router)

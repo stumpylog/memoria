@@ -10,7 +10,7 @@ class BreadcrumbSchema(Schema):
     id: int
 
 
-class RootFolderSchemaOut(GroupPermissionReadOutMixin, TimestampMixin, Schema):
+class RootFolderSchemaOut(GroupPermissionReadOutMixin, Schema):
     id: int
     name: str
     description: str | None

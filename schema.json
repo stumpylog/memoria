@@ -954,6 +954,24 @@
         "title": "Input",
         "type": "object"
       },
+      "PagedAlbumBasicReadOutSchema": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AlbumBasicReadOutSchema"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": ["items", "count"],
+        "title": "PagedAlbumBasicReadOutSchema",
+        "type": "object"
+      },
       "PagedPersonImageOutSchema": {
         "properties": {
           "count": {
@@ -988,6 +1006,42 @@
         },
         "required": ["items", "count"],
         "title": "PagedPersonReadOutSchema",
+        "type": "object"
+      },
+      "PagedPetImageOutSchema": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PetImageOutSchema"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": ["items", "count"],
+        "title": "PagedPetImageOutSchema",
+        "type": "object"
+      },
+      "PagedPetReadSchemaOut": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PetReadSchemaOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": ["items", "count"],
+        "title": "PagedPetReadSchemaOut",
         "type": "object"
       },
       "PersonDetailOutSchema": {
@@ -1186,6 +1240,18 @@
         "title": "PersonUpdateInSchema",
         "type": "object"
       },
+      "PetImageOutSchema": {
+        "properties": {
+          "id": {
+            "description": "One image the pet appears in",
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": ["id"],
+        "title": "PetImageOutSchema",
+        "type": "object"
+      },
       "PetInImageSchemaOut": {
         "description": "Schema for representing a PetInImage instance.\nDetails a specific pet's bounding box in an image.",
         "properties": {
@@ -1229,18 +1295,192 @@
         "title": "PetInImageSchemaOut",
         "type": "object"
       },
+      "PetReadDetailSchemaOut": {
+        "description": "Schema when reading a pet",
+        "properties": {
+          "created_at": {
+            "description": "Timestamp when the object was created",
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "edit_groups": {
+            "description": "Groups allowed to edit this object",
+            "items": {
+              "$ref": "#/components/schemas/GroupSchemaOut"
+            },
+            "title": "Edit Groups",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pet_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PetTypeChoices"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updated_at": {
+            "description": "Timestamp when the object was last updated",
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "view_groups": {
+            "description": "Groups allowed to view this object",
+            "items": {
+              "$ref": "#/components/schemas/GroupSchemaOut"
+            },
+            "title": "View Groups",
+            "type": "array"
+          }
+        },
+        "required": ["created_at", "updated_at", "id", "name"],
+        "title": "PetReadDetailSchemaOut",
+        "type": "object"
+      },
+      "PetReadSchemaOut": {
+        "description": "Schema when reading a pet",
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "image_count": {
+            "title": "Image Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pet_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PetTypeChoices"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["id", "name", "image_count"],
+        "title": "PetReadSchemaOut",
+        "type": "object"
+      },
+      "PetTypeChoices": {
+        "enum": ["cat", "dog", "horse"],
+        "title": "PetTypeChoices",
+        "type": "string"
+      },
+      "PetUpdateInSchema": {
+        "description": "Schema to update a pet",
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "edit_group_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New list of Group IDs allowed to edit",
+            "title": "Edit Group Ids"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "pet_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PetTypeChoices"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "view_group_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New list of Group IDs allowed to view",
+            "title": "View Group Ids"
+          }
+        },
+        "title": "PetUpdateInSchema",
+        "type": "object"
+      },
       "RootFolderSchemaOut": {
         "properties": {
           "child_count": {
             "default": 0,
             "title": "Child Count",
             "type": "integer"
-          },
-          "created_at": {
-            "description": "Timestamp when the object was created",
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
           },
           "description": {
             "anyOf": [
@@ -1274,12 +1514,6 @@
             "title": "Name",
             "type": "string"
           },
-          "updated_at": {
-            "description": "Timestamp when the object was last updated",
-            "format": "date-time",
-            "title": "Updated At",
-            "type": "string"
-          },
           "view_groups": {
             "description": "Groups allowed to view this object",
             "items": {
@@ -1289,7 +1523,7 @@
             "type": "array"
           }
         },
-        "required": ["created_at", "updated_at", "id", "name", "description"],
+        "required": ["id", "name", "description"],
         "title": "RootFolderSchemaOut",
         "type": "object"
       },
@@ -1931,24 +2165,14 @@
             "title": "Total Pets Viewable",
             "type": "integer"
           },
-          "total_rough_dates_editable": {
-            "description": "Total number of rough dates the current user can edit.",
-            "title": "Total Rough Dates Editable",
-            "type": "integer"
-          },
-          "total_rough_dates_viewable": {
+          "total_rough_dates": {
             "description": "Total number of rough dates the current user can view.",
-            "title": "Total Rough Dates Viewable",
+            "title": "Total Rough Dates",
             "type": "integer"
           },
-          "total_rough_locations_editable": {
-            "description": "Total number of rough locations the current user can edit.",
-            "title": "Total Rough Locations Editable",
-            "type": "integer"
-          },
-          "total_rough_locations_viewable": {
+          "total_rough_locations": {
             "description": "Total number of rough locations the current user can view.",
-            "title": "Total Rough Locations Viewable",
+            "title": "Total Rough Locations",
             "type": "integer"
           },
           "total_sources_editable": {
@@ -1961,14 +2185,9 @@
             "title": "Total Sources Viewable",
             "type": "integer"
           },
-          "total_tags_editable": {
-            "description": "Total number of tags the current user can edit.",
-            "title": "Total Tags Editable",
-            "type": "integer"
-          },
-          "total_tags_viewable": {
-            "description": "Total number of tags the current user can view.",
-            "title": "Total Tags Viewable",
+          "total_tags": {
+            "description": "Total number of tags in the system",
+            "title": "Total Tags",
             "type": "integer"
           }
         },
@@ -1977,8 +2196,7 @@
           "total_images_editable",
           "total_albums_viewable",
           "total_albums_editable",
-          "total_tags_viewable",
-          "total_tags_editable",
+          "total_tags",
           "total_people_viewable",
           "total_people_editable",
           "total_pets_viewable",
@@ -1987,10 +2205,8 @@
           "total_folders_editable",
           "total_sources_viewable",
           "total_sources_editable",
-          "total_rough_dates_viewable",
-          "total_rough_dates_editable",
-          "total_rough_locations_viewable",
-          "total_rough_locations_editable"
+          "total_rough_dates",
+          "total_rough_locations"
         ],
         "title": "UserStatisticsSchema",
         "type": "object"
@@ -2083,6 +2299,11 @@
       }
     },
     "securitySchemes": {
+      "AsyncSessionAuthIsActive": {
+        "in": "cookie",
+        "name": "sessionid",
+        "type": "apiKey"
+      },
       "AsyncSessionAuthIsActiveSuperUserOrStaff": {
         "in": "cookie",
         "name": "sessionid",
@@ -2127,6 +2348,28 @@
               ],
               "title": "Album Name"
             }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -2134,11 +2377,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/AlbumBasicReadOutSchema"
-                  },
-                  "title": "Response",
-                  "type": "array"
+                  "$ref": "#/components/schemas/PagedAlbumBasicReadOutSchema"
                 }
               }
             },
@@ -3387,6 +3626,22 @@
           },
           {
             "in": "query",
+            "name": "person_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Person Name"
+            }
+          },
+          {
+            "in": "query",
             "name": "limit",
             "required": false,
             "schema": {
@@ -3420,6 +3675,11 @@
             "description": "OK"
           }
         },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
         "summary": "Get All People",
         "tags": ["people"]
       }
@@ -3450,6 +3710,11 @@
             "description": "OK"
           }
         },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
         "summary": "Get Person Detail",
         "tags": ["people"]
       },
@@ -3488,6 +3753,11 @@
             "description": "OK"
           }
         },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
         "summary": "Update Person",
         "tags": ["people"]
       }
@@ -3540,8 +3810,243 @@
             "description": "OK"
           }
         },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
         "summary": "Get Person Images",
         "tags": ["people"]
+      }
+    },
+    "/api/pet/": {
+      "get": {
+        "operationId": "get_all_pets",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "name",
+              "title": "Sort By",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pet_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pet Name"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pet_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PetTypeChoices"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedPetReadSchemaOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Get All Pets",
+        "tags": ["pets"]
+      }
+    },
+    "/api/pet/{pet_id}/": {
+      "get": {
+        "operationId": "get_pet_detail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pet_id",
+            "required": true,
+            "schema": {
+              "title": "Pet Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetReadDetailSchemaOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "security": [
+          {
+            "AsyncSessionAuthIsActive": []
+          }
+        ],
+        "summary": "Get Single Pet",
+        "tags": ["pets"]
+      },
+      "patch": {
+        "operationId": "update_pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pet_id",
+            "required": true,
+            "schema": {
+              "title": "Pet Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetUpdateInSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetReadDetailSchemaOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "security": [
+          {
+            "AsyncSessionAuthIsActive": []
+          }
+        ],
+        "summary": "Update Pet",
+        "tags": ["pets"]
+      }
+    },
+    "/api/pet/{pet_id}/images/": {
+      "get": {
+        "operationId": "get_pet_images",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pet_id",
+            "required": true,
+            "schema": {
+              "title": "Pet Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedPetImageOutSchema"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Get Person Images",
+        "tags": ["pets"]
       }
     },
     "/api/system/settings/": {

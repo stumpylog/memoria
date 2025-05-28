@@ -102,8 +102,7 @@ def get_system_statistics(
         total_images_editable=Image.objects.editable_by(user).count(),
         total_albums_viewable=Album.objects.viewable_by(user).count(),
         total_albums_editable=Album.objects.editable_by(user).count(),
-        total_tags_viewable=Tag.objects.viewable_by(user).count(),
-        total_tags_editable=Tag.objects.editable_by(user).count(),
+        total_tags=Tag.objects.count(),
         total_people_viewable=Person.objects.viewable_by(user).count(),
         total_people_editable=Person.objects.editable_by(user).count(),
         total_pets_viewable=Pet.objects.viewable_by(user).count(),
@@ -112,10 +111,8 @@ def get_system_statistics(
         total_folders_editable=ImageFolder.objects.editable_by(user).count(),
         total_sources_viewable=ImageSource.objects.viewable_by(user).count(),
         total_sources_editable=ImageSource.objects.editable_by(user).count(),
-        total_rough_dates_viewable=RoughDate.objects.viewable_by(user).count(),
-        total_rough_dates_editable=RoughDate.objects.editable_by(user).count(),
-        total_rough_locations_viewable=RoughLocation.objects.viewable_by(user).count(),
-        total_rough_locations_editable=RoughLocation.objects.editable_by(user).count(),
+        total_rough_dates=RoughDate.objects.count(),
+        total_rough_locations=RoughLocation.objects.count(),
     )
 
     # --- System-wide statistics (only non-sensitive info like disk space) ---

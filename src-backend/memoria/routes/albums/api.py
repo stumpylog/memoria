@@ -18,6 +18,8 @@ from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from ninja import Router
+from ninja.pagination import LimitOffsetPagination
+from ninja.pagination import paginate
 
 from memoria.common.auth import active_user_auth
 from memoria.common.errors import HttpBadRequestError
@@ -53,6 +55,7 @@ group_prefetch = ("view_groups", "edit_groups")
     operation_id="get_all_albums",
     auth=active_user_auth,
 )
+@paginate(LimitOffsetPagination)
 def get_albums(request: HttpRequest, album_name: str | None = None):
     """
     List all albums viewable by the current user.

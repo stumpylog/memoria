@@ -24,6 +24,8 @@ const ImageDetail = React.lazy(() => import("./pages/ImageDetail"));
 const PersonDetailsPage = React.lazy(() => import("./pages/PersonDetailsPage"));
 const AlbumsPage = React.lazy(() => import("./pages/AlbumsPage"));
 const AlbumDetailsPage = React.lazy(() => import("./pages/AlbumDetailsPage"));
+const PetPage = React.lazy(() => import("./pages/PetPage.tsx"));
+const PetDetailPage = React.lazy(() => import("./pages/PetDetailPage.tsx"));
 
 const AppLayout: React.FC = () => {
   return (
@@ -104,8 +106,10 @@ function App(): React.JSX.Element {
                   <Route path="/images/:id" element={<ImageDetail />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/people/:id" element={<PersonDetailsPage />} />
-                  <Route path="/albums/" element={<AlbumsPage />} />
+                  <Route path="/albums" element={<AlbumsPage />} />
                   <Route path="/albums/:albumId" element={<AlbumDetailsPage />} />
+                  <Route path="/pets" element={<PetPage />} />
+                  <Route path="/pets/:id" element={<PetDetailPage />} />
                   {/* Add other protected routes here */}
                 </Route>
               </Route>

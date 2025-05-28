@@ -107,15 +107,9 @@ const StatisticsDisplay: React.FC = () => {
                       </span>
                     </ListGroup.Item>
                     <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Tags Viewable:{" "}
+                      Tags Count:{" "}
                       <span className="badge bg-primary rounded-pill">
-                        {user_statistics.total_tags_viewable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Tags Editable:{" "}
-                      <span className="badge bg-success rounded-pill">
-                        {user_statistics.total_tags_editable}
+                        {user_statistics.total_tags}
                       </span>
                     </ListGroup.Item>
                     <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
@@ -171,27 +165,15 @@ const StatisticsDisplay: React.FC = () => {
                       </span>
                     </ListGroup.Item>
                     <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Rough Dates Viewable:{" "}
+                      Rough Dates Count:{" "}
                       <span className="badge bg-primary rounded-pill">
-                        {user_statistics.total_rough_dates_viewable}
+                        {user_statistics.total_rough_dates}
                       </span>
                     </ListGroup.Item>
                     <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Rough Dates Editable:{" "}
-                      <span className="badge bg-success rounded-pill">
-                        {user_statistics.total_rough_dates_editable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Rough Locations Viewable:{" "}
+                      Rough Locations Count:{" "}
                       <span className="badge bg-primary rounded-pill">
-                        {user_statistics.total_rough_locations_viewable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Rough Locations Editable:{" "}
-                      <span className="badge bg-success rounded-pill">
-                        {user_statistics.total_rough_locations_editable}
+                        {user_statistics.total_rough_locations}
                       </span>
                     </ListGroup.Item>
                   </ListGroup>

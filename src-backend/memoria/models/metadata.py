@@ -101,6 +101,16 @@ class PersonInImage(AbstractBoxInImage):
         return "Unknown"
 
 
+class PetQuerySet(PermittedQueryset):
+    def with_images(self) -> PetQuerySet:
+        """
+        Fetches the pet with Images
+        """
+        return self.prefetch_related(
+            "images_featured_in",
+        )
+
+
 class Pet(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     """
     Holds the information about a single person
@@ -119,7 +129,7 @@ class Pet(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, ObjectPermissio
         help_text="The type of pet this is",
     )
 
-    objects: PermittedQueryset = PermittedQueryset.as_manager()
+    objects: PetQuerySet = PetQuerySet.as_manager()
 
     def __str__(self) -> str:
         return f"Pet {self.name}"

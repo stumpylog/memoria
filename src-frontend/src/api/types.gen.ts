@@ -339,6 +339,11 @@ export type Input = {
   offset?: number;
 };
 
+export type PagedAlbumBasicReadOutSchema = {
+  count: number;
+  items: Array<AlbumBasicReadOutSchema>;
+};
+
 export type PagedPersonImageOutSchema = {
   count: number;
   items: Array<PersonImageOutSchema>;
@@ -347,6 +352,16 @@ export type PagedPersonImageOutSchema = {
 export type PagedPersonReadOutSchema = {
   count: number;
   items: Array<PersonReadOutSchema>;
+};
+
+export type PagedPetImageOutSchema = {
+  count: number;
+  items: Array<PetImageOutSchema>;
+};
+
+export type PagedPetReadSchemaOut = {
+  count: number;
+  items: Array<PetReadSchemaOut>;
 };
 
 export type PersonDetailOutSchema = {
@@ -419,6 +434,13 @@ export type PersonUpdateInSchema = {
   view_group_ids?: Array<number> | null;
 };
 
+export type PetImageOutSchema = {
+  /**
+   * One image the pet appears in
+   */
+  id: number;
+};
+
 /**
  * Schema for representing a PetInImage instance.
  * Details a specific pet's bounding box in an image.
@@ -433,12 +455,64 @@ export type PetInImageSchemaOut = {
   width: number;
 };
 
-export type RootFolderSchemaOut = {
-  child_count?: number;
+/**
+ * Schema when reading a pet
+ */
+export type PetReadDetailSchemaOut = {
   /**
    * Timestamp when the object was created
    */
   created_at: string;
+  description?: string | null;
+  /**
+   * Groups allowed to edit this object
+   */
+  edit_groups?: Array<GroupSchemaOut>;
+  id: number;
+  name: string;
+  pet_type?: PetTypeChoices | null;
+  /**
+   * Timestamp when the object was last updated
+   */
+  updated_at: string;
+  /**
+   * Groups allowed to view this object
+   */
+  view_groups?: Array<GroupSchemaOut>;
+};
+
+/**
+ * Schema when reading a pet
+ */
+export type PetReadSchemaOut = {
+  description?: string | null;
+  id: number;
+  image_count: number;
+  name: string;
+  pet_type?: PetTypeChoices | null;
+};
+
+export type PetTypeChoices = "cat" | "dog" | "horse";
+
+/**
+ * Schema to update a pet
+ */
+export type PetUpdateInSchema = {
+  description?: string | null;
+  /**
+   * New list of Group IDs allowed to edit
+   */
+  edit_group_ids?: Array<number> | null;
+  name?: string | null;
+  pet_type?: PetTypeChoices | null;
+  /**
+   * New list of Group IDs allowed to view
+   */
+  view_group_ids?: Array<number> | null;
+};
+
+export type RootFolderSchemaOut = {
+  child_count?: number;
   description: string | null;
   /**
    * Groups allowed to edit this object
@@ -447,10 +521,6 @@ export type RootFolderSchemaOut = {
   id: number;
   image_count?: number;
   name: string;
-  /**
-   * Timestamp when the object was last updated
-   */
-  updated_at: string;
   /**
    * Groups allowed to view this object
    */
@@ -878,21 +948,13 @@ export type UserStatisticsSchema = {
    */
   total_pets_viewable: number;
   /**
-   * Total number of rough dates the current user can edit.
-   */
-  total_rough_dates_editable: number;
-  /**
    * Total number of rough dates the current user can view.
    */
-  total_rough_dates_viewable: number;
-  /**
-   * Total number of rough locations the current user can edit.
-   */
-  total_rough_locations_editable: number;
+  total_rough_dates: number;
   /**
    * Total number of rough locations the current user can view.
    */
-  total_rough_locations_viewable: number;
+  total_rough_locations: number;
   /**
    * Total number of image sources the current user can edit.
    */
@@ -902,13 +964,9 @@ export type UserStatisticsSchema = {
    */
   total_sources_viewable: number;
   /**
-   * Total number of tags the current user can edit.
+   * Total number of tags in the system
    */
-  total_tags_editable: number;
-  /**
-   * Total number of tags the current user can view.
-   */
-  total_tags_viewable: number;
+  total_tags: number;
 };
 
 export type UserUpdateInSchemeReadable = {
@@ -936,6 +994,8 @@ export type GetAllAlbumsData = {
   path?: never;
   query?: {
     album_name?: string | null;
+    limit?: number;
+    offset?: number;
   };
   url: "/api/album/";
 };
@@ -944,7 +1004,7 @@ export type GetAllAlbumsResponses = {
   /**
    * OK
    */
-  200: Array<AlbumBasicReadOutSchema>;
+  200: PagedAlbumBasicReadOutSchema;
 };
 
 export type GetAllAlbumsResponse = GetAllAlbumsResponses[keyof GetAllAlbumsResponses];
@@ -1621,6 +1681,7 @@ export type GetAllPeopleData = {
   path?: never;
   query?: {
     sort_by?: string;
+    person_name?: string | null;
     limit?: number;
     offset?: number;
   };
@@ -1693,6 +1754,99 @@ export type GetPersonImagesResponses = {
 };
 
 export type GetPersonImagesResponse = GetPersonImagesResponses[keyof GetPersonImagesResponses];
+
+export type GetAllPetsData = {
+  body?: never;
+  path?: never;
+  query?: {
+    sort_by?: string;
+    pet_name?: string | null;
+    pet_type?: PetTypeChoices | null;
+    limit?: number;
+    offset?: number;
+  };
+  url: "/api/pet/";
+};
+
+export type GetAllPetsResponses = {
+  /**
+   * OK
+   */
+  200: PagedPetReadSchemaOut;
+};
+
+export type GetAllPetsResponse = GetAllPetsResponses[keyof GetAllPetsResponses];
+
+export type GetPetDetailData = {
+  body?: never;
+  path: {
+    pet_id: number;
+  };
+  query?: never;
+  url: "/api/pet/{pet_id}/";
+};
+
+export type GetPetDetailErrors = {
+  /**
+   * Not Found Response
+   */
+  404: unknown;
+};
+
+export type GetPetDetailResponses = {
+  /**
+   * OK
+   */
+  200: PetReadDetailSchemaOut;
+};
+
+export type GetPetDetailResponse = GetPetDetailResponses[keyof GetPetDetailResponses];
+
+export type UpdatePetData = {
+  body: PetUpdateInSchema;
+  path: {
+    pet_id: number;
+  };
+  query?: never;
+  url: "/api/pet/{pet_id}/";
+};
+
+export type UpdatePetErrors = {
+  /**
+   * Not Found Response
+   */
+  404: unknown;
+};
+
+export type UpdatePetResponses = {
+  /**
+   * OK
+   */
+  200: PetReadDetailSchemaOut;
+};
+
+export type UpdatePetResponse = UpdatePetResponses[keyof UpdatePetResponses];
+
+export type GetPetImagesData = {
+  body?: never;
+  path: {
+    pet_id: number;
+  };
+  query?: {
+    limit?: number;
+    offset?: number;
+  };
+  url: "/api/pet/{pet_id}/images/";
+};
+
+export type GetPetImagesResponses = {
+  /**
+   * OK
+   */
+  200: PagedPetImageOutSchema;
+};
+
+export type GetPetImagesResponse = GetPetImagesResponses[keyof GetPetImagesResponses];
 
 export type GetSystemSettingsData = {
   body?: never;

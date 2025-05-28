@@ -75,6 +75,14 @@ import type {
   UpdatePersonDetailResponse,
   GetPersonImagesData,
   GetPersonImagesResponse,
+  GetAllPetsData,
+  GetAllPetsResponse,
+  GetPetDetailData,
+  GetPetDetailResponse,
+  UpdatePetData,
+  UpdatePetResponse,
+  GetPetImagesData,
+  GetPetImagesResponse,
   GetSystemSettingsData,
   GetSystemSettingsResponse,
   UpdateSystemSettingsData,
@@ -791,6 +799,13 @@ export const getAllPeople = <ThrowOnError extends boolean = false>(
   options?: Options<GetAllPeopleData, ThrowOnError>,
 ) => {
   return (options?.client ?? _heyApiClient).get<GetAllPeopleResponse, unknown, ThrowOnError>({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
     url: "/api/person/",
     ...options,
   });
@@ -803,6 +818,13 @@ export const getPersonDetail = <ThrowOnError extends boolean = false>(
   options: Options<GetPersonDetailData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).get<GetPersonDetailResponse, unknown, ThrowOnError>({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
     url: "/api/person/{person_id}/",
     ...options,
   });
@@ -819,6 +841,13 @@ export const updatePersonDetail = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
     url: "/api/person/{person_id}/",
     ...options,
     headers: {
@@ -835,7 +864,94 @@ export const getPersonImages = <ThrowOnError extends boolean = false>(
   options: Options<GetPersonImagesData, ThrowOnError>,
 ) => {
   return (options.client ?? _heyApiClient).get<GetPersonImagesResponse, unknown, ThrowOnError>({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
     url: "/api/person/{person_id}/images/",
+    ...options,
+  });
+};
+
+/**
+ * Get All Pets
+ */
+export const getAllPets = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAllPetsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<GetAllPetsResponse, unknown, ThrowOnError>({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/pet/",
+    ...options,
+  });
+};
+
+/**
+ * Get Single Pet
+ */
+export const getPetDetail = <ThrowOnError extends boolean = false>(
+  options: Options<GetPetDetailData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<GetPetDetailResponse, unknown, ThrowOnError>({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/pet/{pet_id}/",
+    ...options,
+  });
+};
+
+/**
+ * Update Pet
+ */
+export const updatePet = <ThrowOnError extends boolean = false>(
+  options: Options<UpdatePetData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).patch<UpdatePetResponse, unknown, ThrowOnError>({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/pet/{pet_id}/",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Get Person Images
+ */
+export const getPetImages = <ThrowOnError extends boolean = false>(
+  options: Options<GetPetImagesData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<GetPetImagesResponse, unknown, ThrowOnError>({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/pet/{pet_id}/images/",
     ...options,
   });
 };

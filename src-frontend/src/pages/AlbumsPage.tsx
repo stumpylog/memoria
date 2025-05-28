@@ -1,16 +1,35 @@
-import React, { useEffect, useState } from "react";
-import { Alert, Button, Card, Col, Container, Form, Modal, Row, Spinner } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { keepPreviousData, useQuery } from "@tanstack/react-query"; // Import keepPreviousData
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Alert,
+  Button,
+  Container,
+  Form,
+  FormControl,
+  InputGroup,
+  Modal,
+  OverlayTrigger,
+  Pagination,
+  Spinner,
+  Table,
+  Tooltip,
+} from "react-bootstrap";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
-import type { AlbumBasicReadOutSchema, AlbumCreateInSchema, GroupOutSchema } from "../api";
+import type {
+  AlbumBasicReadOutSchema,
+  AlbumCreateInSchema,
+  GroupOutSchema,
+  PagedAlbumBasicReadOutSchema,
+} from "../api"; // Note the correction to PagedAlbumBasicReadOutSchema
 
 import { createAlbum, getAllAlbums, groupGetAll } from "../api";
+import { useAuth } from "../hooks/useAuth";
 
 const AlbumsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [albums, setAlbums] = useState<AlbumBasicReadOutSchema[]>([]);
-  const [loadingAlbums, setLoadingAlbums] = useState<boolean>(true);
-  const [errorAlbums, setErrorAlbums] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { profile } = useAuth();
 
   const [groups, setGroups] = useState<GroupOutSchema[]>([]);
   const [loadingGroups, setLoadingGroups] = useState<boolean>(true);
@@ -26,26 +45,44 @@ const AlbumsPage: React.FC = () => {
   const [creatingAlbum, setCreatingAlbum] = useState<boolean>(false);
   const [createAlbumError, setCreateAlbumError] = useState<string | null>(null);
 
-  // Fetch albums on component mount
-  useEffect(() => {
-    const fetchAlbums = async () => {
-      try {
-        setLoadingAlbums(true);
-        const data = await getAllAlbums();
-        setAlbums(data.data || []);
-        setErrorAlbums(null);
-      } catch (error) {
-        console.error("Failed to fetch albums:", error);
-        setErrorAlbums("Failed to load albums. Please try again.");
-      } finally {
-        setLoadingAlbums(false);
-      }
-    };
+  // State for search term
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("album_name") || "");
+  // Ref for the search input to manage debounce
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-    fetchAlbums();
-  }, []); // Empty dependency array means this runs once on mount
+  // Get pagination parameters from URL or defaults
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const pageSize = profile?.items_per_page || 10; // Default to 10 if not in profile
 
-  // Fetch groups on component mount
+  // Calculate offset based on current page and page size
+  const offset = (currentPage - 1) * pageSize;
+
+  // Fetch albums using useQuery
+  const {
+    data: albumsData,
+    isLoading: isLoadingAlbums,
+    isError: isErrorAlbums,
+    error: albumsError,
+    refetch: refetchAlbums,
+  } = useQuery<PagedAlbumBasicReadOutSchema, Error>({
+    // Corrected type for useQuery
+    queryKey: ["albums", currentPage, pageSize, searchTerm],
+    queryFn: async ({ signal }) => {
+      const response = await getAllAlbums({
+        query: {
+          limit: pageSize,
+          offset: offset,
+          album_name: searchTerm || undefined, // Pass search term to backend
+        },
+        signal, // Pass the AbortController signal to the fetch request
+      });
+      return response.data as PagedAlbumBasicReadOutSchema;
+    },
+    placeholderData: keepPreviousData, // Corrected usage for placeholderData
+    staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
+  });
+
+  // Fetch groups on component mount (no change here, still using useEffect for this static data)
   useEffect(() => {
     const fetchGroups = async () => {
       try {
@@ -62,7 +99,26 @@ const AlbumsPage: React.FC = () => {
     };
 
     fetchGroups();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
+
+  // Debounce effect for search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      const newParams = new URLSearchParams(searchParams);
+      if (searchTerm) {
+        newParams.set("album_name", searchTerm);
+      } else {
+        newParams.delete("album_name");
+      }
+      // Reset to first page when search term changes
+      newParams.set("page", "1");
+      setSearchParams(newParams);
+    }, 500); // 500ms debounce
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm, searchParams, setSearchParams]);
 
   const handleShowModal = () => {
     setShowCreateModal(true);
@@ -115,17 +171,8 @@ const AlbumsPage: React.FC = () => {
     try {
       setCreatingAlbum(true);
       setCreateAlbumError(null);
-      // Pass the new album data to the API function
-      const createdAlbum = await createAlbum({ body: newAlbumData });
-      console.log("Album created successfully:", createdAlbum);
-
-      // Option 1: Add the new album to the existing list (if API returns the full object)
-      // setAlbums(prevAlbums => [...prevAlbums, createdAlbum]);
-
-      // Option 2: Re-fetch the entire list of albums to ensure data is fresh
-      const updatedAlbums = await getAllAlbums();
-      setAlbums(updatedAlbums.data || []);
-
+      await createAlbum({ body: newAlbumData });
+      refetchAlbums(); // Re-fetch albums to show the new one
       handleCloseModal(); // Close modal on success
     } catch (error) {
       console.error("Failed to create album:", error);
@@ -140,6 +187,86 @@ const AlbumsPage: React.FC = () => {
     navigate(`/albums/${albumId}`); // Navigate to the details route
   };
 
+  const handlePageChange = (page: number) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("page", page.toString());
+    setSearchParams(newParams);
+    window.scrollTo(0, 0);
+  };
+
+  // Calculate total pages
+  const totalPages = albumsData ? Math.ceil(albumsData.count / pageSize) : 0;
+
+  const renderPaginationItems = () => {
+    const items = [];
+    if (totalPages === 0) return null;
+
+    items.push(
+      <Pagination.Prev
+        key="prev"
+        onClick={() => handlePageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+      />,
+    );
+
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+      items.push(
+        <Pagination.Item key={1} active={currentPage === 1} onClick={() => handlePageChange(1)}>
+          1
+        </Pagination.Item>,
+      );
+      if (startPage > 2) {
+        items.push(<Pagination.Ellipsis key="ellipsis-start" />);
+      }
+    }
+
+    for (let page = startPage; page <= endPage; page++) {
+      items.push(
+        <Pagination.Item
+          key={page}
+          active={page === currentPage}
+          onClick={() => handlePageChange(page)}
+        >
+          {page}
+        </Pagination.Item>,
+      );
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        items.push(<Pagination.Ellipsis key="ellipsis-end" />);
+      }
+      items.push(
+        <Pagination.Item
+          key={totalPages}
+          active={currentPage === totalPages}
+          onClick={() => handlePageChange(totalPages)}
+        >
+          {totalPages}
+        </Pagination.Item>,
+      );
+    }
+
+    items.push(
+      <Pagination.Next
+        key="next"
+        onClick={() => handlePageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+      />,
+    );
+    return <Pagination>{items}</Pagination>;
+  };
+
+  // Function to truncate description
+  const truncateDescription = (text: string | undefined, maxLength: number) => {
+    if (!text) return "N/A";
+    if (text.length <= maxLength) return text;
+    return `${text.substring(0, maxLength)}...`;
+  };
+
   return (
     <Container className="mt-4">
       <title>Memoria - All Albums</title>
@@ -150,7 +277,20 @@ const AlbumsPage: React.FC = () => {
         </Button>
       </div>
 
-      {loadingAlbums && (
+      <InputGroup className="mb-3">
+        <FormControl
+          placeholder="Search by album name..."
+          aria-label="Search by album name"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          ref={searchInputRef}
+        />
+        <Button variant="outline-secondary" disabled>
+          <i className="bi bi-search"></i>
+        </Button>
+      </InputGroup>
+
+      {isLoadingAlbums && (
         <div className="text-center">
           <Spinner animation="border" role="status">
             <span className="visually-hidden">Loading Albums...</span>
@@ -159,27 +299,66 @@ const AlbumsPage: React.FC = () => {
         </div>
       )}
 
-      {errorAlbums && <Alert variant="danger">{errorAlbums}</Alert>}
+      {isErrorAlbums && <Alert variant="danger">Error: {(albumsError as Error).message}</Alert>}
 
-      {!loadingAlbums && !errorAlbums && albums.length === 0 && (
-        <Alert variant="info">No albums found. Click "Create New Album" to add one.</Alert>
+      {/* Defensive check for albumsData and albumsData.items */}
+      {!isLoadingAlbums && !isErrorAlbums && (!albumsData || albumsData.items.length === 0) && (
+        <Alert variant="info">
+          No albums found matching your criteria. Click "Create New Album" to add one.
+        </Alert>
       )}
 
-      <Row xs={1} md={2} lg={3} className="g-4">
-        {albums.map((album) => (
-          <Col key={album.id}>
-            <Card className="h-100 shadow-sm" style={{ cursor: "pointer" }}>
-              <Card.Body onClick={() => handleViewAlbum(album.id)}>
-                <Card.Title>{album.name}</Card.Title>
-                <Card.Text>{album.description || "No description provided."}</Card.Text>
-                <Card.Text>
-                  <strong>Images:</strong> {album.image_count}
-                </Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+      {albumsData && albumsData.items && albumsData.items.length > 0 && (
+        <>
+          <Table striped bordered hover responsive className="mt-3">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Image Count</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {albumsData.items.map((album: AlbumBasicReadOutSchema) => (
+                <tr key={album.id}>
+                  <td>{album.name}</td>
+                  <td>
+                    {album.description && album.description.length > 50 ? (
+                      <OverlayTrigger
+                        placement="top"
+                        delay={{ show: 250, hide: 400 }}
+                        overlay={
+                          <Tooltip id={`tooltip-album-${album.id}`}>{album.description}</Tooltip>
+                        }
+                      >
+                        <span>{truncateDescription(album.description, 50)}</span>
+                      </OverlayTrigger>
+                    ) : (
+                      album.description || "N/A"
+                    )}
+                  </td>
+                  <td>{album.image_count}</td>
+                  <td>
+                    <Button variant="primary" size="sm" onClick={() => handleViewAlbum(album.id)}>
+                      View Details
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+
+          {totalPages > 1 && (
+            <div className="d-flex justify-content-center mt-4">{renderPaginationItems()}</div>
+          )}
+
+          <div className="mt-3 text-muted">
+            Showing {offset + 1}-{/* Also ensure albumsData is checked before accessing count */}
+            {Math.min(offset + pageSize, albumsData.count)} of {albumsData.count} albums
+          </div>
+        </>
+      )}
 
       {/* Create Album Modal */}
       <Modal show={showCreateModal} onHide={handleCloseModal}>
@@ -223,7 +402,7 @@ const AlbumsPage: React.FC = () => {
                 <Form.Select
                   multiple
                   name="view_group_ids"
-                  value={newAlbumData.view_group_ids?.map(String) || []} // Convert numbers to strings for select value
+                  value={newAlbumData.view_group_ids?.map(String) || []}
                   onChange={(e) => handleGroupSelectChange(e, "view_group_ids")}
                   disabled={groups.length === 0}
                 >
@@ -249,7 +428,7 @@ const AlbumsPage: React.FC = () => {
                 <Form.Select
                   multiple
                   name="edit_group_ids"
-                  value={newAlbumData.edit_group_ids?.map(String) || []} // Convert numbers to strings for select value
+                  value={newAlbumData.edit_group_ids?.map(String) || []}
                   onChange={(e) => handleGroupSelectChange(e, "edit_group_ids")}
                   disabled={groups.length === 0}
                 >

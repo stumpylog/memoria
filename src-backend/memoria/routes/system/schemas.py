@@ -82,8 +82,7 @@ class UserStatisticsSchema(Schema):
     total_images_editable: int = Field(..., description="Total number of images the current user can edit.")
     total_albums_viewable: int = Field(..., description="Total number of albums the current user can view.")
     total_albums_editable: int = Field(..., description="Total number of albums the current user can edit.")
-    total_tags_viewable: int = Field(..., description="Total number of tags the current user can view.")
-    total_tags_editable: int = Field(..., description="Total number of tags the current user can edit.")
+    total_tags: int = Field(..., description="Total number of tags in the system")
     total_people_viewable: int = Field(..., description="Total number of people the current user can view.")
     total_people_editable: int = Field(..., description="Total number of people the current user can edit.")
     total_pets_viewable: int = Field(..., description="Total number of pets the current user can view.")
@@ -92,16 +91,8 @@ class UserStatisticsSchema(Schema):
     total_folders_editable: int = Field(..., description="Total number of image folders the current user can edit.")
     total_sources_viewable: int = Field(..., description="Total number of image sources the current user can view.")
     total_sources_editable: int = Field(..., description="Total number of image sources the current user can edit.")
-    total_rough_dates_viewable: int = Field(..., description="Total number of rough dates the current user can view.")
-    total_rough_dates_editable: int = Field(..., description="Total number of rough dates the current user can edit.")
-    total_rough_locations_viewable: int = Field(
-        ...,
-        description="Total number of rough locations the current user can view.",
-    )
-    total_rough_locations_editable: int = Field(
-        ...,
-        description="Total number of rough locations the current user can edit.",
-    )
+    total_rough_dates: int = Field(..., description="Total number of rough dates the current user can view.")
+    total_rough_locations: int = Field(..., description="Total number of rough locations the current user can view.")
 
 
 class SystemStatisticsSchema(Schema):
