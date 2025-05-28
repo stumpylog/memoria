@@ -4,7 +4,7 @@
 log_prefix="[init-folders]"
 
 # Use space-separated strings for directory lists, compatible with ash
-main_dirs="/app/memoria/ /app/memoria/media/ /app/memoria/data/ /app/memoria/data/logs/"
+main_dirs="/app/memoria/ /app/data/ /app/media/ /app/memoria/media/ /app/memoria/data/ /app/memoria/data/logs/"
 
 nginx_dirs="/app/data/nginx/ /app/data/nginx/run/ /app/data/nginx/logs/ /app/data/nginx/client_body_temp/ /app/data/nginx/proxy_temp/ /app/data/nginx/fastcgi_temp/ /app/data/nginx/uwsgi_temp/ /app/data/nginx/scgi_temp/ /var/lib/nginx/logs /var/log/nginx"
 
@@ -45,8 +45,6 @@ for dir in ${nginx_dirs}; do
 done
 
 # Handle default log directories that might be compiled into nginx
-
-
 mkdir -p /var/lib/nginx/logs
 touch /var/lib/nginx/logs/error.log
 touch /var/lib/nginx/logs/access.log

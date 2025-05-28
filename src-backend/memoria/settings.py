@@ -19,7 +19,7 @@ import redis
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DATA_DIR = BASE_DIR / "data"
+DATA_DIR = Path(os.environ.get("MEMORIA_DATA_DIR", BASE_DIR / "data"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 STATIC_ROOT = BASE_DIR / "static"
@@ -27,7 +27,7 @@ STATIC_ROOT = BASE_DIR / "static"
 LOGS_DIR = DATA_DIR / "logs"
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = Path(os.environ.get("MEMORIA_MEDIA_DIR", BASE_DIR / "media"))
 
 THUMBNAIL_DIR = MEDIA_ROOT / "thumbnails"
 THUMBNAIL_DIR.mkdir(exist_ok=True, parents=True)
@@ -125,7 +125,7 @@ if DATABASE_TYPE == "postgresql":
             "NAME": os.environ.get("MEMORIA_DB_NAME", "memoria"),
             "USER": os.environ.get("MEMORIA_DB_USER", "memoria"),
             "PASSWORD": os.environ["MEMORIA_DB_PASSWORD"],
-            "HOST": os.environ["MEMORIA_DB_HOST"],
+            "HOST": os.environ.get("MEMORIA_DB_HOST", "memoria-db"),
             "PORT": int(os.environ.get("MEMORIA_DB_PORT", "5432")),
             "pool": True,
         },
@@ -184,7 +184,7 @@ AUTHENTICATION_BACKENDS = (
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = os.environ.get("TZ", "UTC")
 
 USE_I18N = True
 
