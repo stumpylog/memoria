@@ -1327,6 +1327,10 @@
             "title": "Id",
             "type": "integer"
           },
+          "image_count": {
+            "title": "Image Count",
+            "type": "integer"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -1356,7 +1360,7 @@
             "type": "array"
           }
         },
-        "required": ["created_at", "updated_at", "id", "name"],
+        "required": ["created_at", "updated_at", "id", "name", "image_count"],
         "title": "PetReadDetailSchemaOut",
         "type": "object"
       },

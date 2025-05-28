@@ -45,6 +45,7 @@ class PetReadDetailSchemaOut(TimestampMixin, GroupPermissionReadOutMixin, Schema
 
     id: int
     name: str
+    image_count: int
     description: str | None = None
     pet_type: PetTypeChoices | None = None
 
