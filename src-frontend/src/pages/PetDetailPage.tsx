@@ -6,10 +6,8 @@ import { Alert, Button, Col, Container, Row, Spinner } from "react-bootstrap";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import type {
-  AlbumAddImageInSchema,
   ImagesPerPageChoices,
   ImageThumbnailSchemaOut,
-  PagedPetImageOutSchema,
   PetImageOutSchema,
   PetReadDetailSchemaOut,
 } from "../api";
@@ -19,7 +17,6 @@ import AddToAlbumModal from "../components/image/AddToAlbumModal";
 import SelectableImageWall from "../components/image/SelectableImageWall";
 import EditPetModal from "../components/pets/EditPetModal";
 import { useAuth } from "../hooks/useAuth";
-import { useTheme } from "../hooks/useTheme";
 import { formatDate } from "../utils/formatDate";
 import { getGridColumns } from "../utils/getGridColums";
 
@@ -28,8 +25,6 @@ const PetDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { profile } = useAuth();
-  const { effectiveTheme } = useTheme();
-  const isDarkTheme = effectiveTheme === "dark";
 
   const petId = id ? parseInt(id, 10) : undefined;
   const isValidId = petId !== undefined && !isNaN(petId);
@@ -138,7 +133,6 @@ const PetDetailsPage: React.FC = () => {
     mutationFn: ({ albumId, imageIds }: { albumId: number; imageIds: number[] }) =>
       addImageToAlbum({ path: { album_id: albumId }, body: { image_ids: imageIds } }),
     onSuccess: () => {
-      queryClient.invalidateQueries(["albums"]);
       setSelectedImageIds([]);
       setShowAlbumModal(false);
     },
@@ -168,8 +162,8 @@ const PetDetailsPage: React.FC = () => {
     setSelectedImageIds([]);
   };
 
-  const handleAddToAlbum = (albumId: number) => {
-    addToAlbumMutation.mutate({ albumId, imageIds: selectedImageIds });
+  const handleAddToAlbum = async (albumId: number, imageIds: number[]) => {
+    addToAlbumMutation.mutate({ albumId, imageIds });
   };
 
   if (isLoadingPet) {
@@ -198,7 +192,7 @@ const PetDetailsPage: React.FC = () => {
       <p>{pet.description || <span className="text-muted">No description</span>}</p>
       <p>
         <strong>Type:</strong>{" "}
-        {pet.pet_type?.charAt(0).toUpperCase() + pet.pet_type?.slice(1) || "Unknown"}
+        {pet.pet_type ? pet.pet_type.charAt(0).toUpperCase() + pet.pet_type.slice(1) : "Unknown"}
       </p>
       <p>
         <strong>Created:</strong> {formatDate(profile, pet.created_at)}
@@ -217,7 +211,6 @@ const PetDetailsPage: React.FC = () => {
         pet={pet}
         onSaveSuccess={(updated) => {
           queryClient.setQueryData(["pet", pet.id], updated);
-          queryClient.invalidateQueries(["pets"]);
           setShowEditModal(false);
         }}
       />

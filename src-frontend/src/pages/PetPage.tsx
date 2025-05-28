@@ -52,11 +52,14 @@ const PetsPage: React.FC = () => {
           limit: pageSize,
           offset: offset,
           // Pass null if selectedPetType is null or an empty string, otherwise pass the value
-          pet_type: selectedPetType === "" ? null : selectedPetType,
+          pet_type: selectedPetType || null,
           pet_name: searchTerm || undefined,
         },
         signal,
       });
+      if (!response.data) {
+        throw new Error("No data received from pets API.");
+      }
       return response.data;
     },
     placeholderData: keepPreviousData,
@@ -73,7 +76,7 @@ const PetsPage: React.FC = () => {
       }
 
       // Handle null/empty string for selectedPetType in URL params
-      if (selectedPetType === null || selectedPetType === "") {
+      if (selectedPetType === null) {
         newParams.delete("pet_type");
       } else {
         newParams.set("pet_type", selectedPetType);

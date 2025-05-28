@@ -56,6 +56,9 @@ const EditPetModal: React.FC<EditPetModalProps> = ({ show, handleClose, pet, onS
   const updatePetMutation = useMutation({
     mutationFn: (data: PetUpdateInSchema) => updatePet({ path: { pet_id: pet.id }, body: data }),
     onSuccess: (data) => {
+      if (data.data === undefined) {
+        throw new Error();
+      }
       onSaveSuccess(data.data); // Pass the updated pet data
       queryClient.invalidateQueries({ queryKey: ["pet", pet.id] }); // Invalidate specific pet query
       queryClient.invalidateQueries({ queryKey: ["pets"] }); // Invalidate pet list query

@@ -50,7 +50,7 @@ const AddToAlbumModal: React.FC<AddToAlbumModalProps> = ({
         return [];
       }
       const results = await getAllAlbums({ query: { album_name: searchQuery } });
-      return results.data || [];
+      return results.data?.items || [];
     },
     enabled: searchQuery.trim().length >= 2 && show,
     staleTime: 30000, // Cache results for 30 seconds

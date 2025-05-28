@@ -469,6 +469,7 @@ export type PetReadDetailSchemaOut = {
    */
   edit_groups?: Array<GroupSchemaOut>;
   id: number;
+  image_count: number;
   name: string;
   pet_type?: PetTypeChoices | null;
   /**

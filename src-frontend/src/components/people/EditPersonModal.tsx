@@ -10,10 +10,10 @@ import type {
   GroupSchemaOut, // Import GroupSchemaOut
   PersonDetailOutSchema,
   PersonUpdateInSchema,
-} from "../api";
+} from "../../api";
 
-import { groupGetAll, updatePersonDetail } from "../api"; // Import groupGetAll
-import { useTheme } from "../hooks/useTheme"; // Import useTheme hook
+import { groupGetAll, updatePersonDetail } from "../../api"; // Import groupGetAll
+import { useTheme } from "../../hooks/useTheme"; // Import useTheme hook
 
 interface EditPersonModalProps {
   show: boolean;

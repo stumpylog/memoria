@@ -15,9 +15,9 @@ import type {
 } from "../api";
 
 import { addImageToAlbum, getPersonDetail, getPersonImages, imageGetThumbInfo } from "../api";
-import EditPersonModal from "../components/EditPersonModal";
 import AddToAlbumModal from "../components/image/AddToAlbumModal";
 import SelectableImageWall from "../components/image/SelectableImageWall";
+import EditPersonModal from "../components/people/EditPersonModal";
 import { useAuth } from "../hooks/useAuth";
 import { formatDate } from "../utils/formatDate";
 import { getGridColumns } from "../utils/getGridColums";
