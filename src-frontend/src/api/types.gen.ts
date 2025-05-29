@@ -364,6 +364,11 @@ export type PagedPetReadSchemaOut = {
   items: Array<PetReadSchemaOut>;
 };
 
+export type PagedUserOutSchema = {
+  count: number;
+  items: Array<UserOutSchema>;
+};
+
 export type PersonDetailOutSchema = {
   /**
    * Timestamp when the object was created
@@ -856,6 +861,33 @@ export type TimezoneChoices =
   | "Antarctica/Vostok"
   | "Arctic/Longyearbyen";
 
+export type UserFilterSchema = {
+  /**
+   * Filter by email (contains)
+   */
+  email?: string | null;
+  /**
+   * Filter by active status
+   */
+  is_active?: boolean | null;
+  /**
+   * Filter by staff status
+   */
+  is_staff?: boolean | null;
+  /**
+   * Filter by superuser status
+   */
+  is_superuser?: boolean | null;
+  /**
+   * Search in username, email, first_name, last_name
+   */
+  search?: string | null;
+  /**
+   * Filter by exact username
+   */
+  username?: string | null;
+};
+
 export type UserGroupAssignInSchema = {
   id: number;
 };
@@ -882,12 +914,14 @@ export type UserInCreateSchemaWritable = {
 };
 
 export type UserOutSchema = {
+  date_joined: string;
   email?: string | null;
   first_name: string;
   id: number;
   is_active?: boolean;
   is_staff?: boolean;
   is_superuser?: boolean;
+  last_login: string | null;
   last_name: string;
   username: string;
 };
@@ -1378,6 +1412,23 @@ export type GroupUpdateSingleResponses = {
 
 export type GroupUpdateSingleResponse =
   GroupUpdateSingleResponses[keyof GroupUpdateSingleResponses];
+
+export type ImageGetThumbnailsBulkInfoData = {
+  body: Array<number>;
+  path?: never;
+  query?: never;
+  url: "/api/image/bulk/thumbnails/";
+};
+
+export type ImageGetThumbnailsBulkInfoResponses = {
+  /**
+   * OK
+   */
+  200: Array<ImageThumbnailSchemaOut>;
+};
+
+export type ImageGetThumbnailsBulkInfoResponse =
+  ImageGetThumbnailsBulkInfoResponses[keyof ImageGetThumbnailsBulkInfoResponses];
 
 export type ImageGetDateData = {
   body?: never;
@@ -1900,71 +1951,99 @@ export type GetSystemStatisticsResponses = {
 export type GetSystemStatisticsResponse =
   GetSystemStatisticsResponses[keyof GetSystemStatisticsResponses];
 
-export type UserGetAllData = {
+export type UsersListData = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: {
+    /**
+     * Filter by active status
+     */
+    is_active?: boolean | null;
+    /**
+     * Filter by staff status
+     */
+    is_staff?: boolean | null;
+    /**
+     * Filter by superuser status
+     */
+    is_superuser?: boolean | null;
+    /**
+     * Search in username, email, first_name, last_name
+     */
+    search?: string | null;
+    /**
+     * Filter by exact username
+     */
+    username?: string | null;
+    /**
+     * Filter by email (contains)
+     */
+    email?: string | null;
+    limit?: number;
+    offset?: number;
+  };
   url: "/api/user/";
 };
 
-export type UserGetAllResponses = {
+export type UsersListResponses = {
   /**
    * OK
    */
-  200: Array<UserOutSchema>;
+  200: PagedUserOutSchema;
 };
 
-export type UserGetAllResponse = UserGetAllResponses[keyof UserGetAllResponses];
+export type UsersListResponse = UsersListResponses[keyof UsersListResponses];
 
-export type UserCreateData = {
+export type UsersCreateData = {
   body: UserInCreateSchemaWritable;
   path?: never;
   query?: never;
   url: "/api/user/";
 };
 
-export type UserCreateResponses = {
+export type UsersCreateResponses = {
   /**
-   * OK
+   * Created
    */
-  200: UserOutSchema;
+  201: UserOutSchema;
 };
 
-export type UserCreateResponse = UserCreateResponses[keyof UserCreateResponses];
+export type UsersCreateResponse = UsersCreateResponses[keyof UsersCreateResponses];
 
-export type UserGetMeData = {
+export type UsersGetCurrentData = {
   body?: never;
   path?: never;
   query?: never;
   url: "/api/user/me/";
 };
 
-export type UserGetMeResponses = {
+export type UsersGetCurrentResponses = {
   /**
    * OK
    */
   200: UserOutSchema;
 };
 
-export type UserGetMeResponse = UserGetMeResponses[keyof UserGetMeResponses];
+export type UsersGetCurrentResponse = UsersGetCurrentResponses[keyof UsersGetCurrentResponses];
 
-export type UserGetMyProfileData = {
+export type UsersProfileGetCurrentData = {
   body?: never;
   path?: never;
   query?: never;
   url: "/api/user/me/profile/";
 };
 
-export type UserGetMyProfileResponses = {
+export type UsersProfileGetCurrentResponses = {
   /**
    * OK
    */
   200: UserProfileOutSchema;
 };
 
-export type UserGetMyProfileResponse = UserGetMyProfileResponses[keyof UserGetMyProfileResponses];
+export type UsersProfileGetCurrentResponse =
+  UsersProfileGetCurrentResponses[keyof UsersProfileGetCurrentResponses];
 
-export type UserGetGroupsData = {
+export type UsersGroupsListData = {
   body?: never;
   path: {
     user_id: number;
@@ -1973,16 +2052,16 @@ export type UserGetGroupsData = {
   url: "/api/user/{user_id}/groups/";
 };
 
-export type UserGetGroupsResponses = {
+export type UsersGroupsListResponses = {
   /**
    * OK
    */
   200: Array<GroupOutSchema>;
 };
 
-export type UserGetGroupsResponse = UserGetGroupsResponses[keyof UserGetGroupsResponses];
+export type UsersGroupsListResponse = UsersGroupsListResponses[keyof UsersGroupsListResponses];
 
-export type UserSetGroupsData = {
+export type UsersGroupsUpdateData = {
   body: Array<UserGroupAssignInSchema>;
   path: {
     user_id: number;
@@ -1991,23 +2070,24 @@ export type UserSetGroupsData = {
   url: "/api/user/{user_id}/groups/";
 };
 
-export type UserSetGroupsErrors = {
+export type UsersGroupsUpdateErrors = {
   /**
-   * some provided groups don't exist
+   * Some provided groups don't exist
    */
   400: unknown;
 };
 
-export type UserSetGroupsResponses = {
+export type UsersGroupsUpdateResponses = {
   /**
    * OK
    */
   200: Array<GroupOutSchema>;
 };
 
-export type UserSetGroupsResponse = UserSetGroupsResponses[keyof UserSetGroupsResponses];
+export type UsersGroupsUpdateResponse =
+  UsersGroupsUpdateResponses[keyof UsersGroupsUpdateResponses];
 
-export type UserGetInfoData = {
+export type UsersGetByIdData = {
   body?: never;
   path: {
     user_id: number;
@@ -2016,16 +2096,16 @@ export type UserGetInfoData = {
   url: "/api/user/{user_id}/info/";
 };
 
-export type UserGetInfoResponses = {
+export type UsersGetByIdResponses = {
   /**
    * OK
    */
   200: UserOutSchema;
 };
 
-export type UserGetInfoResponse = UserGetInfoResponses[keyof UserGetInfoResponses];
+export type UsersGetByIdResponse = UsersGetByIdResponses[keyof UsersGetByIdResponses];
 
-export type UserSetInfoData = {
+export type UsersUpdateData = {
   body: UserUpdateInSchemeWritable;
   path: {
     user_id: number;
@@ -2034,16 +2114,16 @@ export type UserSetInfoData = {
   url: "/api/user/{user_id}/info/";
 };
 
-export type UserSetInfoResponses = {
+export type UsersUpdateResponses = {
   /**
    * OK
    */
   200: UserOutSchema;
 };
 
-export type UserSetInfoResponse = UserSetInfoResponses[keyof UserSetInfoResponses];
+export type UsersUpdateResponse = UsersUpdateResponses[keyof UsersUpdateResponses];
 
-export type UserGetProfileData = {
+export type UsersProfileGetByIdData = {
   body?: never;
   path: {
     user_id: number;
@@ -2052,16 +2132,17 @@ export type UserGetProfileData = {
   url: "/api/user/{user_id}/profile/";
 };
 
-export type UserGetProfileResponses = {
+export type UsersProfileGetByIdResponses = {
   /**
    * OK
    */
   200: UserProfileOutSchema;
 };
 
-export type UserGetProfileResponse = UserGetProfileResponses[keyof UserGetProfileResponses];
+export type UsersProfileGetByIdResponse =
+  UsersProfileGetByIdResponses[keyof UsersProfileGetByIdResponses];
 
-export type UserEditProfileData = {
+export type UsersProfileUpdateData = {
   body: UserProfileUpdateSchema;
   path: {
     user_id: number;
@@ -2070,14 +2151,15 @@ export type UserEditProfileData = {
   url: "/api/user/{user_id}/profile/";
 };
 
-export type UserEditProfileResponses = {
+export type UsersProfileUpdateResponses = {
   /**
    * OK
    */
   200: UserProfileOutSchema;
 };
 
-export type UserEditProfileResponse = UserEditProfileResponses[keyof UserEditProfileResponses];
+export type UsersProfileUpdateResponse =
+  UsersProfileUpdateResponses[keyof UsersProfileUpdateResponses];
 
 export type ClientOptions = {
   baseURL: string;

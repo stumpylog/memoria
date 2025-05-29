@@ -65,7 +65,7 @@ tasks:
     env:
       MEMORIA_DEBUG: "true"
     cmds:
-      - uv run python manage.py export_openapi_schema --output ../schema.json --sorted --indent 2
+      - uv run python manage.py export_openapi_schema --output ../api-spec.json --sorted --indent 2
     deps: [deps:install]
 
   reset:

@@ -1044,6 +1044,24 @@
         "title": "PagedPetReadSchemaOut",
         "type": "object"
       },
+      "PagedUserOutSchema": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UserOutSchema"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": ["items", "count"],
+        "title": "PagedUserOutSchema",
+        "type": "object"
+      },
       "PersonDetailOutSchema": {
         "properties": {
           "created_at": {
@@ -1925,6 +1943,84 @@
         "title": "TimezoneChoices",
         "type": "string"
       },
+      "UserFilterSchema": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by email (contains)",
+            "title": "Email"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by active status",
+            "title": "Is Active"
+          },
+          "is_staff": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by staff status",
+            "title": "Is Staff"
+          },
+          "is_superuser": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by superuser status",
+            "title": "Is Superuser"
+          },
+          "search": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Search in username, email, first_name, last_name",
+            "title": "Search"
+          },
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by exact username",
+            "title": "Username"
+          }
+        },
+        "title": "UserFilterSchema",
+        "type": "object"
+      },
       "UserGroupAssignInSchema": {
         "properties": {
           "id": {
@@ -2004,6 +2100,11 @@
       },
       "UserOutSchema": {
         "properties": {
+          "date_joined": {
+            "format": "date-time",
+            "title": "Date Joined",
+            "type": "string"
+          },
           "email": {
             "anyOf": [
               {
@@ -2042,6 +2143,18 @@
             "title": "Is Superuser",
             "type": "boolean"
           },
+          "last_login": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Login"
+          },
           "last_name": {
             "title": "Last Name",
             "type": "string"
@@ -2051,7 +2164,7 @@
             "type": "string"
           }
         },
-        "required": ["id", "first_name", "last_name", "username"],
+        "required": ["id", "first_name", "last_name", "username", "last_login", "date_joined"],
         "title": "UserOutSchema",
         "type": "object"
       },
@@ -3065,6 +3178,49 @@
         ],
         "summary": "Update Single Group",
         "tags": ["groups"]
+      }
+    },
+    "/api/image/bulk/thumbnails/": {
+      "get": {
+        "operationId": "image_get_thumbnails_bulk_info",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "type": "integer"
+                },
+                "title": "Image Ids",
+                "type": "array"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ImageThumbnailSchemaOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "Get Image Thumbnails Bulk Info",
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/date/": {
@@ -4134,18 +4290,146 @@
     },
     "/api/user/": {
       "get": {
-        "operationId": "user_get_all",
-        "parameters": [],
+        "description": "Get all users with filtering and pagination.",
+        "operationId": "users_list",
+        "parameters": [
+          {
+            "description": "Filter by active status",
+            "in": "query",
+            "name": "is_active",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by active status",
+              "title": "Is Active"
+            }
+          },
+          {
+            "description": "Filter by staff status",
+            "in": "query",
+            "name": "is_staff",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by staff status",
+              "title": "Is Staff"
+            }
+          },
+          {
+            "description": "Filter by superuser status",
+            "in": "query",
+            "name": "is_superuser",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by superuser status",
+              "title": "Is Superuser"
+            }
+          },
+          {
+            "description": "Search in username, email, first_name, last_name",
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search in username, email, first_name, last_name",
+              "title": "Search"
+            }
+          },
+          {
+            "description": "Filter by exact username",
+            "in": "query",
+            "name": "username",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by exact username",
+              "title": "Username"
+            }
+          },
+          {
+            "description": "Filter by email (contains)",
+            "in": "query",
+            "name": "email",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by email (contains)",
+              "title": "Email"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/UserOutSchema"
-                  },
-                  "title": "Response",
-                  "type": "array"
+                  "$ref": "#/components/schemas/PagedUserOutSchema"
                 }
               }
             },
@@ -4154,14 +4438,15 @@
         },
         "security": [
           {
-            "SessionAuthIsActiveSuperUserOrStaff": []
+            "AsyncSessionAuthIsActiveSuperUserOrStaff": []
           }
         ],
-        "summary": "Get All Users",
+        "summary": "Users List",
         "tags": ["users"]
       },
       "post": {
-        "operationId": "user_create",
+        "description": "Create a new user with proper permission checks and validation.",
+        "operationId": "users_create",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -4174,7 +4459,7 @@
           "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "content": {
               "application/json": {
                 "schema": {
@@ -4182,21 +4467,22 @@
                 }
               }
             },
-            "description": "OK"
+            "description": "Created"
           }
         },
         "security": [
           {
-            "SessionAuthIsActiveSuperUserOrStaff": []
+            "AsyncSessionAuthIsActiveSuperUserOrStaff": []
           }
         ],
-        "summary": "Create User",
+        "summary": "Users Create",
         "tags": ["users"]
       }
     },
     "/api/user/me/": {
       "get": {
-        "operationId": "user_get_me",
+        "description": "Get current user's information.",
+        "operationId": "users_get_current",
         "parameters": [],
         "responses": {
           "200": {
@@ -4215,13 +4501,14 @@
             "SessionAuthIsActive": []
           }
         ],
-        "summary": "Get User Me Info",
+        "summary": "Users Get Current",
         "tags": ["users"]
       }
     },
     "/api/user/me/profile/": {
       "get": {
-        "operationId": "user_get_my_profile",
+        "description": "Get current user's profile.",
+        "operationId": "users_profile_get_current",
         "parameters": [],
         "responses": {
           "200": {
@@ -4237,16 +4524,17 @@
         },
         "security": [
           {
-            "SessionAuthIsActive": []
+            "AsyncSessionAuthIsActive": []
           }
         ],
-        "summary": "Get My Profile",
+        "summary": "Users Profile Get Current",
         "tags": ["users"]
       }
     },
     "/api/user/{user_id}/groups/": {
       "get": {
-        "operationId": "user_get_groups",
+        "description": "Get user's groups with permission checks.",
+        "operationId": "users_groups_list",
         "parameters": [
           {
             "in": "path",
@@ -4276,14 +4564,15 @@
         },
         "security": [
           {
-            "SessionAuthIsActive": []
+            "AsyncSessionAuthIsActive": []
           }
         ],
-        "summary": "Get User Groups",
+        "summary": "Users Groups List",
         "tags": ["users"]
       },
       "patch": {
-        "operationId": "user_set_groups",
+        "description": "Set user's groups with validation.",
+        "operationId": "users_groups_update",
         "parameters": [
           {
             "in": "path",
@@ -4325,21 +4614,22 @@
             "description": "OK"
           },
           "400": {
-            "description": "some provided groups don't exist"
+            "description": "Some provided groups don't exist"
           }
         },
         "security": [
           {
-            "SessionAuthIsActiveSuperUserOrStaff": []
+            "AsyncSessionAuthIsActiveSuperUserOrStaff": []
           }
         ],
-        "summary": "Set User Groups",
+        "summary": "Users Groups Update",
         "tags": ["users"]
       }
     },
     "/api/user/{user_id}/info/": {
       "get": {
-        "operationId": "user_get_info",
+        "description": "Get user information with proper permission checks.",
+        "operationId": "users_get_by_id",
         "parameters": [
           {
             "in": "path",
@@ -4365,14 +4655,15 @@
         },
         "security": [
           {
-            "SessionAuthIsActive": []
+            "AsyncSessionAuthIsActive": []
           }
         ],
-        "summary": "Get User Info",
+        "summary": "Users Get By Id",
         "tags": ["users"]
       },
       "patch": {
-        "operationId": "user_set_info",
+        "description": "Update user information with proper permission and validation checks.",
+        "operationId": "users_update",
         "parameters": [
           {
             "in": "path",
@@ -4408,16 +4699,17 @@
         },
         "security": [
           {
-            "SessionAuthIsActive": []
+            "AsyncSessionAuthIsActive": []
           }
         ],
-        "summary": "Set User Info",
+        "summary": "Users Update",
         "tags": ["users"]
       }
     },
     "/api/user/{user_id}/profile/": {
       "get": {
-        "operationId": "user_get_profile",
+        "description": "Get user profile with permission checks.",
+        "operationId": "users_profile_get_by_id",
         "parameters": [
           {
             "in": "path",
@@ -4443,14 +4735,15 @@
         },
         "security": [
           {
-            "SessionAuthIsActive": []
+            "AsyncSessionAuthIsActive": []
           }
         ],
-        "summary": "Get Profile",
+        "summary": "Users Profile Get By Id",
         "tags": ["users"]
       },
       "patch": {
-        "operationId": "user_edit_profile",
+        "description": "Edit user profile with permission checks.",
+        "operationId": "users_profile_update",
         "parameters": [
           {
             "in": "path",
@@ -4486,10 +4779,10 @@
         },
         "security": [
           {
-            "SessionAuthIsActive": []
+            "AsyncSessionAuthIsActive": []
           }
         ],
-        "summary": "Edit Profile",
+        "summary": "Users Profile Update",
         "tags": ["users"]
       }
     }

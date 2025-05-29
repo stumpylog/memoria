@@ -14,7 +14,7 @@ UserModel = get_user_model()
 class TestUsersCreate:
     """Test user creation endpoint."""
 
-    def test_create_regular_user_as_staff(self, staff_client: Client, users_base_url: str):
+    def test_create_regular_user_as_staff(self, staff_client: Client, users_base_url: str) -> None:
         """Staff can create regular users."""
         payload = {
             "username": "newuser",
@@ -42,7 +42,7 @@ class TestUsersCreate:
         assert user.email == "newuser@example.com"
         assert user.check_password("securepassword123")
 
-    def test_create_staff_user_as_staff(self, staff_client: Client, users_base_url: str):
+    def test_create_staff_user_as_staff(self, staff_client: Client, users_base_url: str) -> None:
         """Staff can create other staff users."""
         payload = {
             "username": "staffuser",
@@ -58,7 +58,7 @@ class TestUsersCreate:
         assert data["is_staff"] is True
         assert data["is_superuser"] is False
 
-    def test_create_superuser_as_superuser(self, superuser_client: Client, users_base_url: str):
+    def test_create_superuser_as_superuser(self, superuser_client: Client, users_base_url: str) -> None:
         """Superusers can create other superusers."""
         payload = {
             "username": "superuser",
@@ -74,7 +74,11 @@ class TestUsersCreate:
         assert data["is_staff"] is True
         assert data["is_superuser"] is True
 
-    def test_create_superuser_without_staff_flag_sets_staff(self, superuser_client: Client, users_base_url: str):
+    def test_create_superuser_without_staff_flag_sets_staff(
+        self,
+        superuser_client: Client,
+        users_base_url: str,
+    ) -> None:
         """Creating superuser without is_staff=True automatically sets is_staff=True."""
         payload = {
             "username": "superuser2",
@@ -90,7 +94,7 @@ class TestUsersCreate:
         assert data["is_staff"] is True  # Should be set to True automatically
         assert data["is_superuser"] is True
 
-    def test_create_staff_user_as_regular_user_forbidden(self, logged_in_client: Client, users_base_url: str):
+    def test_create_staff_user_as_regular_user_forbidden(self, logged_in_client: Client, users_base_url: str) -> None:
         """Regular users cannot create staff users."""
         payload = {
             "username": "staffuser",
@@ -103,7 +107,7 @@ class TestUsersCreate:
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
 
-    def test_create_superuser_as_staff_forbidden(self, staff_client: Client, users_base_url: str):
+    def test_create_superuser_as_staff_forbidden(self, staff_client: Client, users_base_url: str) -> None:
         """Staff users cannot create superusers."""
         payload = {
             "username": "superuser",
@@ -116,7 +120,7 @@ class TestUsersCreate:
 
         assert response.status_code == HTTPStatus.FORBIDDEN
 
-    def test_create_user_unauthenticated_forbidden(self, client: Client, users_base_url: str):
+    def test_create_user_unauthenticated_forbidden(self, client: Client, users_base_url: str) -> None:
         """Unauthenticated users cannot create users."""
         payload = {
             "username": "newuser",
@@ -127,7 +131,7 @@ class TestUsersCreate:
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
 
-    def test_create_user_minimal_fields(self, staff_client: Client, users_base_url: str):
+    def test_create_user_minimal_fields(self, staff_client: Client, users_base_url: str) -> None:
         """User creation with only required fields."""
         payload = {
             "username": "minimaluser",
@@ -149,7 +153,7 @@ class TestUsersList:
     Test users list endpoint.
     """
 
-    def test_list_users_as_staff(self, staff_client: Client, users_base_url: str, user_factory: UserFactory):
+    def test_list_users_as_staff(self, staff_client: Client, users_base_url: str, user_factory: UserFactory) -> None:
         """Staff can list all users."""
         # Create some test users
         user_factory.create_batch(3)
@@ -160,7 +164,7 @@ class TestUsersList:
         data = response.json()
         assert len(data["items"]) >= 3  # At least our created users + staff user
 
-    def test_list_users_as_regular_user_forbidden(self, logged_in_client: Client, users_base_url: str):
+    def test_list_users_as_regular_user_forbidden(self, logged_in_client: Client, users_base_url: str) -> None:
         """
         Regular users cannot list all users.
         """
@@ -168,7 +172,12 @@ class TestUsersList:
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
 
-    def test_list_users_with_filters(self, staff_client: Client, users_base_url: str, user_factory: UserFactory):
+    def test_list_users_with_filters(
+        self,
+        staff_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+    ) -> None:
         """
         Test user listing with filters.
         """
@@ -203,7 +212,7 @@ class TestUsersGetCurrent:
     Test current user endpoint.
     """
 
-    def test_get_current_user(self, logged_in_client: Client, users_base_url: str):
+    def test_get_current_user(self, logged_in_client: Client, users_base_url: str) -> None:
         """
         Users can get their own information.
         """
@@ -214,7 +223,7 @@ class TestUsersGetCurrent:
         assert "username" in data
         assert "email" in data
 
-    def test_get_current_user_unauthenticated(self, client: Client, users_base_url: str):
+    def test_get_current_user_unauthenticated(self, client: Client, users_base_url: str) -> None:
         """
         Unauthenticated users cannot get current user info.
         """
@@ -227,7 +236,7 @@ class TestUsersGetCurrent:
 class TestUsersGetById:
     """Test get user by ID endpoint."""
 
-    def test_get_own_user_info(self, logged_in_client: Client, users_base_url: str):
+    def test_get_own_user_info(self, logged_in_client: Client, users_base_url: str) -> None:
         """Users can get their own information by ID."""
         # Get current user ID from the logged_in_client
         me_response = logged_in_client.get(f"{users_base_url}me/")
@@ -244,7 +253,7 @@ class TestUsersGetById:
         logged_in_client: Client,
         users_base_url: str,
         user_factory: UserFactory,
-    ):
+    ) -> None:
         """Regular users cannot get other users' information."""
         other_user = user_factory()
 
@@ -252,7 +261,12 @@ class TestUsersGetById:
 
         assert response.status_code == HTTPStatus.FORBIDDEN
 
-    def test_get_other_user_info_as_staff(self, staff_client: Client, users_base_url: str, user_factory: UserFactory):
+    def test_get_other_user_info_as_staff(
+        self,
+        staff_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+    ) -> None:
         """Staff can get any user's information."""
         other_user = user_factory()
 
@@ -262,7 +276,7 @@ class TestUsersGetById:
         data = response.json()
         assert data["id"] == other_user.id
 
-    def test_get_nonexistent_user_returns_404(self, staff_client: Client, users_base_url: str):
+    def test_get_nonexistent_user_returns_404(self, staff_client: Client, users_base_url: str) -> None:
         """Getting non-existent user returns 404."""
         response = staff_client.get(f"{users_base_url}99999/info/")
 
@@ -273,7 +287,7 @@ class TestUsersGetById:
 class TestUsersProfileGetCurrent:
     """Test current user profile endpoint."""
 
-    def test_get_current_user_profile(self, logged_in_client: Client, users_base_url: str):
+    def test_get_current_user_profile(self, logged_in_client: Client, users_base_url: str) -> None:
         """Users can get their own profile."""
         response = logged_in_client.get(f"{users_base_url}me/profile/")
 
@@ -288,7 +302,7 @@ class TestUsersProfileGetCurrent:
 class TestUsersProfileGetById:
     """Test get user profile by ID endpoint."""
 
-    def test_get_own_profile_by_id(self, logged_in_client: Client, users_base_url: str):
+    def test_get_own_profile_by_id(self, logged_in_client: Client, users_base_url: str) -> None:
         """Users can get their own profile by ID."""
         me_response = logged_in_client.get(f"{users_base_url}me/")
         user_id = me_response.json()["id"]
@@ -304,7 +318,7 @@ class TestUsersProfileGetById:
         logged_in_client: Client,
         users_base_url: str,
         user_factory: UserFactory,
-    ):
+    ) -> None:
         """Regular users cannot get other users' profiles."""
         other_user = user_factory()
 
@@ -317,7 +331,7 @@ class TestUsersProfileGetById:
         staff_client: Client,
         users_base_url: str,
         user_factory: UserFactory,
-    ):
+    ) -> None:
         """Staff can get any user's profile."""
         other_user = user_factory()
 
@@ -330,7 +344,7 @@ class TestUsersProfileGetById:
 class TestUsersGroupsList:
     """Test user groups list endpoint."""
 
-    def test_get_own_groups(self, logged_in_client: Client, users_base_url: str, group_factory):
+    def test_get_own_groups(self, logged_in_client: Client, users_base_url: str, group_factory: GroupFactory) -> None:
         """Users can get their own groups."""
         me_response = logged_in_client.get(f"{users_base_url}me/")
         user_id = me_response.json()["id"]
@@ -355,7 +369,7 @@ class TestUsersGroupsList:
         logged_in_client: Client,
         users_base_url: str,
         user_factory: UserFactory,
-    ):
+    ) -> None:
         """Regular users cannot get other users' groups."""
         other_user = user_factory()
 
@@ -369,7 +383,7 @@ class TestUsersGroupsList:
         users_base_url: str,
         user_factory: UserFactory,
         group_factory: GroupFactory,
-    ):
+    ) -> None:
         """Staff can get any user's groups."""
         other_user = user_factory()
         group = group_factory()
@@ -387,7 +401,7 @@ class TestUsersGroupsList:
 class TestUsersUpdate:
     """Test user update endpoint."""
 
-    def test_update_own_basic_info(self, logged_in_client, users_base_url):
+    def test_update_own_basic_info(self, logged_in_client: Client, users_base_url: str) -> None:
         """Users can update their own basic information."""
         me_response = logged_in_client.get(f"{users_base_url}me/")
         user_id = me_response.json()["id"]
@@ -409,7 +423,7 @@ class TestUsersUpdate:
         assert data["last_name"] == "Name"
         assert data["email"] == "updated@example.com"
 
-    def test_update_own_password(self, logged_in_client, users_base_url):
+    def test_update_own_password(self, logged_in_client: Client, users_base_url: str) -> None:
         """Users can update their own password."""
         me_response = logged_in_client.get(f"{users_base_url}me/")
         user_id = me_response.json()["id"]
@@ -427,7 +441,7 @@ class TestUsersUpdate:
         user = UserModel.objects.get(id=user_id)
         assert user.check_password("newpassword123")
 
-    def test_regular_user_cannot_set_staff_status(self, logged_in_client, users_base_url):
+    def test_regular_user_cannot_set_staff_status(self, logged_in_client: Client, users_base_url: str) -> None:
         """Regular users cannot set staff status."""
         me_response = logged_in_client.get(f"{users_base_url}me/")
         user_id = me_response.json()["id"]
@@ -441,7 +455,7 @@ class TestUsersUpdate:
 
         assert response.status_code == HTTPStatus.FORBIDDEN
 
-    def test_regular_user_cannot_set_superuser_status(self, logged_in_client, users_base_url):
+    def test_regular_user_cannot_set_superuser_status(self, logged_in_client: Client, users_base_url: str) -> None:
         """Regular users cannot set superuser status."""
         me_response = logged_in_client.get(f"{users_base_url}me/")
         user_id = me_response.json()["id"]
@@ -455,7 +469,12 @@ class TestUsersUpdate:
 
         assert response.status_code == HTTPStatus.FORBIDDEN
 
-    def test_staff_can_set_staff_status(self, staff_client, users_base_url, user_factory):
+    def test_staff_can_set_staff_status(
+        self,
+        staff_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+    ) -> None:
         """Staff can set staff status on other users."""
         user = user_factory()
 
@@ -466,7 +485,12 @@ class TestUsersUpdate:
         data = response.json()
         assert data["is_staff"] is True
 
-    def test_staff_cannot_set_superuser_status(self, staff_client, users_base_url, user_factory):
+    def test_staff_cannot_set_superuser_status(
+        self,
+        staff_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+    ) -> None:
         """Staff cannot set superuser status."""
         user = user_factory()
 
@@ -475,7 +499,12 @@ class TestUsersUpdate:
 
         assert response.status_code == HTTPStatus.FORBIDDEN
 
-    def test_superuser_can_set_superuser_status(self, superuser_client, users_base_url, user_factory):
+    def test_superuser_can_set_superuser_status(
+        self,
+        superuser_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+    ) -> None:
         """Superusers can set superuser status."""
         user = user_factory()
 
@@ -491,7 +520,12 @@ class TestUsersUpdate:
         assert data["is_superuser"] is True
         assert data["is_staff"] is True  # Should also be set to staff
 
-    def test_update_other_user_as_regular_user_forbidden(self, logged_in_client, users_base_url, user_factory):
+    def test_update_other_user_as_regular_user_forbidden(
+        self,
+        logged_in_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+    ) -> None:
         """Regular users cannot update other users."""
         other_user = user_factory()
 
@@ -504,7 +538,7 @@ class TestUsersUpdate:
 
         assert response.status_code == HTTPStatus.FORBIDDEN
 
-    def test_partial_update(self, logged_in_client, users_base_url):
+    def test_partial_update(self, logged_in_client: Client, users_base_url: str) -> None:
         """Test partial updates with only some fields."""
         me_response = logged_in_client.get(f"{users_base_url}me/")
         user_id = me_response.json()["id"]
@@ -527,7 +561,7 @@ class TestUsersUpdate:
 class TestUsersProfileUpdate:
     """Test user profile update endpoint."""
 
-    def test_update_own_profile(self, logged_in_client: Client, users_base_url: str):
+    def test_update_own_profile(self, logged_in_client: Client, users_base_url: str) -> None:
         """Users can update their own profile."""
         me_response = logged_in_client.get(f"{users_base_url}me/")
         user_id = me_response.json()["id"]
@@ -553,8 +587,8 @@ class TestUsersProfileUpdate:
         self,
         logged_in_client: Client,
         users_base_url: str,
-        user_factory,
-    ):
+        user_factory: UserFactory,
+    ) -> None:
         """Regular users cannot update other users' profiles."""
         other_user = user_factory()
 
@@ -567,7 +601,12 @@ class TestUsersProfileUpdate:
 
         assert response.status_code == HTTPStatus.FORBIDDEN
 
-    def test_update_other_user_profile_as_staff(self, staff_client: Client, users_base_url: str, user_factory):
+    def test_update_other_user_profile_as_staff(
+        self,
+        staff_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+    ) -> None:
         """Staff can update other users' profiles."""
         other_user = user_factory()
 
@@ -582,7 +621,7 @@ class TestUsersProfileUpdate:
         data = response.json()
         assert data["bio"] == "Staff updated bio"
 
-    def test_partial_profile_update(self, logged_in_client: Client, users_base_url: str):
+    def test_partial_profile_update(self, logged_in_client: Client, users_base_url: str) -> None:
         """Test partial profile updates."""
         me_response = logged_in_client.get(f"{users_base_url}me/")
         user_id = me_response.json()["id"]
@@ -608,7 +647,13 @@ class TestUsersProfileUpdate:
 class TestUsersGroupsUpdate:
     """Test user groups update endpoint."""
 
-    def test_set_user_groups_as_staff(self, staff_client, users_base_url, user_factory, group_factory):
+    def test_set_user_groups_as_staff(
+        self,
+        staff_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+        group_factory: GroupFactory,
+    ) -> None:
         """Staff can set user groups."""
         user = user_factory()
         group1 = group_factory(name="Group1")
@@ -632,7 +677,13 @@ class TestUsersGroupsUpdate:
         user.refresh_from_db()
         assert user.groups.count() == 2
 
-    def test_clear_user_groups(self, staff_client, users_base_url, user_factory, group_factory):
+    def test_clear_user_groups(
+        self,
+        staff_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+        group_factory: GroupFactory,
+    ) -> None:
         """Staff can clear all user groups by sending empty list."""
         user = user_factory()
         group = group_factory()
@@ -655,11 +706,11 @@ class TestUsersGroupsUpdate:
 
     def test_set_user_groups_with_nonexistent_group_error(
         self,
-        staff_client,
-        users_base_url,
-        user_factory,
-        group_factory,
-    ):
+        staff_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+        group_factory: GroupFactory,
+    ) -> None:
         """Setting groups with non-existent group IDs returns error."""
         user = user_factory()
         existing_group = group_factory()
@@ -676,11 +727,11 @@ class TestUsersGroupsUpdate:
 
     def test_set_user_groups_as_regular_user_forbidden(
         self,
-        logged_in_client,
-        users_base_url,
-        user_factory,
-        group_factory,
-    ):
+        logged_in_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+        group_factory: GroupFactory,
+    ) -> None:
         """Regular users cannot set user groups."""
         user = user_factory()
         group = group_factory()
@@ -694,7 +745,12 @@ class TestUsersGroupsUpdate:
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
 
-    def test_set_nonexistent_user_groups_returns_404(self, staff_client, users_base_url, group_factory):
+    def test_set_nonexistent_user_groups_returns_404(
+        self,
+        staff_client: Client,
+        users_base_url: str,
+        group_factory: GroupFactory,
+    ) -> None:
         """Setting groups for non-existent user returns 404."""
         group = group_factory()
 
@@ -708,7 +764,7 @@ class TestUsersGroupsUpdate:
 class TestUsersEdgeCases:
     """Test edge cases and error conditions."""
 
-    def test_inactive_user_permissions(self, client, users_base_url, user_factory):
+    def test_inactive_user_permissions(self, client: Client, users_base_url: str, user_factory: UserFactory) -> None:
         """Test that inactive users cannot access protected endpoints."""
         inactive_user = user_factory(is_active=False)
         client.login(username=inactive_user.username, password="password123")
@@ -716,7 +772,7 @@ class TestUsersEdgeCases:
         response = client.get(f"{users_base_url}me/")
         assert response.status_code == HTTPStatus.UNAUTHORIZED
 
-    def test_update_user_with_invalid_data(self, logged_in_client, users_base_url):
+    def test_update_user_with_invalid_data(self, logged_in_client: Client, users_base_url: str) -> None:
         """Test updating user with invalid data."""
         me_response = logged_in_client.get(f"{users_base_url}me/")
         user_id = me_response.json()["id"]
@@ -732,7 +788,12 @@ class TestUsersEdgeCases:
         data = response.json()
         assert data["detail"][0]["ctx"]["reason"] == "An email address must have an @-sign."
 
-    def test_create_user_with_duplicate_username(self, staff_client, users_base_url, user_factory):
+    def test_create_user_with_duplicate_username(
+        self,
+        staff_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+    ) -> None:
         """Test creating user with duplicate username."""
         existing_user = user_factory(username="existinguser")
 
@@ -744,7 +805,12 @@ class TestUsersEdgeCases:
         response = staff_client.post(users_base_url, content_type="application/json", data=payload)
         assert response.status_code == HTTPStatus.CONFLICT
 
-    def test_create_user_with_duplicate_email(self, staff_client, users_base_url, user_factory):
+    def test_create_user_with_duplicate_email(
+        self,
+        staff_client: Client,
+        users_base_url: str,
+        user_factory: UserFactory,
+    ) -> None:
         """Test creating user with duplicate email."""
         existing_user = user_factory(email="existing@example.com")
 

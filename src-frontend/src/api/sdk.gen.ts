@@ -41,6 +41,8 @@ import type {
   GroupGetSingleResponse,
   GroupUpdateSingleData,
   GroupUpdateSingleResponse,
+  ImageGetThumbnailsBulkInfoData,
+  ImageGetThumbnailsBulkInfoResponse,
   ImageGetDateData,
   ImageGetDateResponse,
   ImageUpdateDateData,
@@ -89,26 +91,26 @@ import type {
   UpdateSystemSettingsResponse,
   GetSystemStatisticsData,
   GetSystemStatisticsResponse,
-  UserGetAllData,
-  UserGetAllResponse,
-  UserCreateData,
-  UserCreateResponse,
-  UserGetMeData,
-  UserGetMeResponse,
-  UserGetMyProfileData,
-  UserGetMyProfileResponse,
-  UserGetGroupsData,
-  UserGetGroupsResponse,
-  UserSetGroupsData,
-  UserSetGroupsResponse,
-  UserGetInfoData,
-  UserGetInfoResponse,
-  UserSetInfoData,
-  UserSetInfoResponse,
-  UserGetProfileData,
-  UserGetProfileResponse,
-  UserEditProfileData,
-  UserEditProfileResponse,
+  UsersListData,
+  UsersListResponse,
+  UsersCreateData,
+  UsersCreateResponse,
+  UsersGetCurrentData,
+  UsersGetCurrentResponse,
+  UsersProfileGetCurrentData,
+  UsersProfileGetCurrentResponse,
+  UsersGroupsListData,
+  UsersGroupsListResponse,
+  UsersGroupsUpdateData,
+  UsersGroupsUpdateResponse,
+  UsersGetByIdData,
+  UsersGetByIdResponse,
+  UsersUpdateData,
+  UsersUpdateResponse,
+  UsersProfileGetByIdData,
+  UsersProfileGetByIdResponse,
+  UsersProfileUpdateData,
+  UsersProfileUpdateResponse,
 } from "./types.gen";
 import { client as _heyApiClient } from "./client.gen";
 
@@ -539,6 +541,33 @@ export const groupUpdateSingle = <ThrowOnError extends boolean = false>(
       },
     },
   );
+};
+
+/**
+ * Get Image Thumbnails Bulk Info
+ */
+export const imageGetThumbnailsBulkInfo = <ThrowOnError extends boolean = false>(
+  options: Options<ImageGetThumbnailsBulkInfoData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    ImageGetThumbnailsBulkInfoResponse,
+    unknown,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/image/bulk/thumbnails/",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
 };
 
 /**
@@ -1022,12 +1051,13 @@ export const getSystemStatistics = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Get All Users
+ * Users List
+ * Get all users with filtering and pagination.
  */
-export const userGetAll = <ThrowOnError extends boolean = false>(
-  options?: Options<UserGetAllData, ThrowOnError>,
+export const usersList = <ThrowOnError extends boolean = false>(
+  options?: Options<UsersListData, ThrowOnError>,
 ) => {
-  return (options?.client ?? _heyApiClient).get<UserGetAllResponse, unknown, ThrowOnError>({
+  return (options?.client ?? _heyApiClient).get<UsersListResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -1041,12 +1071,13 @@ export const userGetAll = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Create User
+ * Users Create
+ * Create a new user with proper permission checks and validation.
  */
-export const userCreate = <ThrowOnError extends boolean = false>(
-  options: Options<UserCreateData, ThrowOnError>,
+export const usersCreate = <ThrowOnError extends boolean = false>(
+  options: Options<UsersCreateData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).post<UserCreateResponse, unknown, ThrowOnError>({
+  return (options.client ?? _heyApiClient).post<UsersCreateResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -1064,12 +1095,13 @@ export const userCreate = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Get User Me Info
+ * Users Get Current
+ * Get current user's information.
  */
-export const userGetMe = <ThrowOnError extends boolean = false>(
-  options?: Options<UserGetMeData, ThrowOnError>,
+export const usersGetCurrent = <ThrowOnError extends boolean = false>(
+  options?: Options<UsersGetCurrentData, ThrowOnError>,
 ) => {
-  return (options?.client ?? _heyApiClient).get<UserGetMeResponse, unknown, ThrowOnError>({
+  return (options?.client ?? _heyApiClient).get<UsersGetCurrentResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -1083,12 +1115,17 @@ export const userGetMe = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Get My Profile
+ * Users Profile Get Current
+ * Get current user's profile.
  */
-export const userGetMyProfile = <ThrowOnError extends boolean = false>(
-  options?: Options<UserGetMyProfileData, ThrowOnError>,
+export const usersProfileGetCurrent = <ThrowOnError extends boolean = false>(
+  options?: Options<UsersProfileGetCurrentData, ThrowOnError>,
 ) => {
-  return (options?.client ?? _heyApiClient).get<UserGetMyProfileResponse, unknown, ThrowOnError>({
+  return (options?.client ?? _heyApiClient).get<
+    UsersProfileGetCurrentResponse,
+    unknown,
+    ThrowOnError
+  >({
     security: [
       {
         in: "cookie",
@@ -1102,12 +1139,13 @@ export const userGetMyProfile = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Get User Groups
+ * Users Groups List
+ * Get user's groups with permission checks.
  */
-export const userGetGroups = <ThrowOnError extends boolean = false>(
-  options: Options<UserGetGroupsData, ThrowOnError>,
+export const usersGroupsList = <ThrowOnError extends boolean = false>(
+  options: Options<UsersGroupsListData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).get<UserGetGroupsResponse, unknown, ThrowOnError>({
+  return (options.client ?? _heyApiClient).get<UsersGroupsListResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -1121,35 +1159,39 @@ export const userGetGroups = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Set User Groups
+ * Users Groups Update
+ * Set user's groups with validation.
  */
-export const userSetGroups = <ThrowOnError extends boolean = false>(
-  options: Options<UserSetGroupsData, ThrowOnError>,
+export const usersGroupsUpdate = <ThrowOnError extends boolean = false>(
+  options: Options<UsersGroupsUpdateData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).patch<UserSetGroupsResponse, unknown, ThrowOnError>({
-    security: [
-      {
-        in: "cookie",
-        name: "sessionid",
-        type: "apiKey",
+  return (options.client ?? _heyApiClient).patch<UsersGroupsUpdateResponse, unknown, ThrowOnError>(
+    {
+      security: [
+        {
+          in: "cookie",
+          name: "sessionid",
+          type: "apiKey",
+        },
+      ],
+      url: "/api/user/{user_id}/groups/",
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
       },
-    ],
-    url: "/api/user/{user_id}/groups/",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
     },
-  });
+  );
 };
 
 /**
- * Get User Info
+ * Users Get By Id
+ * Get user information with proper permission checks.
  */
-export const userGetInfo = <ThrowOnError extends boolean = false>(
-  options: Options<UserGetInfoData, ThrowOnError>,
+export const usersGetById = <ThrowOnError extends boolean = false>(
+  options: Options<UsersGetByIdData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).get<UserGetInfoResponse, unknown, ThrowOnError>({
+  return (options.client ?? _heyApiClient).get<UsersGetByIdResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -1163,12 +1205,13 @@ export const userGetInfo = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Set User Info
+ * Users Update
+ * Update user information with proper permission and validation checks.
  */
-export const userSetInfo = <ThrowOnError extends boolean = false>(
-  options: Options<UserSetInfoData, ThrowOnError>,
+export const usersUpdate = <ThrowOnError extends boolean = false>(
+  options: Options<UsersUpdateData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).patch<UserSetInfoResponse, unknown, ThrowOnError>({
+  return (options.client ?? _heyApiClient).patch<UsersUpdateResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -1186,31 +1229,39 @@ export const userSetInfo = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Get Profile
+ * Users Profile Get By Id
+ * Get user profile with permission checks.
  */
-export const userGetProfile = <ThrowOnError extends boolean = false>(
-  options: Options<UserGetProfileData, ThrowOnError>,
+export const usersProfileGetById = <ThrowOnError extends boolean = false>(
+  options: Options<UsersProfileGetByIdData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).get<UserGetProfileResponse, unknown, ThrowOnError>({
-    security: [
-      {
-        in: "cookie",
-        name: "sessionid",
-        type: "apiKey",
-      },
-    ],
-    url: "/api/user/{user_id}/profile/",
-    ...options,
-  });
+  return (options.client ?? _heyApiClient).get<UsersProfileGetByIdResponse, unknown, ThrowOnError>(
+    {
+      security: [
+        {
+          in: "cookie",
+          name: "sessionid",
+          type: "apiKey",
+        },
+      ],
+      url: "/api/user/{user_id}/profile/",
+      ...options,
+    },
+  );
 };
 
 /**
- * Edit Profile
+ * Users Profile Update
+ * Edit user profile with permission checks.
  */
-export const userEditProfile = <ThrowOnError extends boolean = false>(
-  options: Options<UserEditProfileData, ThrowOnError>,
+export const usersProfileUpdate = <ThrowOnError extends boolean = false>(
+  options: Options<UsersProfileUpdateData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).patch<UserEditProfileResponse, unknown, ThrowOnError>({
+  return (options.client ?? _heyApiClient).patch<
+    UsersProfileUpdateResponse,
+    unknown,
+    ThrowOnError
+  >({
     security: [
       {
         in: "cookie",

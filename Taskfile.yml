@@ -104,4 +104,4 @@ tasks:
 
   repomix:
     cmds:
-      - repomix --style markdown --remove-comments --ignore frontend/.prettierignore,frontend/.stylelintignore,frontend/eslint.config.js,frontend/index.html,frontend/openapi-ts.config.ts,frontend/pnpm-workspace.yaml,frontend/README.md,frontend/vite.config.ts,frontend/tsconfig.app.json,frontend/tsconfig.json,frontend/tsconfig.node.json,frontend/public/,docker/,frontend/.env,frontend/.gitignore,memoria/migrations/,schema.json,docs/ --remove-empty-lines .
+      - repomix --style markdown --remove-comments --ignore frontend/.prettierignore,frontend/.stylelintignore,frontend/eslint.config.js,frontend/index.html,frontend/openapi-ts.config.ts,frontend/pnpm-workspace.yaml,frontend/README.md,frontend/vite.config.ts,frontend/tsconfig.app.json,frontend/tsconfig.json,frontend/tsconfig.node.json,frontend/public/,docker/,frontend/.env,frontend/.gitignore,memoria/migrations/,api-spec.json,docs/ --remove-empty-lines .
