@@ -49,6 +49,11 @@ def users_base_url(api_base_url: str) -> str:
 
 
 @pytest.fixture(scope="session")
+def groups_base_url(api_base_url: str) -> str:
+    return api_base_url + "groups/"
+
+
+@pytest.fixture(scope="session")
 def fixture_directory() -> Path:
     return Path(__file__).parent / "fixtures"
 

@@ -73,13 +73,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "id",
-          "created_at",
-          "updated_at",
-          "name",
-          "image_count"
-        ],
+        "required": ["id", "created_at", "updated_at", "name", "image_count"],
         "title": "AlbumBasicReadOutSchema",
         "type": "object"
       },
@@ -119,9 +113,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "AlbumCreateInSchema",
         "type": "object"
       },
@@ -150,9 +142,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "sorting"
-        ],
+        "required": ["sorting"],
         "title": "AlbumSortUpdateInSchema",
         "type": "object"
       },
@@ -282,14 +272,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "id",
-          "created_at",
-          "updated_at",
-          "name",
-          "image_count",
-          "image_ids"
-        ],
+        "required": ["id", "created_at", "updated_at", "name", "image_count", "image_ids"],
         "title": "AlbumWithImagesOutSchema",
         "type": "object"
       },
@@ -308,10 +291,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "title": "AuthLoginSchema",
         "type": "object"
       },
@@ -326,10 +306,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "id"
-        ],
+        "required": ["name", "id"],
         "title": "BreadcrumbSchema",
         "type": "object"
       },
@@ -344,10 +321,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "alpha2",
-          "best_name"
-        ],
+        "required": ["alpha2", "best_name"],
         "title": "CountryListItemSchemaOut",
         "type": "object"
       },
@@ -359,9 +333,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "csrf_token"
-        ],
+        "required": ["csrf_token"],
         "title": "CsrfTokenOutSchema",
         "type": "object"
       },
@@ -519,9 +491,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "GroupCreateInSchema",
         "type": "object"
       },
@@ -536,10 +506,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name"
-        ],
+        "required": ["id", "name"],
         "title": "GroupOutSchema",
         "type": "object"
       },
@@ -556,10 +523,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name"
-        ],
+        "required": ["id", "name"],
         "title": "GroupSchemaOut",
         "type": "object"
       },
@@ -570,9 +534,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "GroupUpdateInSchema",
         "type": "object"
       },
@@ -592,11 +554,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "date",
-          "month_valid",
-          "day_valid"
-        ],
+        "required": ["date", "month_valid", "day_valid"],
         "title": "ImageDateSchemaOut",
         "type": "object"
       },
@@ -616,11 +574,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "date",
-          "month_valid",
-          "day_valid"
-        ],
+        "required": ["date", "month_valid", "day_valid"],
         "title": "ImageDateUpdateSchemaIn",
         "type": "object"
       },
@@ -635,10 +589,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name"
-        ],
+        "required": ["id", "name"],
         "title": "ImageFolderSchemaOut",
         "type": "object"
       },
@@ -748,12 +699,7 @@
             "title": "Subdivision Code"
           }
         },
-        "required": [
-          "country_code",
-          "subdivision_code",
-          "city",
-          "sub_location"
-        ],
+        "required": ["country_code", "subdivision_code", "city", "sub_location"],
         "title": "ImageLocationUpdateSchemaIn",
         "type": "object"
       },
@@ -919,22 +865,13 @@
             "title": "View Group Ids"
           }
         },
-        "required": [
-          "title",
-          "description"
-        ],
+        "required": ["title", "description"],
         "title": "ImageMetadataUpdateSchemaIn",
         "type": "object"
       },
       "ImageScaledSideMaxEnum": {
         "description": "IntEnum for the maximum side length of a scaled image,\ncommonly used for responsive image breakpoints.\n\nSync with ImageScaledSideMaxChoices",
-        "enum": [
-          768,
-          1024,
-          1920,
-          2560,
-          3840
-        ],
+        "enum": [768, 1024, 1920, 2560, 3840],
         "title": "ImageScaledSideMaxEnum",
         "type": "integer"
       },
@@ -990,29 +927,12 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "title",
-          "thumbnail_url",
-          "thumbnail_height",
-          "thumbnail_width"
-        ],
+        "required": ["id", "title", "thumbnail_url", "thumbnail_height", "thumbnail_width"],
         "title": "ImageThumbnailSchemaOut",
         "type": "object"
       },
       "ImagesPerPageChoices": {
-        "enum": [
-          10,
-          20,
-          30,
-          40,
-          50,
-          60,
-          70,
-          80,
-          90,
-          100
-        ],
+        "enum": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
         "title": "ImagesPerPageChoices",
         "type": "integer"
       },
@@ -1048,10 +968,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "items",
-          "count"
-        ],
+        "required": ["items", "count"],
         "title": "PagedAlbumBasicReadOutSchema",
         "type": "object"
       },
@@ -1069,10 +986,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "items",
-          "count"
-        ],
+        "required": ["items", "count"],
         "title": "PagedPersonImageOutSchema",
         "type": "object"
       },
@@ -1090,10 +1004,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "items",
-          "count"
-        ],
+        "required": ["items", "count"],
         "title": "PagedPersonReadOutSchema",
         "type": "object"
       },
@@ -1111,10 +1022,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "items",
-          "count"
-        ],
+        "required": ["items", "count"],
         "title": "PagedPetImageOutSchema",
         "type": "object"
       },
@@ -1132,10 +1040,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "items",
-          "count"
-        ],
+        "required": ["items", "count"],
         "title": "PagedPetReadSchemaOut",
         "type": "object"
       },
@@ -1193,13 +1098,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "created_at",
-          "updated_at",
-          "id",
-          "name",
-          "image_count"
-        ],
+        "required": ["created_at", "updated_at", "id", "name", "image_count"],
         "title": "PersonDetailOutSchema",
         "type": "object"
       },
@@ -1211,9 +1110,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "id"
-        ],
+        "required": ["id"],
         "title": "PersonImageOutSchema",
         "type": "object"
       },
@@ -1249,15 +1146,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "id",
-          "center_x",
-          "center_y",
-          "height",
-          "width",
-          "person_id",
-          "name"
-        ],
+        "required": ["id", "center_x", "center_y", "height", "width", "person_id", "name"],
         "title": "PersonInImageSchemaOut",
         "type": "object"
       },
@@ -1288,11 +1177,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "image_count"
-        ],
+        "required": ["id", "name", "image_count"],
         "title": "PersonReadOutSchema",
         "type": "object"
       },
@@ -1363,9 +1248,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "id"
-        ],
+        "required": ["id"],
         "title": "PetImageOutSchema",
         "type": "object"
       },
@@ -1408,14 +1291,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "id",
-          "center_x",
-          "center_y",
-          "height",
-          "width",
-          "name"
-        ],
+        "required": ["id", "center_x", "center_y", "height", "width", "name"],
         "title": "PetInImageSchemaOut",
         "type": "object"
       },
@@ -1484,13 +1360,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "created_at",
-          "updated_at",
-          "id",
-          "name",
-          "image_count"
-        ],
+        "required": ["created_at", "updated_at", "id", "name", "image_count"],
         "title": "PetReadDetailSchemaOut",
         "type": "object"
       },
@@ -1531,20 +1401,12 @@
             ]
           }
         },
-        "required": [
-          "id",
-          "name",
-          "image_count"
-        ],
+        "required": ["id", "name", "image_count"],
         "title": "PetReadSchemaOut",
         "type": "object"
       },
       "PetTypeChoices": {
-        "enum": [
-          "cat",
-          "dog",
-          "horse"
-        ],
+        "enum": ["cat", "dog", "horse"],
         "title": "PetTypeChoices",
         "type": "string"
       },
@@ -1665,26 +1527,13 @@
             "type": "array"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "description"
-        ],
+        "required": ["id", "name", "description"],
         "title": "RootFolderSchemaOut",
         "type": "object"
       },
       "RotationEnum": {
         "description": "https://exiftool.org/TagNames/EXIF.html (0x0112)",
-        "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ],
+        "enum": [1, 2, 3, 4, 5, 6, 7, 8],
         "title": "RotationEnum",
         "type": "integer"
       },
@@ -1707,11 +1556,7 @@
             "description": "The largest side dimension of generated image thumbnails"
           }
         },
-        "required": [
-          "large_image_max_size",
-          "large_image_quality",
-          "thumbnail_max_size"
-        ],
+        "required": ["large_image_max_size", "large_image_quality", "thumbnail_max_size"],
         "title": "SiteSettingsSchemaOut",
         "type": "object"
       },
@@ -1770,10 +1615,7 @@
             "description": "Statistics related to the current user's view and edit permissions."
           }
         },
-        "required": [
-          "user_statistics",
-          "system_statistics"
-        ],
+        "required": ["user_statistics", "system_statistics"],
         "title": "StatisticsResponseSchema",
         "type": "object"
       },
@@ -1788,10 +1630,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "code",
-          "name"
-        ],
+        "required": ["code", "name"],
         "title": "SubdivisionListItemSchemaOut",
         "type": "object"
       },
@@ -1840,13 +1679,7 @@
       },
       "ThumbnailSizeEnum": {
         "description": "Defines standard pixel dimensions for image thumbnails using an IntEnum.\nThe value represents the maximum dimension (width or height)\nof the thumbnail, with aspect ratio preserved.\n\nSync with ThumbnailSizeChoices",
-        "enum": [
-          128,
-          256,
-          512,
-          640,
-          800
-        ],
+        "enum": [128, 256, 512, 640, 800],
         "title": "ThumbnailSizeEnum",
         "type": "integer"
       },
@@ -2177,9 +2010,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "id"
-        ],
+        "required": ["id"],
         "title": "UserGroupAssignInSchema",
         "type": "object"
       },
@@ -2245,10 +2076,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "title": "UserInCreateSchema",
         "type": "object"
       },
@@ -2318,14 +2146,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "first_name",
-          "last_name",
-          "username",
-          "last_login",
-          "date_joined"
-        ],
+        "required": ["id", "first_name", "last_name", "username", "last_login", "date_joined"],
         "title": "UserOutSchema",
         "type": "object"
       },
@@ -2349,11 +2170,7 @@
             "$ref": "#/components/schemas/TimezoneChoices"
           }
         },
-        "required": [
-          "items_per_page",
-          "bio",
-          "timezone_name"
-        ],
+        "required": ["items_per_page", "bio", "timezone_name"],
         "title": "UserProfileOutSchema",
         "type": "object"
       },
@@ -2672,9 +2489,7 @@
           }
         ],
         "summary": "Get Albums",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       },
       "post": {
         "description": "Create a new album with optional view/edit groups",
@@ -2708,9 +2523,7 @@
           }
         ],
         "summary": "Create Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       }
     },
     "/api/album/{album_id}/": {
@@ -2738,9 +2551,7 @@
           }
         ],
         "summary": "Delete Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       },
       "get": {
         "description": "Retrieve full details of a single album",
@@ -2777,9 +2588,7 @@
           }
         ],
         "summary": "Get Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       },
       "patch": {
         "description": "Update album name, description, and group permissions",
@@ -2826,9 +2635,7 @@
           }
         ],
         "summary": "Update Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       }
     },
     "/api/album/{album_id}/add/": {
@@ -2873,9 +2680,7 @@
           }
         ],
         "summary": "Add Image To Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       }
     },
     "/api/album/{album_id}/download/": {
@@ -2914,9 +2719,7 @@
           }
         ],
         "summary": "Download Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       }
     },
     "/api/album/{album_id}/remove/": {
@@ -2961,9 +2764,7 @@
           }
         ],
         "summary": "Remove Image From Album",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       }
     },
     "/api/album/{album_id}/sort/": {
@@ -3015,9 +2816,7 @@
           }
         ],
         "summary": "Update Album Sorting",
-        "tags": [
-          "albums"
-        ]
+        "tags": ["albums"]
       }
     },
     "/api/auth/csrf/": {
@@ -3037,9 +2836,7 @@
           }
         },
         "summary": "Get Csrf Token",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/api/auth/login/": {
@@ -3068,9 +2865,7 @@
           }
         },
         "summary": "Login",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/api/auth/logout/": {
@@ -3088,9 +2883,7 @@
           }
         ],
         "summary": "Logout",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/api/folder/": {
@@ -3115,9 +2908,7 @@
           }
         },
         "summary": "List Image Folders",
-        "tags": [
-          "folders"
-        ]
+        "tags": ["folders"]
       }
     },
     "/api/folder/{folder_id}/": {
@@ -3148,9 +2939,7 @@
           }
         },
         "summary": "Get Image Folder",
-        "tags": [
-          "folders"
-        ]
+        "tags": ["folders"]
       },
       "patch": {
         "operationId": "update_folder_info",
@@ -3188,9 +2977,7 @@
           }
         },
         "summary": "Update Folder",
-        "tags": [
-          "folders"
-        ]
+        "tags": ["folders"]
       }
     },
     "/api/groups/": {
@@ -3219,9 +3006,7 @@
           }
         ],
         "summary": "Get All Groups",
-        "tags": [
-          "groups"
-        ]
+        "tags": ["groups"]
       },
       "post": {
         "description": "Creates multiple groups from a list of group schemas or a single group.\n\nArgs:\n    request: The Django request object.\n    data: A GroupListInCreateSchema object containing the list of groups to create.\n\nReturns:\n    A list of GroupOutSchema objects representing the created groups.",
@@ -3270,9 +3055,7 @@
           }
         ],
         "summary": "Create Group",
-        "tags": [
-          "groups"
-        ]
+        "tags": ["groups"]
       }
     },
     "/api/groups/{group_id}/": {
@@ -3300,9 +3083,7 @@
           }
         ],
         "summary": "Delete Group",
-        "tags": [
-          "groups"
-        ]
+        "tags": ["groups"]
       },
       "get": {
         "operationId": "group_get_single",
@@ -3335,9 +3116,7 @@
           }
         ],
         "summary": "Get Single Groups",
-        "tags": [
-          "groups"
-        ]
+        "tags": ["groups"]
       },
       "patch": {
         "operationId": "group_update_single",
@@ -3380,9 +3159,7 @@
           }
         ],
         "summary": "Update Single Group",
-        "tags": [
-          "groups"
-        ]
+        "tags": ["groups"]
       }
     },
     "/api/image/bulk/thumbnails/": {
@@ -3425,9 +3202,7 @@
           }
         ],
         "summary": "Get Image Thumbnails Bulk Info",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/date/": {
@@ -3471,9 +3246,7 @@
           }
         ],
         "summary": "Get Image Date",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       },
       "patch": {
         "operationId": "image_update_date",
@@ -3522,9 +3295,7 @@
           }
         ],
         "summary": "Update Image Date",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/location/": {
@@ -3568,9 +3339,7 @@
           }
         ],
         "summary": "Get Image Location",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       },
       "patch": {
         "operationId": "image_update_location",
@@ -3622,9 +3391,7 @@
           }
         ],
         "summary": "Update Image Location",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/metadata/": {
@@ -3659,9 +3426,7 @@
           }
         ],
         "summary": "Get Image Details",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       },
       "patch": {
         "operationId": "image_update_metadata",
@@ -3704,9 +3469,7 @@
           }
         ],
         "summary": "Update Image Details",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/people/": {
@@ -3745,9 +3508,7 @@
           }
         ],
         "summary": "Get Image People",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/pets/": {
@@ -3786,9 +3547,7 @@
           }
         ],
         "summary": "Get Image Pets",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/image/{image_id}/thumbnail/": {
@@ -3823,9 +3582,7 @@
           }
         ],
         "summary": "Get Image Thumbnail Info",
-        "tags": [
-          "images"
-        ]
+        "tags": ["images"]
       }
     },
     "/api/location/cities/": {
@@ -3875,9 +3632,7 @@
           }
         },
         "summary": "Get Existing Cities",
-        "tags": [
-          "locations"
-        ]
+        "tags": ["locations"]
       }
     },
     "/api/location/countries/": {
@@ -3901,9 +3656,7 @@
           }
         },
         "summary": "Get All Countries",
-        "tags": [
-          "locations"
-        ]
+        "tags": ["locations"]
       }
     },
     "/api/location/subdivisions/": {
@@ -3937,9 +3690,7 @@
           }
         },
         "summary": "Get Subdivisions For Country",
-        "tags": [
-          "locations"
-        ]
+        "tags": ["locations"]
       }
     },
     "/api/location/sublocations/": {
@@ -3998,9 +3749,7 @@
           }
         },
         "summary": "Get Existing Sublocations",
-        "tags": [
-          "locations"
-        ]
+        "tags": ["locations"]
       }
     },
     "/api/person/": {
@@ -4074,9 +3823,7 @@
           }
         ],
         "summary": "Get All People",
-        "tags": [
-          "people"
-        ]
+        "tags": ["people"]
       }
     },
     "/api/person/{person_id}/": {
@@ -4111,9 +3858,7 @@
           }
         ],
         "summary": "Get Person Detail",
-        "tags": [
-          "people"
-        ]
+        "tags": ["people"]
       },
       "patch": {
         "operationId": "update_person_detail",
@@ -4156,9 +3901,7 @@
           }
         ],
         "summary": "Update Person",
-        "tags": [
-          "people"
-        ]
+        "tags": ["people"]
       }
     },
     "/api/person/{person_id}/images/": {
@@ -4215,9 +3958,7 @@
           }
         ],
         "summary": "Get Person Images",
-        "tags": [
-          "people"
-        ]
+        "tags": ["people"]
       }
     },
     "/api/pet/": {
@@ -4306,9 +4047,7 @@
           }
         ],
         "summary": "Get All Pets",
-        "tags": [
-          "pets"
-        ]
+        "tags": ["pets"]
       }
     },
     "/api/pet/{pet_id}/": {
@@ -4346,9 +4085,7 @@
           }
         ],
         "summary": "Get Single Pet",
-        "tags": [
-          "pets"
-        ]
+        "tags": ["pets"]
       },
       "patch": {
         "operationId": "update_pet",
@@ -4394,9 +4131,7 @@
           }
         ],
         "summary": "Update Pet",
-        "tags": [
-          "pets"
-        ]
+        "tags": ["pets"]
       }
     },
     "/api/pet/{pet_id}/images/": {
@@ -4453,9 +4188,7 @@
           }
         ],
         "summary": "Get Person Images",
-        "tags": [
-          "pets"
-        ]
+        "tags": ["pets"]
       }
     },
     "/api/system/settings/": {
@@ -4480,9 +4213,7 @@
           }
         ],
         "summary": "Get System Settings",
-        "tags": [
-          "system"
-        ]
+        "tags": ["system"]
       },
       "patch": {
         "operationId": "update_system_settings",
@@ -4515,9 +4246,7 @@
           }
         ],
         "summary": "Update System Settings",
-        "tags": [
-          "system"
-        ]
+        "tags": ["system"]
       }
     },
     "/api/system/statistics/": {
@@ -4538,9 +4267,7 @@
           }
         },
         "summary": "Get System Statistics",
-        "tags": [
-          "system"
-        ]
+        "tags": ["system"]
       }
     },
     "/api/user/": {
@@ -4679,9 +4406,7 @@
           }
         ],
         "summary": "Users List",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       },
       "post": {
         "description": "Create a new user with proper permission checks and validation.",
@@ -4715,9 +4440,7 @@
           }
         ],
         "summary": "Users Create",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/api/user/me/": {
@@ -4743,9 +4466,7 @@
           }
         ],
         "summary": "Users Get Current",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/api/user/me/profile/": {
@@ -4771,9 +4492,7 @@
           }
         ],
         "summary": "Users Profile Get Current",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/api/user/{user_id}/groups/": {
@@ -4813,9 +4532,7 @@
           }
         ],
         "summary": "Users Groups List",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       },
       "patch": {
         "description": "Set user's groups with validation.",
@@ -4870,9 +4587,7 @@
           }
         ],
         "summary": "Users Groups Update",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/api/user/{user_id}/info/": {
@@ -4908,9 +4623,7 @@
           }
         ],
         "summary": "Users Get By Id",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       },
       "patch": {
         "description": "Update user information with proper permission and validation checks.",
@@ -4954,9 +4667,7 @@
           }
         ],
         "summary": "Users Update",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/api/user/{user_id}/profile/": {
@@ -4992,9 +4703,7 @@
           }
         ],
         "summary": "Users Profile Get By Id",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       },
       "patch": {
         "description": "Edit user profile with permission checks.",
@@ -5038,9 +4747,7 @@
           }
         ],
         "summary": "Users Profile Update",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     }
   },
