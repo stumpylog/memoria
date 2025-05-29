@@ -7,10 +7,10 @@ import {
   Container,
   FormControl,
   InputGroup,
-  OverlayTrigger, // Import OverlayTrigger
+  OverlayTrigger,
   Pagination,
   Table,
-  Tooltip, // Import Tooltip
+  Tooltip,
 } from "react-bootstrap";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -18,6 +18,9 @@ import type { PagedPersonReadOutSchema, PersonReadOutSchema } from "../api";
 
 import { getAllPeople } from "../api";
 import { useAuth } from "../hooks/useAuth";
+
+// Define a type alias for the allowed sort_by values, matching your backend Literal
+type SortByValue = "name" | "-name" | "image_count" | "-image_count";
 
 const PeoplePage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,6 +32,23 @@ const PeoplePage: React.FC = () => {
   // Ref for the search input to manage debounce
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // State for sorting: Stores the raw sort_by string (e.g., "name", "-name", "image_count", "-image_count")
+  // The default sort when nothing is specified or cleared is "name" (ascending).
+  // Explicitly type the useState to SortByValue
+  const [sortBy, setSortBy] = useState<SortByValue>(() => {
+    const param = searchParams.get("sort_by");
+    // Validate the param against the allowed literal values
+    if (
+      param === "name" ||
+      param === "-name" ||
+      param === "image_count" ||
+      param === "-image_count"
+    ) {
+      return param;
+    }
+    return "name"; // Default to "name" (ascending) if the param is invalid or not present
+  });
+
   // Get pagination parameters from URL or defaults
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const pageSize = profile?.items_per_page || 10; // Default to 10 if not in profile
@@ -37,20 +57,21 @@ const PeoplePage: React.FC = () => {
   const offset = (currentPage - 1) * pageSize;
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["people", currentPage, pageSize, searchTerm],
+    queryKey: ["people", currentPage, pageSize, searchTerm, sortBy], // Add sortBy to queryKey
     queryFn: async ({ signal }) => {
       const response = await getAllPeople({
         query: {
           limit: pageSize,
           offset: offset,
-          person_name: searchTerm || undefined, // Only send if not empty
+          person_name: searchTerm || undefined,
+          sort_by: sortBy, // Pass the sortBy state directly to the API
         },
-        signal, // Pass the AbortController signal to the fetch request
+        signal,
       });
       return response.data as PagedPersonReadOutSchema;
     },
     placeholderData: keepPreviousData,
-    staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
   // Debounce effect for search term
@@ -65,25 +86,63 @@ const PeoplePage: React.FC = () => {
       // Reset to first page when search term changes
       newParams.set("page", "1");
       setSearchParams(newParams);
-    }, 500); // 500ms debounce
+    }, 500);
 
     return () => {
       clearTimeout(handler);
     };
   }, [searchTerm, searchParams, setSearchParams]);
 
+  // Effect for sortBy changes
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    // Only set sort_by if it's not the default "name", otherwise delete it for cleaner URLs
+    if (sortBy && sortBy !== "name") {
+      newParams.set("sort_by", sortBy);
+    } else {
+      newParams.delete("sort_by");
+    }
+    // Reset to first page when sort column or direction changes
+    newParams.set("page", "1");
+    setSearchParams(newParams);
+  }, [sortBy, searchParams, setSearchParams]);
+
   const handleViewDetails = (personId: number) => {
     navigate(`/people/${personId}`);
   };
 
   const handlePageChange = (page: number) => {
-    // Preserve other URL parameters and update only the page
     const newParams = new URLSearchParams(searchParams);
     newParams.set("page", page.toString());
     setSearchParams(newParams);
-
-    // Make sure we're at the top of the page when navigating
     window.scrollTo(0, 0);
+  };
+
+  // Function to handle sorting when a table header is clicked
+  const handleSortChange = (column: "name" | "image_count") => {
+    let newSortBy: SortByValue; // Explicitly type newSortBy here
+
+    if (sortBy === column) {
+      // Currently ascending for this column -> switch to descending
+      newSortBy = `-${column}`;
+    } else if (sortBy === `-${column}`) {
+      // Currently descending for this column -> clear sort (go back to default 'name' ascending)
+      newSortBy = "name";
+    } else {
+      // Sorting by another column or no sort -> sort by this column ascending
+      newSortBy = column;
+    }
+    setSortBy(newSortBy);
+  };
+
+  // Helper function to get the current sort icon
+  const getSortIcon = (column: "name" | "image_count") => {
+    if (sortBy === column) {
+      return <i className="bi bi-caret-up-fill ms-1"></i>; // Ascending icon
+    } else if (sortBy === `-${column}`) {
+      return <i className="bi bi-caret-down-fill ms-1"></i>; // Descending icon
+    }
+    return null; // No icon if not sorted by this column
   };
 
   // Calculate total pages
@@ -200,9 +259,13 @@ const PeoplePage: React.FC = () => {
           <Table striped bordered hover responsive className="mt-3">
             <thead>
               <tr>
-                <th>Name</th>
+                <th onClick={() => handleSortChange("name")} style={{ cursor: "pointer" }}>
+                  Name {getSortIcon("name")}
+                </th>
                 <th>Description</th>
-                <th>Image Count</th>
+                <th onClick={() => handleSortChange("image_count")} style={{ cursor: "pointer" }}>
+                  Image Count {getSortIcon("image_count")}
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>

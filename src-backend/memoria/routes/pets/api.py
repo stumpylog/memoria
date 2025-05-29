@@ -1,10 +1,12 @@
 import logging
 from http import HTTPStatus
+from typing import Literal
 
 from django.db.models import Count
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
+from ninja import Query
 from ninja import Router
 from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
@@ -62,7 +64,11 @@ async def _aget_pet_with_counts(pet_id: int, user) -> Pet:
 @paginate(LimitOffsetPagination)
 def get_all_pets(
     request: HttpRequest,
-    sort_by: str = "name",
+    sort_by: Literal["name", "-name", "image_count", "-image_count"] = Query(
+        "name",
+        description="Field to sort by: 'name' or 'image_count'. "
+        "Prefix with '-' for descending order (e.g., '-image_count').",
+    ),
     pet_name: str | None = None,
     pet_type: PetTypeChoices | None = None,
 ):

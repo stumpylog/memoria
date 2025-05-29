@@ -3761,11 +3761,14 @@
         "operationId": "get_all_people",
         "parameters": [
           {
+            "description": "Field to sort by: 'name' or 'image_count'. Prefix with '-' for descending order (e.g., '-image_count').",
             "in": "query",
             "name": "sort_by",
             "required": false,
             "schema": {
               "default": "name",
+              "description": "Field to sort by: 'name' or 'image_count'. Prefix with '-' for descending order (e.g., '-image_count').",
+              "enum": ["name", "-name", "image_count", "-image_count"],
               "title": "Sort By",
               "type": "string"
             }
@@ -3970,11 +3973,14 @@
         "operationId": "get_all_pets",
         "parameters": [
           {
+            "description": "Field to sort by: 'name' or 'image_count'. Prefix with '-' for descending order (e.g., '-image_count').",
             "in": "query",
             "name": "sort_by",
             "required": false,
             "schema": {
               "default": "name",
+              "description": "Field to sort by: 'name' or 'image_count'. Prefix with '-' for descending order (e.g., '-image_count').",
+              "enum": ["name", "-name", "image_count", "-image_count"],
               "title": "Sort By",
               "type": "string"
             }

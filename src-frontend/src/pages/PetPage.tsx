@@ -25,6 +25,9 @@ import { useTheme } from "../hooks/useTheme";
 // Define a runtime constant for pet types here, outside the API generated file
 const PET_TYPE_OPTIONS = ["cat", "dog", "horse"] as const;
 
+// Define a type alias for the allowed sort_by values for pets
+type SortByValue = "name" | "-name" | "image_count" | "-image_count";
+
 const PetsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -39,13 +42,29 @@ const PetsPage: React.FC = () => {
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // State for sorting: Stores the raw sort_by string (e.g., "name", "-name", "image_count", "-image_count")
+  // The default sort when nothing is specified or cleared is "name" (ascending).
+  const [sortBy, setSortBy] = useState<SortByValue>(() => {
+    const param = searchParams.get("sort_by");
+    // Validate the param against the allowed literal values
+    if (
+      param === "name" ||
+      param === "-name" ||
+      param === "image_count" ||
+      param === "-image_count"
+    ) {
+      return param;
+    }
+    return "name"; // Default to "name" (ascending) if the param is invalid or not present
+  });
+
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const pageSize = profile?.items_per_page || 10;
 
   const offset = (currentPage - 1) * pageSize;
 
   const { data, isLoading, isError, error } = useQuery<PagedPetReadSchemaOut>({
-    queryKey: ["pets", currentPage, pageSize, searchTerm, selectedPetType],
+    queryKey: ["pets", currentPage, pageSize, searchTerm, selectedPetType, sortBy], // Add sortBy to queryKey
     queryFn: async ({ signal }) => {
       const response = await getAllPets({
         query: {
@@ -54,6 +73,7 @@ const PetsPage: React.FC = () => {
           // Pass null if selectedPetType is null or an empty string, otherwise pass the value
           pet_type: selectedPetType || null,
           pet_name: searchTerm || undefined,
+          sort_by: sortBy, // Pass the sortBy state to the API
         },
         signal,
       });
@@ -91,6 +111,20 @@ const PetsPage: React.FC = () => {
     };
   }, [searchTerm, selectedPetType, searchParams, setSearchParams]);
 
+  // Effect for sortBy changes
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    // Only set sort_by if it's not the default "name", otherwise delete it for cleaner URLs
+    if (sortBy && sortBy !== "name") {
+      newParams.set("sort_by", sortBy);
+    } else {
+      newParams.delete("sort_by");
+    }
+    // Reset to first page when sort column or direction changes
+    newParams.set("page", "1");
+    setSearchParams(newParams);
+  }, [sortBy, searchParams, setSearchParams]);
+
   const handleViewDetails = (petId: number) => {
     navigate(`/pets/${petId}`);
   };
@@ -100,6 +134,33 @@ const PetsPage: React.FC = () => {
     newParams.set("page", page.toString());
     setSearchParams(newParams);
     window.scrollTo(0, 0);
+  };
+
+  // Function to handle sorting when a table header is clicked
+  const handleSortChange = (column: "name" | "image_count") => {
+    let newSortBy: SortByValue; // Explicitly type newSortBy here
+
+    if (sortBy === column) {
+      // Currently ascending for this column -> switch to descending
+      newSortBy = `-${column}`;
+    } else if (sortBy === `-${column}`) {
+      // Currently descending for this column -> clear sort (go back to default 'name' ascending)
+      newSortBy = "name";
+    } else {
+      // Sorting by another column or no sort -> sort by this column ascending
+      newSortBy = column;
+    }
+    setSortBy(newSortBy);
+  };
+
+  // Helper function to get the current sort icon
+  const getSortIcon = (column: "name" | "image_count") => {
+    if (sortBy === column) {
+      return <i className="bi bi-caret-up-fill ms-1"></i>; // Ascending icon
+    } else if (sortBy === `-${column}`) {
+      return <i className="bi bi-caret-down-fill ms-1"></i>; // Descending icon
+    }
+    return null; // No icon if not sorted by this column
   };
 
   const totalPages = data ? Math.ceil(data.count / pageSize) : 0;
@@ -300,10 +361,14 @@ const PetsPage: React.FC = () => {
           <Table striped bordered hover responsive className="mt-3">
             <thead>
               <tr>
-                <th>Name</th>
+                <th onClick={() => handleSortChange("name")} style={{ cursor: "pointer" }}>
+                  Name {getSortIcon("name")}
+                </th>
                 <th>Description</th>
                 <th>Type</th>
-                <th>Image Count</th>
+                <th onClick={() => handleSortChange("image_count")} style={{ cursor: "pointer" }}>
+                  Image Count {getSortIcon("image_count")}
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>

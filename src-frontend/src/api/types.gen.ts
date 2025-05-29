@@ -1725,7 +1725,10 @@ export type GetAllPeopleData = {
   body?: never;
   path?: never;
   query?: {
-    sort_by?: string;
+    /**
+     * Field to sort by: 'name' or 'image_count'. Prefix with '-' for descending order (e.g., '-image_count').
+     */
+    sort_by?: "name" | "-name" | "image_count" | "-image_count";
     person_name?: string | null;
     limit?: number;
     offset?: number;
@@ -1804,7 +1807,10 @@ export type GetAllPetsData = {
   body?: never;
   path?: never;
   query?: {
-    sort_by?: string;
+    /**
+     * Field to sort by: 'name' or 'image_count'. Prefix with '-' for descending order (e.g., '-image_count').
+     */
+    sort_by?: "name" | "-name" | "image_count" | "-image_count";
     pet_name?: string | null;
     pet_type?: PetTypeChoices | null;
     limit?: number;

@@ -1,9 +1,11 @@
 import logging
+from typing import Literal
 
 from django.db import transaction
 from django.db.models import Count
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
+from ninja import Query
 from ninja import Router
 from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
@@ -43,7 +45,11 @@ def _get_person_with_counts(person_id: int, user) -> Person:
 @paginate(LimitOffsetPagination)
 def get_all_people(
     request: HttpRequest,
-    sort_by: str = "name",
+    sort_by: Literal["name", "-name", "image_count", "-image_count"] = Query(
+        "name",
+        description="Field to sort by: 'name' or 'image_count'. "
+        "Prefix with '-' for descending order (e.g., '-image_count').",
+    ),
     person_name: str | None = None,
 ):
     user = request.user
