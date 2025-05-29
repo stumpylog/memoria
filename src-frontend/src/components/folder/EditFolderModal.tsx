@@ -8,7 +8,7 @@ import Select from "react-select";
 
 import type { FolderDetailSchemaOut, FolderUpdateSchemaIn, GroupSchemaOut } from "../../api";
 
-import { groupGetAll, updateFolderInfo } from "../../api";
+import { listGroups, updateFolderInfo } from "../../api";
 import { useTheme } from "../../hooks/useTheme";
 
 interface EditFolderModalProps {
@@ -39,7 +39,7 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
   // Fetch all available groups
   const { data: groupsResponse, isLoading: groupsLoading } = useQuery({
     queryKey: ["groups"],
-    queryFn: () => groupGetAll(),
+    queryFn: () => listGroups(),
     enabled: show,
   });
 

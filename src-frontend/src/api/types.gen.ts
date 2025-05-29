@@ -1320,39 +1320,39 @@ export type UpdateFolderInfoResponses = {
 
 export type UpdateFolderInfoResponse = UpdateFolderInfoResponses[keyof UpdateFolderInfoResponses];
 
-export type GroupGetAllData = {
+export type ListGroupsData = {
   body?: never;
   path?: never;
   query?: never;
   url: "/api/groups/";
 };
 
-export type GroupGetAllResponses = {
+export type ListGroupsResponses = {
   /**
    * OK
    */
   200: Array<GroupOutSchema>;
 };
 
-export type GroupGetAllResponse = GroupGetAllResponses[keyof GroupGetAllResponses];
+export type ListGroupsResponse = ListGroupsResponses[keyof ListGroupsResponses];
 
-export type GroupsCreateData = {
+export type CreateGroupsData = {
   body: GroupCreateInSchema | Array<GroupCreateInSchema>;
   path?: never;
   query?: never;
   url: "/api/groups/";
 };
 
-export type GroupsCreateResponses = {
+export type CreateGroupsResponses = {
   /**
-   * OK
+   * Created
    */
-  200: Array<GroupOutSchema>;
+  201: Array<GroupOutSchema>;
 };
 
-export type GroupsCreateResponse = GroupsCreateResponses[keyof GroupsCreateResponses];
+export type CreateGroupsResponse = CreateGroupsResponses[keyof CreateGroupsResponses];
 
-export type GroupDeleteSingleData = {
+export type DeleteGroupData = {
   body?: never;
   path: {
     group_id: number;
@@ -1361,17 +1361,16 @@ export type GroupDeleteSingleData = {
   url: "/api/groups/{group_id}/";
 };
 
-export type GroupDeleteSingleResponses = {
+export type DeleteGroupResponses = {
   /**
    * No Content
    */
   204: void;
 };
 
-export type GroupDeleteSingleResponse =
-  GroupDeleteSingleResponses[keyof GroupDeleteSingleResponses];
+export type DeleteGroupResponse = DeleteGroupResponses[keyof DeleteGroupResponses];
 
-export type GroupGetSingleData = {
+export type GetGroupData = {
   body?: never;
   path: {
     group_id: number;
@@ -1380,16 +1379,16 @@ export type GroupGetSingleData = {
   url: "/api/groups/{group_id}/";
 };
 
-export type GroupGetSingleResponses = {
+export type GetGroupResponses = {
   /**
    * OK
    */
   200: GroupOutSchema;
 };
 
-export type GroupGetSingleResponse = GroupGetSingleResponses[keyof GroupGetSingleResponses];
+export type GetGroupResponse = GetGroupResponses[keyof GetGroupResponses];
 
-export type GroupUpdateSingleData = {
+export type UpdateGroupData = {
   body: GroupUpdateInSchema;
   path: {
     group_id: number;
@@ -1398,15 +1397,14 @@ export type GroupUpdateSingleData = {
   url: "/api/groups/{group_id}/";
 };
 
-export type GroupUpdateSingleResponses = {
+export type UpdateGroupResponses = {
   /**
    * OK
    */
   200: GroupOutSchema;
 };
 
-export type GroupUpdateSingleResponse =
-  GroupUpdateSingleResponses[keyof GroupUpdateSingleResponses];
+export type UpdateGroupResponse = UpdateGroupResponses[keyof UpdateGroupResponses];
 
 export type ImageGetThumbnailsBulkInfoData = {
   body: Array<number>;

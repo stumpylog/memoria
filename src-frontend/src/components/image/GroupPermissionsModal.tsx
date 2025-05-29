@@ -12,7 +12,7 @@ import type {
   ImageMetadataUpdateSchemaIn,
 } from "../../api";
 
-import { groupGetAll, imageUpdateMetadata } from "../../api";
+import { listGroups, imageUpdateMetadata } from "../../api";
 import { useTheme } from "../../hooks/useTheme";
 
 interface GroupPermissionsModalProps {
@@ -41,7 +41,7 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({
 
   const { data: groupsResponse, isLoading: groupsLoading } = useQuery({
     queryKey: ["groups"],
-    queryFn: () => groupGetAll(),
+    queryFn: () => listGroups(),
     enabled: show,
   });
 

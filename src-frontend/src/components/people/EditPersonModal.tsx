@@ -12,7 +12,7 @@ import type {
   PersonUpdateInSchema,
 } from "../../api";
 
-import { groupGetAll, updatePersonDetail } from "../../api"; // Import groupGetAll
+import { listGroups, updatePersonDetail } from "../../api"; // Import listGroups
 import { useTheme } from "../../hooks/useTheme"; // Import useTheme hook
 
 interface EditPersonModalProps {
@@ -43,7 +43,7 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
   // Fetch all available groups
   const { data: groupsResponse, isLoading: groupsLoading } = useQuery({
     queryKey: ["groups"],
-    queryFn: () => groupGetAll(),
+    queryFn: () => listGroups(),
     enabled: show, // Only fetch when modal is open
   });
 

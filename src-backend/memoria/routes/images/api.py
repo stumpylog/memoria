@@ -62,7 +62,7 @@ def get_image_thumbnail_info(request: HttpRequest, image_id: int):
     return get_object_or_404(Image.objects.permitted(request.user), pk=image_id)
 
 
-@router.get(
+@router.post(
     "/bulk/thumbnails/",
     response=list[ImageThumbnailSchemaOut],
     auth=active_user_auth,

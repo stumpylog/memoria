@@ -117,7 +117,7 @@ class UserProfileFactory(DjangoModelFactory):
 
     user = factory.SubFactory("tests.api.conftest.UserFactory", profile=None)
     bio: str = factory.Faker("paragraph")
-    items_per_page: int = factory.Faker("random_element", elements=UserProfile.ImagesPerPageChoices.values)
+    items_per_page: int = factory.fuzzy.FuzzyChoice(UserProfile.ImagesPerPageChoices.values)
     timezone: str = factory.fuzzy.FuzzyChoice(
         ["America/Los_Angeles", "America/St_Thomas", "Antarctica/Rothera", "Africa/Johannesburg"],
     )

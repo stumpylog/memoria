@@ -105,7 +105,7 @@ class TestUsersCreate:
         }
         response = logged_in_client.post(users_base_url, content_type="application/json", data=payload)
 
-        assert response.status_code == HTTPStatus.UNAUTHORIZED
+        assert response.status_code == HTTPStatus.FORBIDDEN
 
     def test_create_superuser_as_staff_forbidden(self, staff_client: Client, users_base_url: str) -> None:
         """Staff users cannot create superusers."""
@@ -170,7 +170,7 @@ class TestUsersList:
         """
         response = logged_in_client.get(users_base_url)
 
-        assert response.status_code == HTTPStatus.UNAUTHORIZED
+        assert response.status_code == HTTPStatus.FORBIDDEN
 
     def test_list_users_with_filters(
         self,
@@ -741,7 +741,7 @@ class TestUsersGroupsUpdate:
             data=payload,
         )
 
-        assert response.status_code == HTTPStatus.UNAUTHORIZED
+        assert response.status_code == HTTPStatus.FORBIDDEN
 
     def test_set_nonexistent_user_groups_returns_404(
         self,

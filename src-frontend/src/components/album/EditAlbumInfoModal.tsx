@@ -10,7 +10,7 @@ import Select from "react-select";
 
 import type { AlbumUpdateInSchema, AlbumWithImagesOutSchema, GroupSchemaOut } from "../../api";
 
-import { groupGetAll } from "../../api";
+import { listGroups } from "../../api";
 import { useTheme } from "../../hooks/useTheme";
 
 interface EditAlbumInfoModalProps {
@@ -57,7 +57,7 @@ const EditAlbumInfoModal: React.FC<EditAlbumInfoModalProps> = ({
   } = useQuery<GroupSchemaOut[], Error>({
     queryKey: ["allGroups"],
     queryFn: async () => {
-      const response = await groupGetAll();
+      const response = await listGroups();
       return response.data || [];
     },
   });

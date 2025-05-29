@@ -6,7 +6,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import type { AlbumAddImageInSchema } from "../api";
 import type { FolderDetailSchemaOut, ImageThumbnailSchemaOut } from "../api";
 
-import { folderGetDetails, imageGetThumbInfo } from "../api";
+import { folderGetDetails, imageGetThumbnailsBulkInfo } from "../api";
 import { addImageToAlbum } from "../api";
 import EditFolderModal from "../components/folder/EditFolderModal";
 import FolderWall from "../components/folder/FolderWall";
@@ -67,17 +67,13 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
         return [];
       }
 
-      const thumbInfoPromises = folderDetail.folder_images.map((imageId) =>
-        imageGetThumbInfo({ path: { image_id: imageId } })
-          .then((response) => response.data)
-          .catch((err) => {
-            console.error(`Error fetching thumbnail info for image ID ${imageId}:`, err);
-            return null;
-          }),
-      );
-
-      const results = await Promise.all(thumbInfoPromises);
-      return results.filter((item): item is ImageThumbnailSchemaOut => item !== null);
+      try {
+        const response = await imageGetThumbnailsBulkInfo({ body: folderDetail.folder_images });
+        return response.data || [];
+      } catch (err) {
+        console.error(`Error fetching thumbnail info for folder ${folderId}:`, err);
+        throw err;
+      }
     },
     enabled: !!folderDetail && folderDetail.folder_images?.length > 0,
   });

@@ -22,10 +22,10 @@ import type {
 // API functions
 import {
   getSystemSettings,
-  groupDeleteSingle,
-  groupGetAll,
-  groupsCreate,
-  groupUpdateSingle,
+  deleteGroup,
+  listGroups,
+  createGroups,
+  updateGroup,
   updateSystemSettings,
   usersCreate,
   usersGroupsList,
@@ -131,7 +131,7 @@ const SettingsPage: React.FC = () => {
   } = useQuery({
     queryKey: ["groups"],
     queryFn: async () => {
-      const response = await groupGetAll();
+      const response = await listGroups();
       return response?.data || [];
     },
   });
@@ -192,7 +192,7 @@ const SettingsPage: React.FC = () => {
 
   // --- Group Management Mutations ---
   const createGroupMutation = useMutation({
-    mutationFn: (groupData: GroupCreateInSchema) => groupsCreate({ body: groupData }),
+    mutationFn: (groupData: GroupCreateInSchema) => createGroups({ body: groupData }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
       handleCloseCreateGroupModal();
@@ -204,7 +204,7 @@ const SettingsPage: React.FC = () => {
 
   const updateGroupMutation = useMutation({
     mutationFn: ({ groupId, groupData }: { groupId: number; groupData: GroupUpdateInSchema }) =>
-      groupUpdateSingle({ path: { group_id: groupId }, body: groupData }),
+      updateGroup({ path: { group_id: groupId }, body: groupData }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
       handleCloseEditGroupModal();
@@ -215,7 +215,7 @@ const SettingsPage: React.FC = () => {
   });
 
   const deleteGroupMutation = useMutation({
-    mutationFn: (groupId: number) => groupDeleteSingle({ path: { group_id: groupId } }),
+    mutationFn: (groupId: number) => deleteGroup({ path: { group_id: groupId } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
       handleCloseDeleteGroupModal();

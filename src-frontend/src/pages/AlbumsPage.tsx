@@ -23,7 +23,7 @@ import type {
   PagedAlbumBasicReadOutSchema,
 } from "../api"; // Note the correction to PagedAlbumBasicReadOutSchema
 
-import { createAlbum, getAllAlbums, groupGetAll } from "../api";
+import { createAlbum, getAllAlbums, listGroups } from "../api";
 import { useAuth } from "../hooks/useAuth";
 
 const AlbumsPage: React.FC = () => {
@@ -87,7 +87,7 @@ const AlbumsPage: React.FC = () => {
     const fetchGroups = async () => {
       try {
         setLoadingGroups(true);
-        const data = await groupGetAll();
+        const data = await listGroups();
         setGroups(data.data || []);
         setErrorGroups(null);
       } catch (error) {

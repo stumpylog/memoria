@@ -31,16 +31,16 @@ import type {
   FolderGetDetailsResponse,
   UpdateFolderInfoData,
   UpdateFolderInfoResponse,
-  GroupGetAllData,
-  GroupGetAllResponse,
-  GroupsCreateData,
-  GroupsCreateResponse,
-  GroupDeleteSingleData,
-  GroupDeleteSingleResponse,
-  GroupGetSingleData,
-  GroupGetSingleResponse,
-  GroupUpdateSingleData,
-  GroupUpdateSingleResponse,
+  ListGroupsData,
+  ListGroupsResponse,
+  CreateGroupsData,
+  CreateGroupsResponse,
+  DeleteGroupData,
+  DeleteGroupResponse,
+  GetGroupData,
+  GetGroupResponse,
+  UpdateGroupData,
+  UpdateGroupResponse,
   ImageGetThumbnailsBulkInfoData,
   ImageGetThumbnailsBulkInfoResponse,
   ImageGetDateData,
@@ -427,12 +427,16 @@ export const updateFolderInfo = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Get All Groups
+ * List Groups
+ * Retrieves all groups.
+ *
+ * Returns:
+ * A list of GroupOutSchema objects representing all groups.
  */
-export const groupGetAll = <ThrowOnError extends boolean = false>(
-  options?: Options<GroupGetAllData, ThrowOnError>,
+export const listGroups = <ThrowOnError extends boolean = false>(
+  options?: Options<ListGroupsData, ThrowOnError>,
 ) => {
-  return (options?.client ?? _heyApiClient).get<GroupGetAllResponse, unknown, ThrowOnError>({
+  return (options?.client ?? _heyApiClient).get<ListGroupsResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -446,20 +450,20 @@ export const groupGetAll = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Create Group
- * Creates multiple groups from a list of group schemas or a single group.
+ * Create Groups
+ * Creates one or more groups from a list of group schemas or a single group.
  *
  * Args:
  * request: The Django request object.
- * data: A GroupListInCreateSchema object containing the list of groups to create.
+ * data: A GroupCreateInSchema object or list of GroupCreateInSchema objects.
  *
  * Returns:
  * A list of GroupOutSchema objects representing the created groups.
  */
-export const groupsCreate = <ThrowOnError extends boolean = false>(
-  options: Options<GroupsCreateData, ThrowOnError>,
+export const createGroups = <ThrowOnError extends boolean = false>(
+  options: Options<CreateGroupsData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).post<GroupsCreateResponse, unknown, ThrowOnError>({
+  return (options.client ?? _heyApiClient).post<CreateGroupsResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -478,15 +482,18 @@ export const groupsCreate = <ThrowOnError extends boolean = false>(
 
 /**
  * Delete Group
+ * Deletes a single group by ID.
+ *
+ * Args:
+ * group_id: The ID of the group to delete.
+ *
+ * Returns:
+ * HTTP 204 No Content on successful deletion.
  */
-export const groupDeleteSingle = <ThrowOnError extends boolean = false>(
-  options: Options<GroupDeleteSingleData, ThrowOnError>,
+export const deleteGroup = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteGroupData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).delete<
-    GroupDeleteSingleResponse,
-    unknown,
-    ThrowOnError
-  >({
+  return (options.client ?? _heyApiClient).delete<DeleteGroupResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -500,12 +507,19 @@ export const groupDeleteSingle = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Get Single Groups
+ * Get Group
+ * Retrieves a single group by ID.
+ *
+ * Args:
+ * group_id: The ID of the group to retrieve.
+ *
+ * Returns:
+ * A GroupOutSchema object representing the requested group.
  */
-export const groupGetSingle = <ThrowOnError extends boolean = false>(
-  options: Options<GroupGetSingleData, ThrowOnError>,
+export const getGroup = <ThrowOnError extends boolean = false>(
+  options: Options<GetGroupData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).get<GroupGetSingleResponse, unknown, ThrowOnError>({
+  return (options.client ?? _heyApiClient).get<GetGroupResponse, unknown, ThrowOnError>({
     security: [
       {
         in: "cookie",
@@ -519,28 +533,34 @@ export const groupGetSingle = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Update Single Group
+ * Update Group
+ * Updates a single group's information.
+ *
+ * Args:
+ * group_id: The ID of the group to update.
+ * data: The updated group data.
+ *
+ * Returns:
+ * A GroupOutSchema object representing the updated group.
  */
-export const groupUpdateSingle = <ThrowOnError extends boolean = false>(
-  options: Options<GroupUpdateSingleData, ThrowOnError>,
+export const updateGroup = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateGroupData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).patch<GroupUpdateSingleResponse, unknown, ThrowOnError>(
-    {
-      security: [
-        {
-          in: "cookie",
-          name: "sessionid",
-          type: "apiKey",
-        },
-      ],
-      url: "/api/groups/{group_id}/",
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
+  return (options.client ?? _heyApiClient).patch<UpdateGroupResponse, unknown, ThrowOnError>({
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
       },
+    ],
+    url: "/api/groups/{group_id}/",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
     },
-  );
+  });
 };
 
 /**
@@ -549,7 +569,7 @@ export const groupUpdateSingle = <ThrowOnError extends boolean = false>(
 export const imageGetThumbnailsBulkInfo = <ThrowOnError extends boolean = false>(
   options: Options<ImageGetThumbnailsBulkInfoData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).get<
+  return (options.client ?? _heyApiClient).post<
     ImageGetThumbnailsBulkInfoResponse,
     unknown,
     ThrowOnError

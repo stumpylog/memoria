@@ -2982,7 +2982,8 @@
     },
     "/api/groups/": {
       "get": {
-        "operationId": "group_get_all",
+        "description": "Retrieves all groups.\n\nReturns:\n    A list of GroupOutSchema objects representing all groups.",
+        "operationId": "list_groups",
         "parameters": [],
         "responses": {
           "200": {
@@ -3002,15 +3003,15 @@
         },
         "security": [
           {
-            "SessionAuthIsActiveSuperUserOrStaff": []
+            "AsyncSessionAuthIsActiveSuperUserOrStaff": []
           }
         ],
-        "summary": "Get All Groups",
+        "summary": "List Groups",
         "tags": ["groups"]
       },
       "post": {
-        "description": "Creates multiple groups from a list of group schemas or a single group.\n\nArgs:\n    request: The Django request object.\n    data: A GroupListInCreateSchema object containing the list of groups to create.\n\nReturns:\n    A list of GroupOutSchema objects representing the created groups.",
-        "operationId": "groups_create",
+        "description": "Creates one or more groups from a list of group schemas or a single group.\n\nArgs:\n    request: The Django request object.\n    data: A GroupCreateInSchema object or list of GroupCreateInSchema objects.\n\nReturns:\n    A list of GroupOutSchema objects representing the created groups.",
+        "operationId": "create_groups",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -3034,7 +3035,7 @@
           "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "content": {
               "application/json": {
                 "schema": {
@@ -3046,7 +3047,7 @@
                 }
               }
             },
-            "description": "OK"
+            "description": "Created"
           }
         },
         "security": [
@@ -3054,13 +3055,14 @@
             "SessionAuthIsActiveSuperUserOrStaff": []
           }
         ],
-        "summary": "Create Group",
+        "summary": "Create Groups",
         "tags": ["groups"]
       }
     },
     "/api/groups/{group_id}/": {
       "delete": {
-        "operationId": "group_delete_single",
+        "description": "Deletes a single group by ID.\n\nArgs:\n    group_id: The ID of the group to delete.\n\nReturns:\n    HTTP 204 No Content on successful deletion.",
+        "operationId": "delete_group",
         "parameters": [
           {
             "in": "path",
@@ -3079,14 +3081,15 @@
         },
         "security": [
           {
-            "SessionAuthIsActiveSuperUserOrStaff": []
+            "AsyncSessionAuthIsActiveSuperUserOrStaff": []
           }
         ],
         "summary": "Delete Group",
         "tags": ["groups"]
       },
       "get": {
-        "operationId": "group_get_single",
+        "description": "Retrieves a single group by ID.\n\nArgs:\n    group_id: The ID of the group to retrieve.\n\nReturns:\n    A GroupOutSchema object representing the requested group.",
+        "operationId": "get_group",
         "parameters": [
           {
             "in": "path",
@@ -3112,14 +3115,15 @@
         },
         "security": [
           {
-            "SessionAuthIsActiveSuperUserOrStaff": []
+            "AsyncSessionAuthIsActiveSuperUserOrStaff": []
           }
         ],
-        "summary": "Get Single Groups",
+        "summary": "Get Group",
         "tags": ["groups"]
       },
       "patch": {
-        "operationId": "group_update_single",
+        "description": "Updates a single group's information.\n\nArgs:\n    group_id: The ID of the group to update.\n    data: The updated group data.\n\nReturns:\n    A GroupOutSchema object representing the updated group.",
+        "operationId": "update_group",
         "parameters": [
           {
             "in": "path",
@@ -3155,15 +3159,15 @@
         },
         "security": [
           {
-            "SessionAuthIsActiveSuperUserOrStaff": []
+            "AsyncSessionAuthIsActiveSuperUserOrStaff": []
           }
         ],
-        "summary": "Update Single Group",
+        "summary": "Update Group",
         "tags": ["groups"]
       }
     },
     "/api/image/bulk/thumbnails/": {
-      "get": {
+      "post": {
         "operationId": "image_get_thumbnails_bulk_info",
         "parameters": [],
         "requestBody": {
@@ -4402,7 +4406,7 @@
         },
         "security": [
           {
-            "AsyncSessionAuthIsActiveSuperUserOrStaff": []
+            "SessionAuthIsActiveSuperUserOrStaff": []
           }
         ],
         "summary": "Users List",

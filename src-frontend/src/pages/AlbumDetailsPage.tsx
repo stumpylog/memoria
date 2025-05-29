@@ -29,7 +29,7 @@ import type {
 
 import {
   getSingleAlbumInfo,
-  imageGetThumbInfo,
+  imageGetThumbnailsBulkInfo,
   updateAlbumInfo,
   updateAlbumSorting,
 } from "../api";
@@ -83,24 +83,17 @@ const AlbumDetailsPage: React.FC = () => {
     enabled: !!albumId && !isNaN(albumId),
   });
 
-  const { data: imageThumbnails, isLoading: isLoadingThumbnails } = useQuery<
-    ImageThumbnailSchemaOut[],
-    Error
-  >({
+  const { data: imageThumbnails, isLoading: isLoadingThumbnails } = useQuery({
     queryKey: ["albumImageThumbnails", albumId, album?.image_ids],
     queryFn: async (): Promise<ImageThumbnailSchemaOut[]> => {
       if (!album || !album.image_ids || album.image_ids.length === 0) return [];
-      const thumbnailPromises = album.image_ids.map((id) =>
-        imageGetThumbInfo({ path: { image_id: id } })
-          .then((res) => res.data)
-          .catch((err) => {
-            console.error(`Failed to fetch thumbnail for image ${id}:`, err);
-            return null;
-          }),
-      );
-      const results = await Promise.all(thumbnailPromises);
+
+      const response = await imageGetThumbnailsBulkInfo({ body: album.image_ids });
+      const thumbnails = response.data || [];
+
+      // Maintain the original order from album.image_ids
       const orderedResults: ImageThumbnailSchemaOut[] = [];
-      const resultMap = new Map(results.filter((r) => r !== null).map((r) => [r!.id, r!]));
+      const resultMap = new Map(thumbnails.map((thumb) => [thumb.id, thumb]));
       album.image_ids.forEach((id) => {
         const thumb = resultMap.get(id);
         if (thumb) {

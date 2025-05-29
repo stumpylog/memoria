@@ -12,7 +12,7 @@ import type {
   PetReadDetailSchemaOut,
 } from "../api";
 
-import { addImageToAlbum, getPetDetail, getPetImages, imageGetThumbInfo } from "../api";
+import { addImageToAlbum, getPetDetail, getPetImages, imageGetThumbnailsBulkInfo } from "../api";
 import AddToAlbumModal from "../components/image/AddToAlbumModal";
 import SelectableImageWall from "../components/image/SelectableImageWall";
 import EditPetModal from "../components/pets/EditPetModal";
@@ -109,17 +109,9 @@ const PetDetailsPage: React.FC = () => {
   } = useQuery<ImageThumbnailSchemaOut[] | null>({
     queryKey: ["pet-images-thumbnails", imageIds.join(",")],
     queryFn: async () => {
-      const results = await Promise.all(
-        imageIds.map((id) =>
-          imageGetThumbInfo({ path: { image_id: id } })
-            .then((res) => res.data)
-            .catch((err) => {
-              console.error(`Failed to load thumbnail for ${id}`, err);
-              return null;
-            }),
-        ),
-      );
-      return results.filter((img): img is ImageThumbnailSchemaOut => img !== null);
+      if (imageIds.length === 0) return [];
+      const response = await imageGetThumbnailsBulkInfo({ body: imageIds });
+      return response.data || [];
     },
     enabled: imageIds.length > 0,
     staleTime: 5 * 60 * 1000,

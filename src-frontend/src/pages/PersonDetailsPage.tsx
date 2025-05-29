@@ -14,7 +14,12 @@ import type {
   PersonImageOutSchema,
 } from "../api";
 
-import { addImageToAlbum, getPersonDetail, getPersonImages, imageGetThumbInfo } from "../api";
+import {
+  addImageToAlbum,
+  getPersonDetail,
+  getPersonImages,
+  imageGetThumbnailsBulkInfo,
+} from "../api";
 import AddToAlbumModal from "../components/image/AddToAlbumModal";
 import SelectableImageWall from "../components/image/SelectableImageWall";
 import EditPersonModal from "../components/people/EditPersonModal";
@@ -183,7 +188,7 @@ const PersonDetailsPage: React.FC = () => {
   // Extract IDs for the next query
   const currentImageIds = paginatedImageObjects?.map((img) => img.id) || [];
 
-  // 3. Query for Image Thumbnails based on Paginated IDs
+  // 3. Query for Image Thumbnails using bulk API
   const {
     data: images,
     isLoading: isLoadingImages,
@@ -191,21 +196,23 @@ const PersonDetailsPage: React.FC = () => {
     error: imagesError,
   } = useQuery<ImageThumbnailSchemaOut[] | null, Error>({
     // Key depends on the current set of IDs
-    queryKey: ["person-images-thumbnails", currentImageIds.join(",")],
+    queryKey: ["person-images-thumbnails-bulk", currentImageIds.join(",")],
     queryFn: async () => {
       if (currentImageIds.length === 0) {
         return [];
       }
-      const imagePromises = currentImageIds.map((imageId) =>
-        imageGetThumbInfo({ path: { image_id: imageId } })
-          .then((response) => response.data)
-          .catch((imgErr) => {
-            console.error(`Failed to fetch thumbnail for image ID ${imageId}:`, imgErr);
-            return null;
-          }),
-      );
-      const imageResults = await Promise.all(imagePromises);
-      return imageResults.filter((item): item is ImageThumbnailSchemaOut => item !== null);
+
+      try {
+        const response = await imageGetThumbnailsBulkInfo({
+          body: currentImageIds,
+        });
+
+        // Return the array of thumbnails from the bulk API
+        return response?.data || [];
+      } catch (error) {
+        console.error("Failed to fetch bulk thumbnails:", error);
+        throw error;
+      }
     },
     enabled: currentImageIds.length > 0,
     staleTime: 5 * 60 * 1000, // Also set staleTime for thumbnails
