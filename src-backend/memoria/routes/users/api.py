@@ -9,8 +9,8 @@ from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from ninja import Query
 from ninja import Router
-from ninja.pagination import paginate
 
+from memoria.common.auth import active_staff_or_superuser_auth
 from memoria.common.auth import active_user_auth
 from memoria.common.auth import async_active_staff_or_superuser_auth
 from memoria.common.auth import async_active_user_auth
@@ -101,11 +101,10 @@ async def users_create(
 @router.get(
     "/",
     response=list[UserOutSchema],
-    auth=async_active_staff_or_superuser_auth,
+    auth=active_staff_or_superuser_auth,
     operation_id="users_list",
 )
-@paginate
-async def users_list(
+def users_list(
     request: HttpRequest,
     filters: UserFilterSchema = Query(...),
 ):

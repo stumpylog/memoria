@@ -27,11 +27,11 @@ import {
   groupsCreate,
   groupUpdateSingle,
   updateSystemSettings,
-  userCreate,
-  userGetAll,
-  userGetGroups,
-  userSetGroups,
-  userSetInfo,
+  usersCreate,
+  usersGroupsList,
+  usersGroupsUpdate,
+  usersList,
+  usersUpdate,
 } from "../api";
 import CreateGroupModal from "../components/group-management/CreateGroupModal";
 import DeleteGroupModal from "../components/group-management/DeleteGroupModal";
@@ -109,7 +109,7 @@ const SettingsPage: React.FC = () => {
   } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const response = await userGetAll();
+      const response = await usersList();
       return response?.data || [];
     },
   });
@@ -118,7 +118,7 @@ const SettingsPage: React.FC = () => {
     queryKey: ["userGroups", selectedUser?.id],
     queryFn: async () => {
       if (!selectedUser) return [];
-      const response = await userGetGroups({ path: { user_id: selectedUser.id } });
+      const response = await usersGroupsList({ path: { user_id: selectedUser.id } });
       return response?.data?.map((group) => group.id) || [];
     },
     enabled: !!selectedUser && showManageUserGroupsModal,
@@ -155,7 +155,7 @@ const SettingsPage: React.FC = () => {
 
   // --- User Management Mutations ---
   const createUserMutation = useMutation({
-    mutationFn: (userData: UserInCreateSchemaWritable) => userCreate({ body: userData }),
+    mutationFn: (userData: UserInCreateSchemaWritable) => usersCreate({ body: userData }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       handleCloseCreateUserModal();
@@ -167,7 +167,7 @@ const SettingsPage: React.FC = () => {
 
   const updateUserMutation = useMutation({
     mutationFn: ({ userId, userData }: { userId: number; userData: UserUpdateInSchemeWritable }) =>
-      userSetInfo({ path: { user_id: userId }, body: userData }),
+      usersUpdate({ path: { user_id: userId }, body: userData }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       handleCloseEditUserModal();
@@ -179,7 +179,7 @@ const SettingsPage: React.FC = () => {
 
   const updateUserGroupsMutation = useMutation({
     mutationFn: ({ userId, groupIds }: { userId: number; groupIds: UserGroupAssignInSchema[] }) =>
-      userSetGroups({ path: { user_id: userId }, body: groupIds }),
+      usersGroupsUpdate({ path: { user_id: userId }, body: groupIds }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] }); // Users table might show group info
       queryClient.invalidateQueries({ queryKey: ["userGroups", selectedUser?.id] }); // Invalidate the specific user's groups

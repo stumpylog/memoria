@@ -4,7 +4,7 @@ import React, { createContext, useCallback, useEffect, useMemo, useState } from 
 import type { AuthLoginData, UserOutSchema as User } from "../api";
 import type { UserProfileOutSchema as UserProfile } from "../api";
 
-import { authLogin, authLogout, userGetMe, userGetMyProfile } from "../api";
+import { authLogin, authLogout, usersGetCurrent, usersProfileGetCurrent } from "../api";
 import { initializeCsrfToken } from "../api-config";
 
 interface AuthContextType {
@@ -70,7 +70,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchCurrentUser = useCallback(async (): Promise<void> => {
     try {
-      const { data } = await userGetMe();
+      const { data } = await usersGetCurrent();
       if (data !== undefined) {
         setUser(data);
       } else {
@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchUserProfile = useCallback(async (): Promise<void> => {
     try {
-      const { data } = await userGetMyProfile();
+      const { data } = await usersProfileGetCurrent();
       if (data !== undefined) {
         setProfile(data);
       } else {

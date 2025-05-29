@@ -364,11 +364,6 @@ export type PagedPetReadSchemaOut = {
   items: Array<PetReadSchemaOut>;
 };
 
-export type PagedUserOutSchema = {
-  count: number;
-  items: Array<UserOutSchema>;
-};
-
 export type PersonDetailOutSchema = {
   /**
    * Timestamp when the object was created
@@ -1979,8 +1974,6 @@ export type UsersListData = {
      * Filter by email (contains)
      */
     email?: string | null;
-    limit?: number;
-    offset?: number;
   };
   url: "/api/user/";
 };
@@ -1989,7 +1982,7 @@ export type UsersListResponses = {
   /**
    * OK
    */
-  200: PagedUserOutSchema;
+  200: Array<UserOutSchema>;
 };
 
 export type UsersListResponse = UsersListResponses[keyof UsersListResponses];

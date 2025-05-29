@@ -35,7 +35,7 @@ class SessionAuthIsActiveStaff(SessionAuthIsActive):
         if user is not None and request.user.is_staff:
             return request.user
 
-        return user
+        return None
 
 
 class SessionAuthIsActiveSuperUser(SessionAuthIsActive):
@@ -50,7 +50,7 @@ class SessionAuthIsActiveSuperUser(SessionAuthIsActive):
         if user is not None and request.user.is_superuser:
             return request.user
 
-        return user
+        return None
 
 
 class SessionAuthIsActiveSuperUserOrStaff(SessionAuthIsActive):
@@ -65,7 +65,7 @@ class SessionAuthIsActiveSuperUserOrStaff(SessionAuthIsActive):
         if user is not None and (request.user.is_superuser or request.user.is_staff):
             return request.user
 
-        return user
+        return None
 
 
 # Async-first authentication classes

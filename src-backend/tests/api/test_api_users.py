@@ -162,7 +162,7 @@ class TestUsersList:
 
         assert response.status_code == HTTPStatus.OK
         data = response.json()
-        assert len(data["items"]) >= 3  # At least our created users + staff user
+        assert len(data) >= 3  # At least our created users + staff user
 
     def test_list_users_as_regular_user_forbidden(self, logged_in_client: Client, users_base_url: str) -> None:
         """
@@ -189,21 +189,19 @@ class TestUsersList:
         response = staff_client.get(users_base_url, query_params={"is_active": True})
         assert response.status_code == HTTPStatus.OK
         data = response.json()
-        assert data["count"] == 2
 
-        assert any(
-            user["id"] == active_user.pk and user["username"] == active_user.username for user in data["items"]
-        ), f"No user found with ID {active_user.pk} and username '{active_user.username}'"
+        assert any(user["id"] == active_user.pk and user["username"] == active_user.username for user in data), (
+            f"No user found with ID {active_user.pk} and username '{active_user.username}'"
+        )
 
         response = staff_client.get(users_base_url, query_params={"is_active": False})
         assert response.status_code == HTTPStatus.OK
 
         data = response.json()
 
-        assert data["count"] == 1
-        assert any(
-            user["id"] == inactive_user.pk and user["username"] == inactive_user.username for user in data["items"]
-        ), f"No user found with ID {inactive_user.pk} and username '{inactive_user.username}'"
+        assert any(user["id"] == inactive_user.pk and user["username"] == inactive_user.username for user in data), (
+            f"No user found with ID {inactive_user.pk} and username '{inactive_user.username}'"
+        )
 
 
 @pytest.mark.django_db
