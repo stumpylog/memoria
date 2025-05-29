@@ -37,3 +37,12 @@ class HttpNotAuthorizedError(HttpError):
 
     def __init__(self, message: str = "Not Authorized") -> None:
         super().__init__(HTTPStatus.UNAUTHORIZED, message)
+
+
+class HttpForbiddenError(HttpError):
+    """
+    An error with FORBIDDEN status code and the message "Forbidden" or provided message.
+    """
+
+    def __init__(self, message: str = "Forbidden") -> None:
+        super().__init__(HTTPStatus.FORBIDDEN, message)

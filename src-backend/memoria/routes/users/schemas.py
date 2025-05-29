@@ -1,12 +1,17 @@
 import enum
+from datetime import datetime
 from enum import StrEnum
 
+from django.db.models import Q
+from ninja import Field
+from ninja import FilterSchema
 from ninja import Schema
 from pydantic import EmailStr
 from pydantic import SecretStr
 
 
 class TimezoneChoices(StrEnum):
+    # TODO: This isn't exhaustive
     AFRICA_ABIDJAN = "Africa/Abidjan"
     AFRICA_ACCRA = "Africa/Accra"
     AFRICA_ADDIS_ABABA = "Africa/Addis_Ababa"
@@ -258,6 +263,30 @@ class ImagesPerPageChoices(int, enum.Enum):
     ONE_HUNDRED = 100
 
 
+class UserFilterSchema(FilterSchema):
+    is_active: bool | None = Field(None, description="Filter by active status")
+    is_staff: bool | None = Field(None, description="Filter by staff status")
+    is_superuser: bool | None = Field(None, description="Filter by superuser status")
+    search: str | None = Field(None, description="Search in username, email, first_name, last_name")
+    username: str | None = Field(None, description="Filter by exact username")
+    email: str | None = Field(None, description="Filter by email (contains)")
+
+    def filter_search(self, value: str | None):
+        if value:
+            return (
+                Q(username__icontains=value)
+                | Q(email__icontains=value)
+                | Q(first_name__icontains=value)
+                | Q(last_name__icontains=value)
+            )
+        return Q()
+
+    def filter_email(self, value: str | None):
+        if value:
+            return Q(email__icontains=value)
+        return Q()
+
+
 class UserInCreateSchema(Schema):
     username: str
     password: SecretStr
@@ -274,6 +303,8 @@ class UserOutSchema(Schema):
     first_name: str
     last_name: str
     username: str
+    last_login: datetime | None
+    date_joined: datetime
     email: EmailStr | str | None = None
     is_active: bool = False
     is_staff: bool = False

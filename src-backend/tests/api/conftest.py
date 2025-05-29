@@ -1,9 +1,11 @@
 import datetime
 
 import factory
+import factory.fuzzy
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.db.models.signals import post_save
 from django.test import Client
 from factory.django import DjangoModelFactory
 from pytest_factoryboy import register
@@ -14,13 +16,16 @@ from memoria.models import Pet
 from memoria.models import RoughDate
 from memoria.models import RoughLocation
 from memoria.models import Tag
+from memoria.models import UserProfile
 
 User = get_user_model()
 
 
 @pytest.fixture(scope="session")
 def client():
-    """Django-Ninja TestClient for API routes."""
+    """
+    Django-Ninja TestClient for API routes.
+    """
     return Client()
 
 
@@ -105,10 +110,25 @@ class GroupFactory(DjangoModelFactory):
     name = factory.Faker("word")
 
 
+@factory.django.mute_signals(post_save)
+class UserProfileFactory(DjangoModelFactory):
+    class Meta:
+        model = UserProfile
+
+    user = factory.SubFactory("tests.api.conftest.UserFactory", profile=None)
+    bio: str = factory.Faker("paragraph")
+    items_per_page: int = factory.Faker("random_element", elements=UserProfile.ImagesPerPageChoices.values)
+    timezone: str = factory.fuzzy.FuzzyChoice(
+        ["America/Los_Angeles", "America/St_Thomas", "Antarctica/Rothera", "Africa/Johannesburg"],
+    )
+
+
+@factory.django.mute_signals(post_save)
 class UserFactory(DjangoModelFactory):
     class Meta:
         model = User
         skip_postgeneration_save = True
+        django_get_or_create = ("username",)
 
     username = factory.Faker("user_name")
     email = factory.Faker("email")
@@ -116,6 +136,7 @@ class UserFactory(DjangoModelFactory):
     is_staff = False
     is_superuser = False
     password = factory.django.Password("password123")
+    profile = factory.RelatedFactory(UserProfileFactory, factory_related_name="user")
 
     @factory.post_generation
     def groups(self, create, extracted, **kwargs):
@@ -168,20 +189,20 @@ def logged_in_client(client: Client, user_factory: UserFactory):
 
 
 @pytest.fixture
-def staff_client(client, staff_user_factory: StaffUserFactory):
+def staff_client(client: Client, staff_user_factory: StaffUserFactory):
     """
     TestClient logged in as staff user via session auth.
     """
     user = staff_user_factory.create()
-    client.client.login(username=user.username, password="password123")
+    client.login(username=user.username, password="password123")
     return client
 
 
 @pytest.fixture
-def superuser_client(client, super_user_factory: SuperUserFactory):
+def superuser_client(client: Client, super_user_factory: SuperUserFactory):
     """
     TestClient logged in as superuser via session auth.
     """
     user = super_user_factory.create()
-    client.client.login(username=user.username, password="password123")
+    client.login(username=user.username, password="password123")
     return client

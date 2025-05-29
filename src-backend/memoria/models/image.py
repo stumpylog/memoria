@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -43,7 +44,7 @@ class ImageQuerySet(PermittedQueryset):
 
     def with_people(self) -> ImageQuerySet:
         """
-        Fetches Image with related peopl
+        Fetches Image with related people
         """
         return self.prefetch_related(
             "people",
@@ -59,7 +60,7 @@ class ImageQuerySet(PermittedQueryset):
 
     def with_pets(self) -> ImageQuerySet:
         """
-        Fetches Image with related peopl
+        Fetches Image with related pets
         """
         return self.prefetch_related(
             "pets",
@@ -219,42 +220,38 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     def __str__(self) -> str:
         return f"Image {self.original_path.name}"
 
-    @property
+    @cached_property
     def original_path(self) -> Path:
         return Path(self.original).resolve()
 
-    @original_path.setter
-    def original_path(self, path: Path | str) -> None:
-        self.original = str(Path(path).resolve())
-
-    @property
+    @cached_property
     def thumbnail_path(self) -> Path:
         if TYPE_CHECKING:
             assert hasattr(settings, "THUMBNAIL_DIR")
             assert isinstance(settings.THUMBNAIL_DIR, Path)
         return (settings.THUMBNAIL_DIR / self.image_fs_id).with_suffix(".webp").resolve()
 
-    @property
+    @cached_property
     def thumbnail_url(self) -> str | None:
         """
         Constructs the full URL for the thumbnail.
         """
         return settings.MEDIA_URL + self.thumbnail_path.relative_to(settings.MEDIA_ROOT).as_posix()
 
-    @property
+    @cached_property
     def full_size_path(self) -> Path:
         if TYPE_CHECKING:
             assert isinstance(settings.LARGE_SIZE_DIR, Path)
         return (settings.LARGE_SIZE_DIR / self.image_fs_id).with_suffix(".webp").resolve()
 
-    @property
+    @cached_property
     def larger_size_url(self) -> str | None:
         """
         Constructs the full URL for the full size image.
         """
         return settings.MEDIA_URL + self.full_size_path.relative_to(settings.MEDIA_ROOT).as_posix()
 
-    @property
+    @cached_property
     def image_fs_id(self) -> str:
         return f"{self.pk:010}"
 

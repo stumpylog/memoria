@@ -56,6 +56,10 @@ who has a slide projector anymore?
   - Choose between light and dark themes, with an option to follow your system's preference.
   - Navigate and manage your photos with ease
 
+## Bugs
+
+- The location information is loaded in the image detail, even if the location editing modal is not open
+
 ## Roadmap
 
 ### Markdown Support

@@ -182,9 +182,10 @@ lint.isort.known-first-party = [ "memoria" ]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-# -n auto --maxprocesses=8 --pythonwarnings=all
-addopts = " --cov --cov-report=html --cov-report=json --cov-report=term  -p no:legacypath"
+#  --pythonwarnings=all
+addopts = " --cov --cov-report=html --cov-report=json --cov-report=term  -p no:legacypath -n auto --maxprocesses=4"
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 DJANGO_SETTINGS_MODULE = "memoria.settings"
 
 [tool.pytest_env]

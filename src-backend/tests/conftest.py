@@ -1,3 +1,4 @@
+import logging
 import random
 import shutil
 from pathlib import Path
@@ -18,6 +19,9 @@ from tests.types import DjangoDirectories
 from tests.types import SampleFile
 from tests.utils import disable_signal
 
+logging.getLogger("faker").setLevel(logging.ERROR)
+logging.getLogger("factory.generate").setLevel(logging.ERROR)
+
 
 @pytest.fixture(scope="session", autouse=True)
 def faker_seed():
@@ -37,6 +41,11 @@ def api_base_url() -> str:
 @pytest.fixture(scope="session")
 def album_base_url(api_base_url: str) -> str:
     return api_base_url + "album/"
+
+
+@pytest.fixture(scope="session")
+def users_base_url(api_base_url: str) -> str:
+    return api_base_url + "user/"
 
 
 @pytest.fixture(scope="session")

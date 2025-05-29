@@ -63,6 +63,16 @@ def get_image_thumbnail_info(request: HttpRequest, image_id: int):
 
 
 @router.get(
+    "/bulk/thumbnails/",
+    response=list[ImageThumbnailSchemaOut],
+    auth=active_user_auth,
+    operation_id="image_get_thumbnails_bulk_info",
+)
+def get_image_thumbnails_bulk_info(request: HttpRequest, image_ids: list[int]):
+    return Image.objects.permitted(request.user).filter(pk__in=image_ids)
+
+
+@router.get(
     "/{image_id}/metadata/",
     response=ImageMetadataSchemaOut,
     auth=active_user_auth,
