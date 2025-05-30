@@ -49,7 +49,7 @@ LOGIN_URL = "/login/"
 MEDIA_URL = "/media/"
 
 # CSRF settings
-CSRF_COOKIE_HTTPONLY = False  # Maybe need to fix this later
+CSRF_COOKIE_HTTPONLY = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SAMESITE = "Lax"  # or 'None' if using HTTPS with different domains
 
@@ -76,7 +76,9 @@ ALLOWED_HOSTS = (
     [urlparse(os.getenv("MEMORIA_URL")).hostname, "localhost"] if "MEMORIA_URL" in os.environ else ["localhost"]
 )
 CORS_ALLOW_CREDENTIALS = True
-
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 
 # Application definition
 

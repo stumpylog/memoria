@@ -115,7 +115,7 @@ def users_list(
     """
     queryset = UserModelT.objects.all()
     queryset = filters.filter(queryset)
-    return queryset.order_by("sort_by")
+    return queryset.order_by(sort_by)
 
 
 @router.get(
