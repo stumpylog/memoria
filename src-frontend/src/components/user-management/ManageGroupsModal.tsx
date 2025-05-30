@@ -3,11 +3,10 @@ import type { SubmitHandler } from "react-hook-form";
 import React, { useEffect, useMemo } from "react";
 import { Alert, Button, Form, Modal } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
-import Select from "react-select";
 
 import type { GroupOutSchema, UserGroupAssignInSchema, UserOutSchema } from "../../api";
 
-import { useTheme } from "../../hooks/useTheme";
+import ThemedSelect from "../common/ThemedSelect";
 
 // Option type for react-select
 interface GroupOption {
@@ -41,10 +40,6 @@ const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
   allGroups,
   userGroupIds,
 }) => {
-  // Get theme information from your existing hook
-  const { effectiveTheme } = useTheme();
-  const isDarkMode = effectiveTheme === "dark";
-
   // Initialize react-hook-form
   const { control, handleSubmit, reset } = useForm<FormData>({
     defaultValues: {
@@ -93,101 +88,6 @@ const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
     await handleSave(user.id, groupAssignments);
   };
 
-  // Custom styles for react-select with dark/light theme support
-  const selectStyles = {
-    control: (provided: any, state: any) => ({
-      ...provided,
-      backgroundColor: isDarkMode ? "#212529" : "#ffffff",
-      borderColor: state.isFocused
-        ? isDarkMode
-          ? "#6ea8fe"
-          : "#86b7fe"
-        : isDarkMode
-          ? "#495057"
-          : "#dee2e6",
-      boxShadow: state.isFocused
-        ? `0 0 0 0.2rem ${isDarkMode ? "rgba(110, 168, 254, 0.25)" : "rgba(13, 110, 253, 0.25)"}`
-        : "none",
-      color: isDarkMode ? "#ffffff" : "#212529",
-      "&:hover": {
-        borderColor: state.isFocused
-          ? isDarkMode
-            ? "#6ea8fe"
-            : "#86b7fe"
-          : isDarkMode
-            ? "#6c757d"
-            : "#adb5bd",
-      },
-    }),
-    menu: (provided: any) => ({
-      ...provided,
-      backgroundColor: isDarkMode ? "#343a40" : "#ffffff",
-      border: `1px solid ${isDarkMode ? "#495057" : "#dee2e6"}`,
-      boxShadow: isDarkMode
-        ? "0 0.5rem 1rem rgba(0, 0, 0, 0.5)"
-        : "0 0.5rem 1rem rgba(0, 0, 0, 0.15)",
-    }),
-    option: (provided: any, state: any) => ({
-      ...provided,
-      backgroundColor: state.isSelected
-        ? isDarkMode
-          ? "#0d6efd"
-          : "#0d6efd"
-        : state.isFocused
-          ? isDarkMode
-            ? "#495057"
-            : "#f8f9fa"
-          : "transparent",
-      color: state.isSelected ? "#ffffff" : isDarkMode ? "#ffffff" : "#212529",
-      "&:hover": {
-        backgroundColor: state.isSelected
-          ? isDarkMode
-            ? "#0b5ed7"
-            : "#0b5ed7"
-          : isDarkMode
-            ? "#495057"
-            : "#f8f9fa",
-      },
-    }),
-    multiValue: (provided: any) => ({
-      ...provided,
-      backgroundColor: isDarkMode ? "#495057" : "#e9ecef",
-      border: `1px solid ${isDarkMode ? "#6c757d" : "#adb5bd"}`,
-    }),
-    multiValueLabel: (provided: any) => ({
-      ...provided,
-      color: isDarkMode ? "#ffffff" : "#495057",
-    }),
-    multiValueRemove: (provided: any) => ({
-      ...provided,
-      color: isDarkMode ? "#adb5bd" : "#6c757d",
-      "&:hover": {
-        backgroundColor: "#dc3545",
-        color: "white",
-      },
-    }),
-    placeholder: (provided: any) => ({
-      ...provided,
-      color: isDarkMode ? "#adb5bd" : "#6c757d",
-    }),
-    singleValue: (provided: any) => ({
-      ...provided,
-      color: isDarkMode ? "#ffffff" : "#212529",
-    }),
-    input: (provided: any) => ({
-      ...provided,
-      color: isDarkMode ? "#ffffff" : "#212529",
-    }),
-    noOptionsMessage: (provided: any) => ({
-      ...provided,
-      color: isDarkMode ? "#adb5bd" : "#6c757d",
-    }),
-    loadingMessage: (provided: any) => ({
-      ...provided,
-      color: isDarkMode ? "#adb5bd" : "#6c757d",
-    }),
-  };
-
   return (
     <Modal show={show} onHide={handleClose} size="lg">
       <Modal.Header closeButton>
@@ -202,7 +102,7 @@ const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
               name="selectedGroups"
               control={control}
               render={({ field }) => (
-                <Select
+                <ThemedSelect
                   {...field}
                   isMulti
                   options={groupOptions}
@@ -210,7 +110,6 @@ const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
                   isClearable
                   isSearchable
                   closeMenuOnSelect={false}
-                  styles={selectStyles}
                   noOptionsMessage={({ inputValue }) =>
                     inputValue ? `No groups found matching "${inputValue}"` : "No groups available"
                   }

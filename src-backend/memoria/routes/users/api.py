@@ -1,6 +1,7 @@
 import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING
+from typing import Literal
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -107,13 +108,14 @@ async def users_create(
 def users_list(
     request: HttpRequest,
     filters: UserFilterSchema = Query(...),
+    sort_by: Literal["username", "pk"] = Query("pk", description="Field to sort by: 'username' or 'id'. "),
 ):
     """
     Get all users with filtering and pagination.
     """
     queryset = UserModelT.objects.all()
     queryset = filters.filter(queryset)
-    return queryset.order_by("username")
+    return queryset.order_by("sort_by")
 
 
 @router.get(

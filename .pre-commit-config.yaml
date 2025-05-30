@@ -49,6 +49,15 @@ repos:
           - css
           - tsx
           - ts
+  - repo: https://github.com/thibaudcolas/pre-commit-stylelint
+    rev: v14.4.0
+    hooks:
+      - id: stylelint
+        args: [--fix]
+        additional_dependencies:
+          - stylelint@14.4.0
+          - stylelint-config-standard@38.0.0
+          - stylelint-config-prettier@9.0.5
   # Python hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: "v0.11.7"

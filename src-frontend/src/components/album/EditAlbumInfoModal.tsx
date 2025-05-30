@@ -1,17 +1,15 @@
 // src/components/album/EditAlbumInfoModal.tsx
 import type { SubmitHandler } from "react-hook-form";
-import type { StylesConfig } from "react-select";
 
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect } from "react";
 import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
-import Select from "react-select";
 
 import type { AlbumUpdateInSchema, AlbumWithImagesOutSchema, GroupSchemaOut } from "../../api";
 
 import { listGroups } from "../../api";
-import { useTheme } from "../../hooks/useTheme";
+import ThemedSelect from "../common/ThemedSelect";
 
 interface EditAlbumInfoModalProps {
   show: boolean;
@@ -46,9 +44,6 @@ const EditAlbumInfoModal: React.FC<EditAlbumInfoModalProps> = ({
   } = useForm<FormData>({
     mode: "onChange",
   });
-
-  const { effectiveTheme } = useTheme();
-  const isDarkTheme = effectiveTheme === "dark";
 
   const {
     data: allGroups,
@@ -89,75 +84,6 @@ const EditAlbumInfoModal: React.FC<EditAlbumInfoModalProps> = ({
   if (!album) return null;
 
   const groupOptions = allGroups?.map((group) => ({ value: group.id, label: group.name })) || [];
-
-  const customStyles: StylesConfig<{ value: number; label: string }, true> = {
-    control: (provided, state) => ({
-      ...provided,
-      backgroundColor: isDarkTheme ? "#343a40" : "#fff", // Dark gray for dark, white for light
-      borderColor: isDarkTheme ? "#495057" : "#ced4da", // Slightly lighter border for dark
-      color: isDarkTheme ? "#f8f9fa" : "#212529", // Light text for dark, dark for light
-      "&:hover": {
-        borderColor: isDarkTheme ? "#6c757d" : "#80bdff",
-      },
-      boxShadow: state.isFocused
-        ? isDarkTheme
-          ? "0 0 0 0.25rem rgba(108, 117, 125, .25)"
-          : "0 0 0 0.25rem rgba(0, 123, 255, .25)"
-        : "none",
-    }),
-    input: (provided) => ({
-      ...provided,
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-    }),
-    placeholder: (provided) => ({
-      ...provided,
-      color: isDarkTheme ? "#adb5bd" : "#6c757d", // Lighter placeholder for dark
-    }),
-    singleValue: (provided) => ({
-      ...provided,
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-    }),
-    multiValue: (provided) => ({
-      ...provided,
-      backgroundColor: isDarkTheme ? "#495057" : "#e2e6ea", // Darker background for tags in dark theme
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-    }),
-    multiValueLabel: (provided) => ({
-      ...provided,
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-    }),
-    multiValueRemove: (provided) => ({
-      ...provided,
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-      "&:hover": {
-        backgroundColor: isDarkTheme ? "#dc3545" : "#dc3545",
-        color: "white",
-      },
-    }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: isDarkTheme ? "#343a40" : "#fff", // Dark gray for dark, white for light
-      borderColor: isDarkTheme ? "#495057" : "#ced4da",
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isSelected
-        ? isDarkTheme
-          ? "#007bff"
-          : "#007bff" // Primary blue for selected
-        : state.isFocused
-          ? isDarkTheme
-            ? "#495057"
-            : "#e9ecef" // Hover background
-          : isDarkTheme
-            ? "#343a40"
-            : "#fff", // Default background
-      color: state.isSelected ? "white" : isDarkTheme ? "#f8f9fa" : "#212529", // Text color
-      "&:active": {
-        backgroundColor: isDarkTheme ? "#0056b3" : "#0056b3", // Darker blue on active
-      },
-    }),
-  };
 
   return (
     <Modal show={show} onHide={onHide} centered>
@@ -206,14 +132,13 @@ const EditAlbumInfoModal: React.FC<EditAlbumInfoModalProps> = ({
                   name="view_group_ids"
                   control={control}
                   render={({ field }) => (
-                    <Select
+                    <ThemedSelect
                       {...field}
                       options={groupOptions}
                       isMulti
                       classNamePrefix="react-select"
                       placeholder="Select groups that can view"
                       isDisabled={isLoading}
-                      styles={customStyles}
                     />
                   )}
                 />
@@ -228,14 +153,13 @@ const EditAlbumInfoModal: React.FC<EditAlbumInfoModalProps> = ({
                   name="edit_group_ids"
                   control={control}
                   render={({ field }) => (
-                    <Select
+                    <ThemedSelect
                       {...field}
                       options={groupOptions}
                       isMulti
                       classNamePrefix="react-select"
                       placeholder="Select groups that can edit"
                       isDisabled={isLoading}
-                      styles={customStyles}
                     />
                   )}
                 />

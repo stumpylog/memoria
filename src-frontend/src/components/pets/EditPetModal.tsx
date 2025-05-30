@@ -4,12 +4,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
-import Select from "react-select";
 
 import type { PetReadDetailSchemaOut, PetTypeChoices, PetUpdateInSchema } from "../../api";
 
 import { updatePet } from "../../api";
-import { useTheme } from "../../hooks/useTheme";
+import ThemedSelect from "../common/ThemedSelect";
 
 // Define a runtime constant for pet types here, outside the API generated file
 // In a larger application, consider moving this to a shared utils/constants.ts
@@ -31,8 +30,6 @@ interface EditPetFormData {
 
 const EditPetModal: React.FC<EditPetModalProps> = ({ show, handleClose, pet, onSaveSuccess }) => {
   const queryClient = useQueryClient();
-  const { effectiveTheme } = useTheme();
-  const isDarkTheme = effectiveTheme === "dark";
 
   const { control, handleSubmit, reset, formState } = useForm<EditPetFormData>({
     defaultValues: {
@@ -81,59 +78,6 @@ const EditPetModal: React.FC<EditPetModalProps> = ({ show, handleClose, pet, onS
     } else {
       handleClose(); // Close if no changes
     }
-  };
-
-  // Custom styles for react-select to match theme
-  const customStyles = {
-    control: (provided: any, state: any) => ({
-      ...provided,
-      backgroundColor: isDarkTheme ? "#343a40" : "#fff",
-      borderColor: isDarkTheme ? "#495057" : "#ced4da",
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-      "&:hover": {
-        borderColor: isDarkTheme ? "#6c757d" : "#adb5bd",
-      },
-      boxShadow: state.isFocused
-        ? isDarkTheme
-          ? "0 0 0 0.2rem rgba(108,117,125,.25)"
-          : "0 0 0 0.2rem rgba(0,123,255,.25)"
-        : null,
-    }),
-    singleValue: (provided: any) => ({
-      ...provided,
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-    }),
-    input: (provided: any) => ({
-      ...provided,
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-    }),
-    placeholder: (provided: any) => ({
-      ...provided,
-      color: isDarkTheme ? "#adb5bd" : "#6c757d",
-    }),
-    menu: (provided: any) => ({
-      ...provided,
-      backgroundColor: isDarkTheme ? "#343a40" : "#fff",
-      borderColor: isDarkTheme ? "#495057" : "#ced4da",
-    }),
-    option: (provided: any, state: any) => ({
-      ...provided,
-      backgroundColor: state.isSelected
-        ? isDarkTheme
-          ? "#007bff"
-          : "#007bff"
-        : state.isFocused
-          ? isDarkTheme
-            ? "#495057"
-            : "#e9ecef"
-          : isDarkTheme
-            ? "#343a40"
-            : "#fff",
-      color: state.isSelected ? "#fff" : isDarkTheme ? "#f8f9fa" : "#212529",
-      "&:active": {
-        backgroundColor: isDarkTheme ? "#0056b3" : "#0056b3",
-      },
-    }),
   };
 
   // Options for react-select Pet Type filter using the local constant
@@ -188,12 +132,11 @@ const EditPetModal: React.FC<EditPetModalProps> = ({ show, handleClose, pet, onS
               name="pet_type"
               control={control}
               render={({ field }) => (
-                <Select
+                <ThemedSelect
                   inputId="editPetTypeSelect"
                   options={petTypeSelectOptions}
                   isClearable
                   placeholder="Select a pet type..."
-                  styles={customStyles}
                   value={petTypeSelectOptions.find((opt) => opt.value === field.value) || null}
                   onChange={(selectedOption) => {
                     field.onChange(selectedOption?.value ?? null);

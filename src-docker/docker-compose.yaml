@@ -3,7 +3,7 @@ networks:
     name: "memoria-net"
   reverse-proxy:
     name: "reverse-proxy"
-    #external: true
+    external: true
 
 services:
   memoria-db:
@@ -21,7 +21,7 @@ services:
     networks:
       - memoria-net
   memoria:
-    image: memoria:latest
+    image: memoria:test
     container_name: memoria
     networks:
       - memoria-net

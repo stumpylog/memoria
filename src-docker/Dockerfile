@@ -89,15 +89,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_CACHE_DIR=/cache/uv/
 
-# Set the working directory inside the container
-WORKDIR /app
-
-COPY --chown=1000:1000 ["pyproject.toml", "uv.lock", "/app/"]
-COPY --chown=1000:1000 ["src-backend/", "/app/memoria/"]
-
 # hadolint ignore=DL3042
-RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
-  set -eux \
+RUN set -eux \
   && echo "Installing system packages" \
     && apk add --no-cache \
       nginx \
@@ -105,7 +98,16 @@ RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
       postgresql-client \
       exiftool \
       tzdata \
-      shadow \
+      shadow
+
+# Set the working directory inside the container
+WORKDIR /app
+
+COPY --chown=1000:1000 ["pyproject.toml", "uv.lock", "/app/"]
+COPY --chown=1000:1000 ["src-backend/pyproject.toml", "/app/memoria/pyproject.toml"]
+
+RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
+  set -eux \
   && echo "Installing build system packages" \
     && apk add --no-cache --virtual .python-build \
         postgresql-dev \
@@ -131,6 +133,8 @@ RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
     && apk del --no-cache .python-build \
     # While not cleaning the image, prunes the saved build cache, just for local development
     && uv cache prune
+
+COPY --chown=1000:1000 ["src-backend/", "/app/memoria/"]
 
 RUN set -eux \
   # We replace the shebang so it uses the container environment by default

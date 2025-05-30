@@ -156,5 +156,8 @@ async def update_pet(
     elif pet_to_update.description is not None:
         pet_to_update.description = None
 
+    if data.pet_type is not None:
+        pet_to_update.pet_type = data.pet_type
+
     await pet_to_update.asave()
     return await _aget_pet_with_counts(pet_id, request.user)

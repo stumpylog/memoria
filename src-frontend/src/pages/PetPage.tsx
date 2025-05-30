@@ -14,13 +14,12 @@ import {
   Tooltip,
 } from "react-bootstrap";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Select from "react-select";
 
 import type { PagedPetReadSchemaOut, PetReadSchemaOut, PetTypeChoices } from "../api";
 
 import { getAllPets } from "../api"; // PET_TYPE_OPTIONS is defined locally now
+import ThemedSelect from "../components/common/ThemedSelect";
 import { useAuth } from "../hooks/useAuth";
-import { useTheme } from "../hooks/useTheme";
 
 // Define a runtime constant for pet types here, outside the API generated file
 const PET_TYPE_OPTIONS = ["cat", "dog", "horse"] as const;
@@ -32,8 +31,6 @@ const PetsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { profile } = useAuth();
-  const { effectiveTheme } = useTheme();
-  const isDarkTheme = effectiveTheme === "dark";
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("pet_name") || "");
   const [selectedPetType, setSelectedPetType] = useState<PetTypeChoices | null>(
@@ -256,58 +253,6 @@ const PetsPage: React.FC = () => {
     label: type.charAt(0).toUpperCase() + type.slice(1),
   }));
 
-  const customStyles = {
-    control: (provided: any, state: any) => ({
-      ...provided,
-      backgroundColor: isDarkTheme ? "#343a40" : "#fff",
-      borderColor: isDarkTheme ? "#495057" : "#ced4da",
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-      "&:hover": {
-        borderColor: isDarkTheme ? "#6c757d" : "#adb5bd",
-      },
-      boxShadow: state.isFocused
-        ? isDarkTheme
-          ? "0 0 0 0.2rem rgba(108,117,125,.25)"
-          : "0 0 0 0.2rem rgba(0,123,255,.25)"
-        : null,
-    }),
-    singleValue: (provided: any) => ({
-      ...provided,
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-    }),
-    input: (provided: any) => ({
-      ...provided,
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-    }),
-    placeholder: (provided: any) => ({
-      ...provided,
-      color: isDarkTheme ? "#adb5bd" : "#6c757d",
-    }),
-    menu: (provided: any) => ({
-      ...provided,
-      backgroundColor: isDarkTheme ? "#343a40" : "#fff",
-      borderColor: isDarkTheme ? "#495057" : "#ced4da",
-    }),
-    option: (provided: any, state: any) => ({
-      ...provided,
-      backgroundColor: state.isSelected
-        ? isDarkTheme
-          ? "#007bff"
-          : "#007bff"
-        : state.isFocused
-          ? isDarkTheme
-            ? "#495057"
-            : "#e9ecef"
-          : isDarkTheme
-            ? "#343a40"
-            : "#fff",
-      color: state.isSelected ? "#fff" : isDarkTheme ? "#f8f9fa" : "#212529",
-      "&:active": {
-        backgroundColor: isDarkTheme ? "#0056b3" : "#0056b3",
-      },
-    }),
-  };
-
   return (
     <Container className="mt-4">
       <title>Memoria - Pets</title>
@@ -328,7 +273,7 @@ const PetsPage: React.FC = () => {
 
       <div className="mb-3">
         <Form.Label>Filter by Pet Type:</Form.Label>
-        <Select
+        <ThemedSelect<{ value: string; label: string }>
           options={[{ value: "", label: "All Types" }, ...petTypeOptions]}
           value={
             selectedPetType
@@ -338,19 +283,9 @@ const PetsPage: React.FC = () => {
                 }
               : { value: "", label: "All Types" }
           }
-          onChange={(option) => setSelectedPetType((option?.value as PetTypeChoices) || null)}
-          styles={customStyles}
-          theme={(currentTheme) => ({
-            ...currentTheme,
-            colors: {
-              ...currentTheme.colors,
-              primary: isDarkTheme ? "#007bff" : "#007bff",
-              primary25: isDarkTheme ? "#495057" : "#e9ecef",
-              neutral0: isDarkTheme ? "#343a40" : "#fff",
-              neutral80: isDarkTheme ? "#f8f9fa" : "#212529",
-              neutral20: isDarkTheme ? "#495057" : "#ced4da",
-            },
-          })}
+          onChange={(option) =>
+            setSelectedPetType(option ? (option.value as PetTypeChoices) : null)
+          }
         />
       </div>
 

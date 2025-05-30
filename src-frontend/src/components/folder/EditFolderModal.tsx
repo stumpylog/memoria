@@ -4,12 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect } from "react";
 import { Button, Form, Modal, Spinner } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
-import Select from "react-select";
 
 import type { FolderDetailSchemaOut, FolderUpdateSchemaIn, GroupSchemaOut } from "../../api";
 
 import { listGroups, updateFolderInfo } from "../../api";
-import { useTheme } from "../../hooks/useTheme";
+import ThemedSelect from "../common/ThemedSelect";
 
 interface EditFolderModalProps {
   show: boolean;
@@ -33,8 +32,6 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
   onSaveSuccess,
 }) => {
   const queryClient = useQueryClient();
-  const { effectiveTheme } = useTheme();
-  const isDarkTheme = effectiveTheme === "dark";
 
   // Fetch all available groups
   const { data: groupsResponse, isLoading: groupsLoading } = useQuery({
@@ -114,75 +111,6 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
     label: group.name,
   }));
 
-  const customStyles = {
-    control: (provided: any, state: any) => ({
-      ...provided,
-      backgroundColor: isDarkTheme ? "#343a40" : "#fff",
-      borderColor: isDarkTheme ? "#495057" : "#ced4da",
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-      "&:hover": {
-        borderColor: isDarkTheme ? "#6c757d" : "#adb5bd",
-      },
-      boxShadow: state.isFocused
-        ? isDarkTheme
-          ? "0 0 0 0.2rem rgba(108,117,125,.25)"
-          : "0 0 0 0.2rem rgba(0,123,255,.25)"
-        : null,
-    }),
-    singleValue: (provided: any) => ({
-      ...provided,
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-    }),
-    input: (provided: any) => ({
-      ...provided,
-      color: isDarkTheme ? "#f8f9fa" : "#212529",
-    }),
-    placeholder: (provided: any) => ({
-      ...provided,
-      color: isDarkTheme ? "#adb5bd" : "#6c757d",
-    }),
-    menu: (provided: any) => ({
-      ...provided,
-      backgroundColor: isDarkTheme ? "#343a40" : "#fff",
-      borderColor: isDarkTheme ? "#495057" : "#ced4da",
-    }),
-    option: (provided: any, state: any) => ({
-      ...provided,
-      backgroundColor: state.isSelected
-        ? isDarkTheme
-          ? "#007bff"
-          : "#007bff"
-        : state.isFocused
-          ? isDarkTheme
-            ? "#495057"
-            : "#e9ecef"
-          : isDarkTheme
-            ? "#343a40"
-            : "#fff",
-      color: state.isSelected ? "#fff" : isDarkTheme ? "#f8f9fa" : "#212529",
-      "&:active": {
-        backgroundColor: isDarkTheme ? "#0056b3" : "#0056b3",
-      },
-    }),
-    multiValue: (provided: any) => ({
-      ...provided,
-      backgroundColor: isDarkTheme ? "#007bff" : "#e0f7fa",
-      color: isDarkTheme ? "#fff" : "#000",
-    }),
-    multiValueLabel: (provided: any) => ({
-      ...provided,
-      color: isDarkTheme ? "#fff" : "#000",
-    }),
-    multiValueRemove: (provided: any) => ({
-      ...provided,
-      color: isDarkTheme ? "#f8f9fa" : "#6c757d",
-      "&:hover": {
-        backgroundColor: isDarkTheme ? "#dc3545" : "#dc3545",
-        color: "white",
-      },
-    }),
-  };
-
   if (groupsLoading) {
     return (
       <Modal show={show} onHide={handleClose} centered>
@@ -240,7 +168,7 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
               name="view_group_ids"
               control={control}
               render={({ field }) => (
-                <Select
+                <ThemedSelect
                   {...field}
                   isMulti
                   options={groupOptions}
@@ -251,18 +179,6 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
                   onChange={(selectedOptions) =>
                     field.onChange(selectedOptions.map((option) => Number(option.value)))
                   }
-                  styles={customStyles}
-                  theme={(currentTheme) => ({
-                    ...currentTheme,
-                    colors: {
-                      ...currentTheme.colors,
-                      primary: isDarkTheme ? "#007bff" : "#007bff",
-                      primary25: isDarkTheme ? "#495057" : "#e9ecef",
-                      neutral0: isDarkTheme ? "#343a40" : "#fff",
-                      neutral80: isDarkTheme ? "#f8f9fa" : "#212529",
-                      neutral20: isDarkTheme ? "#495057" : "#ced4da",
-                    },
-                  })}
                 />
               )}
             />
@@ -276,7 +192,7 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
               name="edit_group_ids"
               control={control}
               render={({ field }) => (
-                <Select
+                <ThemedSelect
                   {...field}
                   isMulti
                   options={groupOptions}
@@ -287,18 +203,6 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
                   onChange={(selectedOptions) =>
                     field.onChange(selectedOptions.map((option) => Number(option.value)))
                   }
-                  styles={customStyles}
-                  theme={(currentTheme) => ({
-                    ...currentTheme,
-                    colors: {
-                      ...currentTheme.colors,
-                      primary: isDarkTheme ? "#007bff" : "#007bff",
-                      primary25: isDarkTheme ? "#495057" : "#e9ecef",
-                      neutral0: isDarkTheme ? "#343a40" : "#fff",
-                      neutral80: isDarkTheme ? "#f8f9fa" : "#212529",
-                      neutral20: isDarkTheme ? "#495057" : "#ced4da",
-                    },
-                  })}
                 />
               )}
             />
