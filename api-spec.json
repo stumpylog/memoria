@@ -4392,6 +4392,19 @@
               "description": "Filter by email (contains)",
               "title": "Email"
             }
+          },
+          {
+            "description": "Field to sort by: 'username' or 'id'. ",
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "pk",
+              "description": "Field to sort by: 'username' or 'id'. ",
+              "enum": ["username", "pk"],
+              "title": "Sort By",
+              "type": "string"
+            }
           }
         ],
         "responses": {

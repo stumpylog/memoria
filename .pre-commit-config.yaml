@@ -32,6 +32,7 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
+        exclude: ^src-frontend/pnpm-lock\.yaml$
         exclude_types:
           - pofile
           - json
@@ -50,7 +51,7 @@ repos:
           - tsx
           - ts
   - repo: https://github.com/thibaudcolas/pre-commit-stylelint
-    rev: v14.4.0
+    rev: v16.19.1
     hooks:
       - id: stylelint
         args: [--fix]
@@ -60,13 +61,13 @@ repos:
           - stylelint-config-prettier@9.0.5
   # Python hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.11.7"
+    rev: "v0.11.12"
     hooks:
       # Run the linter.
       - id: ruff
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "v2.5.1"
+    rev: "v2.6.0"
     hooks:
       - id: pyproject-fmt
