@@ -20,7 +20,7 @@ class SessionAuthIsActive(APIKeyCookie):
 
     param_name: str = settings.SESSION_COOKIE_NAME
 
-    def authenticate(self, request: HttpRequest, key: str | None) -> Any | None:
+    def authenticate(self, request: HttpRequest, key: str | None) -> Any | None:  # noqa: ARG002
         if request.user.is_authenticated and request.user.is_active:
             return request.user
         return None
@@ -33,7 +33,7 @@ class AsyncSessionAuthIsActive(APIKeyCookie):
 
     param_name: str = settings.SESSION_COOKIE_NAME
 
-    async def authenticate(self, request: HttpRequest, key: str | None) -> Any | None:
+    async def authenticate(self, request: HttpRequest, key: str | None) -> Any | None:  # noqa: ARG002
         @sync_to_async(thread_sensitive=True)
         def _sync_auth():
             if request.user.is_authenticated and request.user.is_active:

@@ -3,7 +3,7 @@
 from django.db import migrations
 
 
-def create_site_settings(apps, schema_editor):
+def create_site_settings(apps, schema_editor):  # noqa: ARG001
     SiteSettings = apps.get_model("memoria", "SiteSettings")
 
     SiteSettings.objects.get_or_create(pk=1)

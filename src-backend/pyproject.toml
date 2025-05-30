@@ -16,7 +16,7 @@ dependencies = [
   "concurrent-log-handler~=0.9.6",
   "django~=5.2",
   "django-cors-headers~=4.7",
-  "django-ninja",
+  "django-ninja~=1.4.1",
   "django-timezone-field~=7.1",
   "django-treenode",
   "django-typer[rich]>=2.2.1",
@@ -174,7 +174,7 @@ lint.ignore = [
 # Migrations can use mutable class attributes
 lint.per-file-ignores."**/migrations/*" = [ "RUF012" ]
 # Tests can use magic values, assertions, and relative imports
-lint.per-file-ignores."**/tests/**/*" = [ "ARG001", "PLR2004", "S101", "TID252" ]
+lint.per-file-ignores."**/tests/**/*" = [ "ARG001", "F841", "PLR2004", "S101", "TID252" ]
 lint.flake8-pytest-style.mark-parentheses = false
 lint.flake8-tidy-imports.ban-relative-imports = "all"
 lint.isort.force-single-line = true

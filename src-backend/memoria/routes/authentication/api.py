@@ -57,7 +57,9 @@ async def login(request: HttpRequest, data: AuthLoginSchema):
         await alogin(request, user)
 
         return HTTPStatus.NO_CONTENT, None
-    raise HttpNotAuthorizedError("Invalid credentials. Please try again.")
+    msg = "Invalid credentials. Please try again."
+    logger.error(msg)
+    raise HttpNotAuthorizedError(msg)
 
 
 @router.post(

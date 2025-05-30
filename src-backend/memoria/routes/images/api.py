@@ -198,11 +198,13 @@ def update_image_location(request: HttpRequest, image_id: int, data: ImageLocati
 
     country = Country.from_alpha2(cast("CountryCodeAlpha2Type", data.country_code))
     if not country:
-        raise HttpBadRequestError(f"The country code {data.country_code} is not a valid ISO-3166 alpha2 code")
+        msg = f"The country code {data.country_code} is not a valid ISO-3166 alpha2 code"
+        logger.warning(msg)
+        raise HttpBadRequestError(msg)
     if data.subdivision_code and not country.contains_subdivision(data.subdivision_code):
-        raise HttpBadRequestError(
-            f"The country {data.country_code} does not have the subdivision {data.subdivision_code}",
-        )
+        msg = f"The country {data.country_code} does not have the subdivision {data.subdivision_code}"
+        logger.warning(msg)
+        raise HttpBadRequestError(msg)
     if data.city:
         data.city = data.city.strip()
     if data.sub_location:

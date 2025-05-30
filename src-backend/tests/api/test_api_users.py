@@ -27,6 +27,10 @@ class TestUsersCreate:
         }
         response = staff_client.post(users_base_url, content_type="application/json", data=payload)
 
+        from pprint import pprint
+
+        pprint(response)
+
         assert response.status_code == HTTPStatus.CREATED
         data = response.json()
         assert data["username"] == "newuser"

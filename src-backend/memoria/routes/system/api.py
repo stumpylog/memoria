@@ -40,7 +40,7 @@ def get_disk_usage_gb(path: Path) -> tuple[float, float, float]:
         # Convert bytes to gigabytes
         gb_factor = 1024**3
         return total / gb_factor, used / gb_factor, free / gb_factor
-    except Exception:
+    except Exception:  # noqa: BLE001
         # Handle cases where the path might not exist or be accessible
         return 0.0, 0.0, 0.0
 
@@ -52,7 +52,7 @@ def get_disk_usage_gb(path: Path) -> tuple[float, float, float]:
     auth=active_staff_or_superuser_auth,
 )
 def get_system_settings(
-    request: HttpRequest,
+    request: HttpRequest,  # noqa: ARG001
 ):
     return SiteSettings.objects.first()
 
@@ -64,7 +64,7 @@ def get_system_settings(
     auth=async_active_staff_or_superuser_auth,
 )
 async def update_system_settings(
-    request: HttpRequest,
+    request: HttpRequest,  # noqa: ARG001
     data: SiteSettingsUpdateSchemaIn,
 ):
     settings_obj = await SiteSettings.objects.afirst()

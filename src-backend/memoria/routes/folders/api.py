@@ -98,7 +98,9 @@ def get_image_folder(request, folder_id: int):
             or folder.edit_groups.filter(pk__in=user.groups.values_list("pk", flat=True)).exists()
         )
         if not has_perm:
-            raise HttpNotAuthorizedError("Unable to view this folder")
+            msg = "Unable to view this folder"
+            logger.warning(msg)
+            raise HttpNotAuthorizedError(msg)
 
     # Get child folders with permission filtering
     child_folders = ImageFolder.objects.filter(tn_parent=folder).order_by("name")

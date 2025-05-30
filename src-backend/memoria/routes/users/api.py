@@ -50,7 +50,9 @@ async def users_create(
     Create a new user with proper permission checks and validation.
     """
     if data.is_superuser and not request.user.is_superuser:
-        raise HttpForbiddenError("Only superusers can create superusers")
+        msg = "Only superusers can create superusers"
+        logger.error(msg)
+        raise HttpForbiddenError(msg)
 
     # superusers must be staff
     if data.is_superuser and not data.is_staff:
@@ -66,9 +68,13 @@ async def users_create(
     if existing_user is not None:
         # Determine which field caused the conflict for a more specific error message
         if existing_user.username == data.username:
-            raise HttpConflictError("Username already taken")
+            msg = "Username already taken"
+            logger.error(msg)
+            raise HttpConflictError(msg)
         if data.email and existing_user.email == data.email:
-            raise HttpConflictError("Email already taken")
+            msg = "Email already taken"
+            logger.error(msg)
+            raise HttpConflictError(msg)
 
     # Create user asynchronously
     if data.is_superuser:
@@ -106,7 +112,7 @@ async def users_create(
     operation_id="users_list",
 )
 def users_list(
-    request: HttpRequest,
+    request: HttpRequest,  # noqa: ARG001
     filters: UserFilterSchema = Query(...),
     sort_by: Literal["username", "pk"] = Query("pk", description="Field to sort by: 'username' or 'id'. "),
 ):
@@ -143,7 +149,9 @@ async def users_get_by_id(request: HttpRequest, user_id: int):
 
     # Permission check: users can only view their own info unless staff/superuser
     if request.user.pk != user.pk and not (request.user.is_staff or request.user.is_superuser):
-        raise HttpForbiddenError("Cannot view another user's information")
+        msg = "Cannot view another user's information"
+        logger.error(msg)
+        raise HttpForbiddenError(msg)
 
     return user
 
@@ -179,7 +187,9 @@ async def users_profile_get_by_id(request: HttpRequest, user_id: int):
 
     # Permission check: users can only view their own profile unless staff/superuser
     if request.user.id != user.id and not (request.user.is_staff or request.user.is_superuser):
-        raise HttpForbiddenError("Cannot view another user's profile")
+        msg = "Cannot view another user's profile"
+        logger.error(msg)
+        raise HttpForbiddenError(msg)
 
     return user.profile
 
@@ -194,7 +204,9 @@ async def users_groups_list(request: HttpRequest, user_id: int):
     """Get user's groups with permission checks."""
     # Permission check
     if request.user.pk != user_id and not (request.user.is_staff or request.user.is_superuser):
-        raise HttpForbiddenError("Cannot view another user's groups")
+        msg = "Cannot view another user's groups"
+        logger.error(msg)
+        raise HttpForbiddenError(msg)
 
     user = await aget_object_or_404(
         UserModelT.objects.prefetch_related("groups"),
@@ -223,7 +235,9 @@ async def users_update(
 
     # Permission check: users can only edit their own info unless staff/superuser
     if request.user.pk != user.pk and not (request.user.is_staff or request.user.is_superuser):
-        raise HttpForbiddenError("Cannot edit another user's information")
+        msg = "Cannot edit another user's information"
+        logger.error(msg)
+        raise HttpForbiddenError(msg)
 
     # Update basic fields
     if data.first_name is not None:
@@ -238,12 +252,16 @@ async def users_update(
     # Permission checks for staff/superuser changes
     if data.is_staff is not None:
         if not (request.user.is_staff or request.user.is_superuser):
-            raise HttpForbiddenError("Only staff or superusers may designate staff status")
+            msg = "Only staff or superusers may designate staff status"
+            logger.error(msg)
+            raise HttpForbiddenError(msg)
         user.is_staff = data.is_staff
 
     if data.is_superuser is not None:
         if not request.user.is_superuser:
-            raise HttpForbiddenError("Only superusers may designate superuser status")
+            msg = "Only superusers may designate superuser status"
+            logger.error(msg)
+            raise HttpForbiddenError(msg)
         user.is_superuser = data.is_superuser
         # Ensure superusers are also staff
         if data.is_superuser and not user.is_staff:
@@ -280,7 +298,9 @@ async def users_profile_update(
 
     # Permission check
     if request.user.pk != user.pk and not (request.user.is_superuser or request.user.is_staff):
-        raise HttpForbiddenError("Cannot edit another user's profile")
+        msg = "Cannot edit another user's profile"
+        logger.error(msg)
+        raise HttpForbiddenError(msg)
 
     if TYPE_CHECKING:
         assert isinstance(user.profile, UserProfile)
@@ -319,7 +339,7 @@ async def users_profile_update(
     },
 )
 async def users_groups_update(
-    request: HttpRequest,
+    request: HttpRequest,  # noqa: ARG001
     user_id: int,
     data: list[UserGroupAssignInSchema],
 ):
@@ -343,7 +363,9 @@ async def users_groups_update(
     missing_ids = set(group_ids) - existing_group_ids
 
     if missing_ids:
-        raise HttpBadRequestError(f"Group(s) with ID(s) {sorted(missing_ids)} do not exist")
+        msg = f"Group(s) with ID(s) {sorted(missing_ids)} do not exist"
+        logger.error(msg)
+        raise HttpBadRequestError(msg)
 
     # Update user's groups
     await user.groups.aclear()

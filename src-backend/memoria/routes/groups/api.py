@@ -27,7 +27,7 @@ UserModelT = get_user_model()
     operation_id="create_groups",
 )
 def create_groups(
-    request: HttpRequest,
+    request: HttpRequest,  # noqa: ARG001
     data: GroupCreateInSchema | list[GroupCreateInSchema],
 ):
     """
@@ -80,7 +80,7 @@ def create_groups(
     auth=async_active_staff_or_superuser_auth,
     operation_id="list_groups",
 )
-async def list_groups(request: HttpRequest):
+async def list_groups(request: HttpRequest):  # noqa: ARG001
     """
     Retrieves all groups.
 
@@ -99,7 +99,7 @@ async def list_groups(request: HttpRequest):
     operation_id="get_group",
 )
 async def get_group(
-    request: HttpRequest,
+    request: HttpRequest,  # noqa: ARG001
     group_id: int,
 ):
     """
@@ -121,7 +121,7 @@ async def get_group(
     operation_id="update_group",
 )
 async def update_group(
-    request: HttpRequest,
+    request: HttpRequest,  # noqa: ARG001
     group_id: int,
     data: GroupUpdateInSchema,
 ):
@@ -151,7 +151,7 @@ async def update_group(
     operation_id="delete_group",
 )
 async def delete_group(
-    request: HttpRequest,
+    request: HttpRequest,  # noqa: ARG001
     group_id: int,
 ):
     """

@@ -97,7 +97,7 @@ def get_album(request: HttpRequest, album_id: int):
     operation_id="create_album",
     auth=active_user_auth,
 )
-def create_album(request: HttpRequest, data: AlbumCreateInSchema):
+def create_album(request: HttpRequest, data: AlbumCreateInSchema):  # noqa: ARG001
     """
     Create a new album with optional view/edit groups.
     Only authenticated users may create albums.
@@ -172,7 +172,9 @@ def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageI
     )
 
     if accessible_images.count() != len(data.image_ids):
-        raise HttpBadRequestError("Some images were not found or are not accessible")
+        msg = "Some images were not found or are not accessible"
+        logger.warning(msg)
+        raise HttpBadRequestError(msg)
 
     # Get existing image IDs to avoid duplicates
     existing_image_ids = set(

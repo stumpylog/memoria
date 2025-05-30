@@ -21,7 +21,7 @@ from memoria.models import UserProfile
 User = get_user_model()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def client():
     """
     Django-Ninja TestClient for API routes.

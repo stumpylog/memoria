@@ -992,7 +992,7 @@ requires-dist = [
     { name = "concurrent-log-handler", specifier = "~=0.9.6" },
     { name = "django", specifier = "~=5.2" },
     { name = "django-cors-headers", specifier = "~=4.7" },
-    { name = "django-ninja" },
+    { name = "django-ninja", specifier = "~=1.4.1" },
     { name = "django-timezone-field", specifier = "~=7.1" },
     { name = "django-treenode" },
     { name = "django-typer", extras = ["rich"], specifier = ">=2.2.1" },
