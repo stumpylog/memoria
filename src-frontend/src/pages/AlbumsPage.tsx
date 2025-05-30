@@ -393,7 +393,7 @@ const AlbumsPage: React.FC = () => {
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="newAlbumViewGroups">
-              <Form.Label>Viewable by Groups (Optional)</Form.Label>
+              <Form.Label>Viewable by Groups</Form.Label>
               {loadingGroups ? (
                 <p>Loading groups...</p>
               ) : errorGroups ? (
@@ -419,7 +419,7 @@ const AlbumsPage: React.FC = () => {
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="newAlbumEditGroups">
-              <Form.Label>Editable by Groups (Optional)</Form.Label>
+              <Form.Label>Editable by Groups</Form.Label>
               {loadingGroups ? (
                 <p>Loading groups...</p>
               ) : errorGroups ? (

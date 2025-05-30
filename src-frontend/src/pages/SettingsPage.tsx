@@ -21,10 +21,10 @@ import type {
 
 // API functions
 import {
-  getSystemSettings,
-  deleteGroup,
-  listGroups,
   createGroups,
+  deleteGroup,
+  getSystemSettings,
+  listGroups,
   updateGroup,
   updateSystemSettings,
   usersCreate,
@@ -40,6 +40,7 @@ import CreateUserModal from "../components/user-management/CreateUserModal";
 import EditUserModal from "../components/user-management/EditUserModal";
 import ManageGroupsModal from "../components/user-management/ManageGroupsModal";
 import { useAuth } from "../hooks/useAuth";
+import { formatDate } from "../utils/formatDate";
 
 type SystemSettingsFormData = {
   large_image_max_size: ImageScaledSideMaxEnum;
@@ -48,7 +49,7 @@ type SystemSettingsFormData = {
 };
 
 const SettingsPage: React.FC = () => {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, profile } = useAuth();
   const queryClient = useQueryClient();
 
   // React Hook Form setup
@@ -533,6 +534,7 @@ const SettingsPage: React.FC = () => {
                   <th>Active</th>
                   <th>Staff</th>
                   <th>Superuser</th>
+                  <th>Last Login</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -547,6 +549,7 @@ const SettingsPage: React.FC = () => {
                     <td>{(user.is_active ?? true) ? "Yes" : "No"}</td>
                     <td>{(user.is_staff ?? false) ? "Yes" : "No"}</td>
                     <td>{(user.is_superuser ?? false) ? "Yes" : "No"}</td>
+                    <td>{user.last_login ? formatDate(profile, user.last_login) : "Never"}</td>
                     <td>
                       {(currentUser.is_staff || currentUser.is_superuser) && (
                         <>
@@ -572,7 +575,7 @@ const SettingsPage: React.FC = () => {
                 ))}
                 {users.length === 0 && !usersLoading && !usersQueryError && (
                   <tr>
-                    <td colSpan={9} className="text-center">
+                    <td colSpan={10} className="text-center">
                       No users found.
                     </td>
                   </tr>
@@ -580,7 +583,6 @@ const SettingsPage: React.FC = () => {
               </tbody>
             </Table>
           )}
-
           {/* Group Management Section */}
           <h3 className="mt-4">Group Management</h3>
           {groupError && <Alert variant="danger">{groupError}</Alert>}

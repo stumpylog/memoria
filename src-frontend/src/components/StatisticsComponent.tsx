@@ -1,57 +1,42 @@
-import { useQuery } from "@tanstack/react-query"; // Import useQuery from react-query
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import { Alert, Card, Col, Container, ListGroup, Row, Spinner } from "react-bootstrap";
+import { Alert, Badge, Card, Col, Container, Row, Spinner } from "react-bootstrap";
 
 import type { StatisticsResponseSchema } from "../api";
 
 import { getSystemStatistics } from "../api";
 
 const StatisticsDisplay: React.FC = () => {
-  // Use react-query's useQuery hook for data fetching and state management
   const {
     data: statistics,
     isLoading,
     isError,
     error,
   } = useQuery<StatisticsResponseSchema, Error>({
-    queryKey: ["systemStatistics"], // Unique key for this query
+    queryKey: ["systemStatistics"],
     queryFn: async () => {
-      // Call the imported getSystemStatistics function
       const response = await getSystemStatistics();
-
-      // Ensure that response.data is not undefined before returning.
-      // If the API client's 'get' method can return undefined data on success,
-      // we must explicitly handle it here by throwing an error, as react-query expects
-      // the queryFn to either return the expected data type or throw an error.
       if (!response.data) {
         throw new Error("API did not return expected statistics data.");
       }
       return response.data;
     },
-    // Optional: Add staleTime, cacheTime, refetchOnWindowFocus, etc. as needed
   });
 
   if (isLoading) {
     return (
-      <Container className="text-center my-5">
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Loading statistics...</span>
-        </Spinner>
-        <p className="mt-3">Loading statistics...</p>
+      <Container className="text-center py-3">
+        <Spinner animation="border" size="sm" className="me-2" />
+        <span>Loading statistics...</span>
       </Container>
     );
   }
 
   if (isError) {
     return (
-      <Container className="my-5">
-        <Alert variant="danger">
-          <Alert.Heading>Oh snap! You got an error!</Alert.Heading>
-          <p>Failed to load statistics: {error?.message || "An unknown error occurred"}</p>
-          <hr />
-          <p className="mb-0">
-            Please try refreshing the page or contact support if the issue persists.
-          </p>
+      <Container className="py-3">
+        <Alert variant="danger" className="py-2 mb-0">
+          <strong>Error:</strong> {error?.message || "Failed to load statistics"}
         </Alert>
       </Container>
     );
@@ -59,159 +44,169 @@ const StatisticsDisplay: React.FC = () => {
 
   if (!statistics) {
     return (
-      <Container className="my-5">
-        <Alert variant="info">No statistics data available.</Alert>
+      <Container className="py-3">
+        <Alert variant="info" className="py-2 mb-0">
+          No statistics available
+        </Alert>
       </Container>
     );
   }
 
   const { user_statistics, system_statistics } = statistics;
 
-  return (
-    <Container className="my-5 p-4 rounded-lg shadow-lg bg-gray-50 font-inter">
-      <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">System Statistics</h1>
+  const StatItem = ({
+    label,
+    value,
+    variant = "primary",
+  }: {
+    label: string;
+    value: number | string;
+    variant?: string;
+  }) => (
+    <div className="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+      <span className="text-muted small">{label}:</span>
+      <Badge bg={variant} className="ms-2">
+        {value}
+      </Badge>
+    </div>
+  );
 
-      {/* User Statistics Section */}
-      <Row className="mb-6">
-        <Col xs={12}>
-          <Card className="shadow-md rounded-lg border-0">
-            <Card.Header className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xl font-semibold py-3 px-4 rounded-t-lg">
-              Your Permissions & Counts
+  return (
+    <Container className="py-3">
+      <div className="d-flex align-items-center mb-3">
+        <h4 className="mb-0 text-dark fw-bold">System Statistics</h4>
+      </div>
+
+      <Row className="g-3">
+        {/* User Statistics - Permissions & Counts */}
+        <Col xl={8} lg={12}>
+          <Card className="border-0 shadow-sm">
+            <Card.Header className="bg-primary text-white py-2 px-3">
+              <h6 className="mb-0 fw-semibold">Your Permissions & Counts</h6>
             </Card.Header>
-            <Card.Body className="p-4">
+            <Card.Body className="p-3">
               <Row>
                 <Col md={6}>
-                  <ListGroup variant="flush">
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Images Viewable:{" "}
-                      <span className="badge bg-primary rounded-pill">
-                        {user_statistics.total_images_viewable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Images Editable:{" "}
-                      <span className="badge bg-success rounded-pill">
-                        {user_statistics.total_images_editable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Albums Viewable:{" "}
-                      <span className="badge bg-primary rounded-pill">
-                        {user_statistics.total_albums_viewable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Albums Editable:{" "}
-                      <span className="badge bg-success rounded-pill">
-                        {user_statistics.total_albums_editable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Tags Count:{" "}
-                      <span className="badge bg-primary rounded-pill">
-                        {user_statistics.total_tags}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      People Viewable:{" "}
-                      <span className="badge bg-primary rounded-pill">
-                        {user_statistics.total_people_viewable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      People Editable:{" "}
-                      <span className="badge bg-success rounded-pill">
-                        {user_statistics.total_people_editable}
-                      </span>
-                    </ListGroup.Item>
-                  </ListGroup>
+                  <StatItem
+                    label="Images Viewable"
+                    value={user_statistics.total_images_viewable}
+                  />
+                  <StatItem
+                    label="Images Editable"
+                    value={user_statistics.total_images_editable}
+                    variant="success"
+                  />
+                  <StatItem
+                    label="Albums Viewable"
+                    value={user_statistics.total_albums_viewable}
+                  />
+                  <StatItem
+                    label="Albums Editable"
+                    value={user_statistics.total_albums_editable}
+                    variant="success"
+                  />
+                  <StatItem label="Tags" value={user_statistics.total_tags} variant="info" />
+                  <StatItem
+                    label="People Viewable"
+                    value={user_statistics.total_people_viewable}
+                  />
+                  <StatItem
+                    label="People Editable"
+                    value={user_statistics.total_people_editable}
+                    variant="success"
+                  />
                 </Col>
                 <Col md={6}>
-                  <ListGroup variant="flush">
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Pets Viewable:{" "}
-                      <span className="badge bg-primary rounded-pill">
-                        {user_statistics.total_pets_viewable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Pets Editable:{" "}
-                      <span className="badge bg-success rounded-pill">
-                        {user_statistics.total_pets_editable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Folders Viewable:{" "}
-                      <span className="badge bg-primary rounded-pill">
-                        {user_statistics.total_folders_viewable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Folders Editable:{" "}
-                      <span className="badge bg-success rounded-pill">
-                        {user_statistics.total_folders_editable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Sources Viewable:{" "}
-                      <span className="badge bg-primary rounded-pill">
-                        {user_statistics.total_sources_viewable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Sources Editable:{" "}
-                      <span className="badge bg-success rounded-pill">
-                        {user_statistics.total_sources_editable}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Rough Dates Count:{" "}
-                      <span className="badge bg-primary rounded-pill">
-                        {user_statistics.total_rough_dates}
-                      </span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                      Rough Locations Count:{" "}
-                      <span className="badge bg-primary rounded-pill">
-                        {user_statistics.total_rough_locations}
-                      </span>
-                    </ListGroup.Item>
-                  </ListGroup>
+                  <StatItem label="Pets Viewable" value={user_statistics.total_pets_viewable} />
+                  <StatItem
+                    label="Pets Editable"
+                    value={user_statistics.total_pets_editable}
+                    variant="success"
+                  />
+                  <StatItem
+                    label="Folders Viewable"
+                    value={user_statistics.total_folders_viewable}
+                  />
+                  <StatItem
+                    label="Folders Editable"
+                    value={user_statistics.total_folders_editable}
+                    variant="success"
+                  />
+                  <StatItem
+                    label="Sources Viewable"
+                    value={user_statistics.total_sources_viewable}
+                  />
+                  <StatItem
+                    label="Sources Editable"
+                    value={user_statistics.total_sources_editable}
+                    variant="success"
+                  />
+                  <StatItem
+                    label="Rough Dates"
+                    value={user_statistics.total_rough_dates}
+                    variant="info"
+                  />
+                  <StatItem
+                    label="Rough Locations"
+                    value={user_statistics.total_rough_locations}
+                    variant="info"
+                  />
                 </Col>
               </Row>
             </Card.Body>
           </Card>
         </Col>
-      </Row>
 
-      {/* System Statistics Section */}
-      <Row>
-        <Col xs={12}>
-          <Card className="shadow-md rounded-lg border-0">
-            <Card.Header className="bg-gradient-to-r from-purple-600 to-pink-500 text-white text-xl font-semibold py-3 px-4 rounded-t-lg">
-              System Information
+        {/* System Statistics - Disk Usage */}
+        <Col xl={4} lg={12}>
+          <Card className="border-0 shadow-sm">
+            <Card.Header className="bg-secondary text-white py-2 px-3">
+              <h6 className="mb-0 fw-semibold">System Resources</h6>
             </Card.Header>
-            <Card.Body className="p-4">
-              <ListGroup variant="flush">
-                <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                  Disk Total Space (GB):{" "}
-                  <span className="badge bg-info rounded-pill">
-                    {system_statistics.disk_total_space_gb?.toFixed(2) || "N/A"}
-                  </span>
-                </ListGroup.Item>
-                <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                  Disk Used Space (GB):{" "}
-                  <span className="badge bg-warning rounded-pill">
-                    {system_statistics.disk_used_space_gb?.toFixed(2) || "N/A"}
-                  </span>
-                </ListGroup.Item>
-                <ListGroup.Item className="d-flex justify-content-between align-items-center bg-transparent border-0 py-2 px-0">
-                  Disk Free Space (GB):{" "}
-                  <span className="badge bg-success rounded-pill">
-                    {system_statistics.disk_free_space_gb?.toFixed(2) || "N/A"}
-                  </span>
-                </ListGroup.Item>
-              </ListGroup>
+            <Card.Body className="p-3">
+              <Row className="align-items-center">
+                <Col lg={4} xl={12} className="text-center mb-lg-0 mb-xl-3 mb-3">
+                  <div className="display-6 fw-bold text-primary mb-1">
+                    {(
+                      ((system_statistics.disk_used_space_gb || 0) /
+                        (system_statistics.disk_total_space_gb || 1)) *
+                      100
+                    ).toFixed(1)}
+                    %
+                  </div>
+                  <small className="text-muted">Disk Usage</small>
+                </Col>
+                <Col lg={8} xl={12}>
+                  <div className="progress mb-3" style={{ height: "8px" }}>
+                    <div
+                      className="progress-bar bg-gradient"
+                      style={{
+                        width: `${((system_statistics.disk_used_space_gb || 0) / (system_statistics.disk_total_space_gb || 1)) * 100}%`,
+                        background:
+                          "linear-gradient(90deg, #28a745 0%, #ffc107 70%, #dc3545 100%)",
+                      }}
+                    ></div>
+                  </div>
+
+                  <div className="small">
+                    <StatItem
+                      label="Total Space"
+                      value={`${system_statistics.disk_total_space_gb?.toFixed(1) || "N/A"} GB`}
+                      variant="info"
+                    />
+                    <StatItem
+                      label="Used Space"
+                      value={`${system_statistics.disk_used_space_gb?.toFixed(1) || "N/A"} GB`}
+                      variant="warning"
+                    />
+                    <StatItem
+                      label="Free Space"
+                      value={`${system_statistics.disk_free_space_gb?.toFixed(1) || "N/A"} GB`}
+                      variant="success"
+                    />
+                  </div>
+                </Col>
+              </Row>
             </Card.Body>
           </Card>
         </Col>
