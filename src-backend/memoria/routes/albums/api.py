@@ -22,6 +22,7 @@ from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
 
 from memoria.common.auth import active_user_auth
+from memoria.common.auth import async_active_user_auth
 from memoria.common.errors import HttpBadRequestError
 from memoria.models import Album
 from memoria.models import Image
@@ -52,11 +53,11 @@ group_prefetch = ("view_groups", "edit_groups")
     "/",
     response=list[AlbumBasicReadOutSchema],
     description="List albums viewable by the current user",
-    operation_id="get_all_albums",
+    operation_id="list_albums",
     auth=active_user_auth,
 )
 @paginate(LimitOffsetPagination)
-def get_albums(request: HttpRequest, album_name: str | None = None):
+def list_albums(request: HttpRequest, album_name: str | None = None):
     """
     List all albums viewable by the current user.
     Returns basic album information including image count and permission groups.
@@ -78,7 +79,7 @@ def get_albums(request: HttpRequest, album_name: str | None = None):
         },
     },
     description="Retrieve full details of a single album",
-    operation_id="get_single_album_info",
+    operation_id="get_album",
     auth=active_user_auth,
 )
 def get_album(request: HttpRequest, album_id: int):
@@ -95,22 +96,21 @@ def get_album(request: HttpRequest, album_id: int):
     response={HTTPStatus.CREATED: AlbumBasicReadOutSchema},
     description="Create a new album with optional view/edit groups",
     operation_id="create_album",
-    auth=active_user_auth,
+    auth=async_active_user_auth,
 )
-def create_album(request: HttpRequest, data: AlbumCreateInSchema):  # noqa: ARG001
+async def create_album(request: HttpRequest, data: AlbumCreateInSchema):  # noqa: ARG001
     """
     Create a new album with optional view/edit groups.
     Only authenticated users may create albums.
     """
-    album: Album = Album.objects.create(name=data.name, description=data.description)
+    album: Album = await Album.objects.acreate(name=data.name, description=data.description)
     if data.view_group_ids:
-        album.view_groups.set(data.view_group_ids)
+        await album.view_groups.aset(data.view_group_ids)
     if data.edit_group_ids:
-        album.edit_groups.set(data.edit_group_ids)
-    album.refresh_from_db()
-    return HTTPStatus.CREATED, (
-        Album.objects.filter(id=album.pk).with_image_count().prefetch_related(*group_prefetch).first()
-    )
+        await album.edit_groups.aset(data.edit_group_ids)
+    await album.arefresh_from_db()
+
+    return await Album.objects.filter(id=album.pk).with_image_count().prefetch_related(*group_prefetch).afirst()
 
 
 @router.patch(
@@ -124,16 +124,16 @@ def create_album(request: HttpRequest, data: AlbumCreateInSchema):  # noqa: ARG0
         },
     },
     description="Update album name, description, and group permissions",
-    operation_id="update_album_info",
-    auth=active_user_auth,
+    operation_id="update_album",
+    auth=async_active_user_auth,
 )
-def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateInSchema):
+async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateInSchema):
     """
     Update album metadata (name, description) and/or group permissions.
     Only editors can modify album details.
     """
     qs = Album.objects.editable_by(request.user)
-    album: Album = get_object_or_404(qs, id=album_id)
+    album: Album = await aget_object_or_404(qs, id=album_id)
     fields_to_update = []
     if data.name is not None:
         album.name = data.name
@@ -142,22 +142,23 @@ def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateInSchema)
         album.description = data.description
         fields_to_update.append("description")
     if fields_to_update:
-        album.save(update_fields=fields_to_update)
+        await album.asave(update_fields=fields_to_update)
     if data.view_group_ids is not None:
-        album.view_groups.set(data.view_group_ids)
+        await album.view_groups.aset(data.view_group_ids)
     if data.edit_group_ids is not None:
-        album.edit_groups.set(data.edit_group_ids)
-    album.refresh_from_db()
-    return Album.objects.filter(id=album.pk).with_image_count().prefetch_related(*group_prefetch).first()
+        await album.edit_groups.aset(data.edit_group_ids)
+    await album.arefresh_from_db()
+    return await Album.objects.filter(id=album.pk).with_image_count().prefetch_related(*group_prefetch).afirst()
 
 
 @router.patch(
-    "/{album_id}/add/",
+    "/{album_id}/images/",
     response=AlbumWithImagesOutSchema,
-    operation_id="add_image_to_album",
+    operation_id="add_images_to_album",
     auth=active_user_auth,
 )
-def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageInSchema):
+def add_images_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageInSchema):
+    """Add images to an album maintaining order and avoiding duplicates."""
     # Get album with permission check
     qs = Album.objects.editable_by(request.user).prefetch_related(
         "images",
@@ -233,13 +234,16 @@ def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageI
     )
 
 
-@router.patch(
-    "/{album_id}/remove/",
+@router.delete(
+    "/{album_id}/images/",
     response=AlbumWithImagesOutSchema,
-    operation_id="delete_image_from_album",
+    operation_id="remove_images_from_album",
     auth=active_user_auth,
 )
-def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemoveImageInSchema):
+def remove_images_from_album(request: HttpRequest, album_id: int, data: AlbumRemoveImageInSchema):
+    """
+    Remove images from an album.
+    """
     # Get album with permission check
     qs = Album.objects.editable_by(request.user).prefetch_related("images", *group_prefetch)
     album = get_object_or_404(qs, id=album_id)
@@ -289,10 +293,10 @@ def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemo
         },
     },
     description="Reorder images in the album using a list of image IDs",
-    operation_id="update_album_sorting",
+    operation_id="sort_album_images",
     auth=active_user_auth,
 )
-def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpdateInSchema):
+def sort_album_images(request: HttpRequest, album_id: int, data: AlbumSortUpdateInSchema):
     """
     Reorder images in an album based on the provided list of image IDs.
     The new list must exactly match the current contents. Requires edit permissions.
@@ -335,6 +339,9 @@ def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpd
     auth=active_user_auth,
 )
 async def delete_album(request: HttpRequest, album_id: int):
+    """
+    Delete an album. Only editors can delete albums.
+    """
     qs = Album.objects.editable_by(request.user)
     instance = await aget_object_or_404(qs, id=album_id)
     await instance.adelete()
@@ -350,6 +357,7 @@ def download_album(request: HttpRequest, album_id: int, *, zip_originals: bool =
     """
     Download all images in an album as a ZIP archive.
     You can choose original or full-size paths. Requires view access.
+    Note: File operations remain synchronous for streaming response.
     """
     qs = Album.objects.permitted(request.user).prefetch_related(image_in_album_prefetch, *group_prefetch)
     album = get_object_or_404(qs, id=album_id)
