@@ -12,6 +12,7 @@ from pytest_mock import MockerFixture
 from memoria.models import Album
 from memoria.models import Image
 from memoria.models import ImageInAlbum
+from tests.api.conftest import GroupFactory
 
 
 # -------------------------------------------------------------------------------------------------
@@ -26,7 +27,9 @@ class TestAlbumRead:
         logged_in_client: Client,
         album_base_url: str,
     ) -> None:
-        """List returns empty when no albums exist."""
+        """
+        List returns empty when no albums exist.
+        """
         response = logged_in_client.get(album_base_url)
         assert response.status_code == HTTPStatus.OK
         data = response.json()
@@ -44,16 +47,24 @@ class TestAlbumRead:
         logged_in_client: Client,
         album_base_url: str,
         album_factory: Callable[..., Album],
+        group_factory: GroupFactory,
         names: list[str],
         search_term: str | None,
         expected_count: int,
     ) -> None:
-        """List returns correct items, and filters by name if requested."""
+        """
+        List returns correct items, and filters by name if requested.
+        """
+        user = User.objects.first()
+        assert user is not None
+        view_group = group_factory.create()
+        user.groups.add(view_group)
+
         for name in names:
-            album_factory(name=name)
+            album_factory(name=name, view_groups=[view_group])
 
         params = {"album_name": search_term} if search_term else {}
-        response = logged_in_client.get(album_base_url, params)
+        response = logged_in_client.get(album_base_url, query_params=params)
         assert response.status_code == HTTPStatus.OK
 
         data = response.json()

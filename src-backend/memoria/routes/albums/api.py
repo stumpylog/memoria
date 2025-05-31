@@ -17,6 +17,7 @@ from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
+from ninja import Query
 from ninja import Router
 from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
@@ -57,7 +58,7 @@ group_prefetch = ("view_groups", "edit_groups")
     auth=active_user_auth,
 )
 @paginate(LimitOffsetPagination)
-def list_albums(request: HttpRequest, album_name: str | None = None):
+def list_albums(request: HttpRequest, album_name: str | None = Query(None, description="Filter results by this name")):
     """
     List all albums viewable by the current user.
     Returns basic album information including image count and permission groups.
