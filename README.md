@@ -124,6 +124,38 @@ who has a slide projector anymore?
 - Determine how to test the frontend
 - Integrate code coverage, including branches
 
+### Path Guessing Protection
+
+Currently, thumbnails and the larger, but compressed images are stored based on their integer primary key. Although the default
+nginx configuration prevents walking that path, an outside user could easily guess the paths, given a few samples. If the application
+is not protected by something like Traefik + Authelia, this could allow an unauthroized user to access the images.
+
+Possible solutions:
+
+#### Path signing
+
+1. Frontend needs an image.
+2. Frontend makes an authenticated request to your Django backend for the image URL.
+3. Django generates a signed URL (e.g., /media/image.jpg?signature=XYZ&expires=123). This signature is a hash of the URL and a secret key, plus an expiration timestamp.
+4. Django returns this signed URL to the frontend.
+5. Frontend uses this signed URL to request the image from NGINX.
+6. NGINX receives the request, parses the signature and expiration, and verifies them using its own copy of the secret key.
+7. If the signature is valid and not expired, NGINX serves the file. Otherwise, it denies access.
+
+Useful: [TimestampSigner](https://docs.djangoproject.com/en/5.2/topics/signing/#verifying-timestamped-values)?
+
+Cons:
+
+- Does need to share a secret key with nginx?
+
+#### Internal Nginx Path
+
+1. Frontend requests /media/image.jpg.
+2. NGINX receives the request.
+3. Instead of directly serving the file, NGINX passes the request to your Django backend (e.g., /api/media/image.jpg).
+4. Django authenticates the user, checks permissions for image.jpg.
+5. If authorized, Django sends an internal redirect to NGINX (more efficient for large files) using X-Accel-Redirect or X-Sendfile headers.
+
 ## Tech Stack
 
 - **Backend:**

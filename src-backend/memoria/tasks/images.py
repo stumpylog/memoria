@@ -10,14 +10,14 @@ from huey.contrib.djhuey import db_periodic_task
 from huey.contrib.djhuey import db_task
 from huey.contrib.djhuey import lock_task
 
-from memoria.imageops.index import handle_existing_image
+from memoria.imageops.index import handle_moved_image
 from memoria.imageops.index import handle_new_image
-from memoria.imageops.replace import replace_image_via_path
+from memoria.imageops.index import handle_replaced_image
 from memoria.imageops.sync import fill_image_metadata_from_db
 from memoria.models import Image as ImageModel
 from memoria.tasks.models import ImageIndexTaskModel
+from memoria.tasks.models import ImageMovedTaskModel
 from memoria.tasks.models import ImageReplaceTaskModel
-from memoria.tasks.models import ImageUpdateTaskModel
 from memoria.utils.constants import EXIF_TOOL_EXE
 from memoria.utils.hashing import calculate_blake3_hash
 
@@ -59,9 +59,9 @@ def sync_metadata_to_files(images: list[ImageModel]) -> None:
 
 
 @db_task()
-def index_image_batch(pkgs: list[ImageIndexTaskModel]) -> None:
+def index_new_images(pkgs: list[ImageIndexTaskModel]) -> None:
     """
-    These are all new images (the hash did not already exist)
+    These are all new images (the hash did not already exist), nor did the Path
     """
     with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool, transaction.atomic():
         for pkg in pkgs:
@@ -74,37 +74,41 @@ def index_image_batch(pkgs: list[ImageIndexTaskModel]) -> None:
 
 
 @db_task()
-def index_update_existing_images(pkgs: list[ImageUpdateTaskModel]) -> None:
+def index_moved_image(pkgs: list[ImageMovedTaskModel]) -> None:
     """
-    These are all existing images, check for modifications to the locations
+    Index images with the same checksum, but a new Path
     """
     with transaction.atomic():
         for pkg in pkgs:
             if not pkg.logger:
                 pkg.logger = logger
 
-            pkg.logger.info(f"Checking {pkg.image_path.stem} for updates")
+            pkg.logger.info(f"Updating {pkg.image_path.stem}")
 
-            handle_existing_image(pkg)
-
-
-@db_task()
-def generate_image_files(imgs: list[ImageModel]) -> None:
-    """
-    TODO: Generate/update thumbnails and large size images
-    """
+            handle_moved_image(pkg)
 
 
 @db_task()
-def index_replace_existing_images(pkgs: list[ImageReplaceTaskModel]) -> None:
+def index_changed_image(pkgs: list[ImageReplaceTaskModel]) -> None:
     """
-    These images exist via Path, but are assumed to have been replaced with a new image file (with new metadata)
+    Index images with a new checksum, but an existing Path
     """
     with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool, transaction.atomic():
         for pkg in pkgs:
             if not pkg.logger:
                 pkg.logger = logger
-            replace_image_via_path(pkg, tool)
+
+            pkg.logger.info(f"Replacing {pkg.image_path.stem} metadata")
+
+            handle_replaced_image(pkg, tool)
+
+
+@db_task()
+def generate_image_files(imgs: list[ImageModel]) -> None:
+    """
+    TODO: Generate/update thumbnails and large size images.  This is intended for if the site settings change
+    or maybe on a new instance?
+    """
 
 
 @db_periodic_task(crontab(minute="0", hour="0"))

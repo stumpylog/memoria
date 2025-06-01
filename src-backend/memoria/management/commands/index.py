@@ -18,10 +18,12 @@ from typer import Option
 
 from memoria.models import Image
 from memoria.models import SiteSettings
-from memoria.tasks.images import index_image_batch
-from memoria.tasks.images import index_update_existing_images
+from memoria.tasks.images import index_changed_image
+from memoria.tasks.images import index_moved_image
+from memoria.tasks.images import index_new_images
 from memoria.tasks.models import ImageIndexTaskModel
-from memoria.tasks.models import ImageUpdateTaskModel
+from memoria.tasks.models import ImageMovedTaskModel
+from memoria.tasks.models import ImageReplaceTaskModel
 from memoria.utils.constants import BATCH_SIZE
 from memoria.utils.constants import IMAGE_EXTENSIONS
 from memoria.utils.hashing import calculate_blake3_hash
@@ -86,6 +88,9 @@ class Command(TyperCommand):
             Option(help="If True, overwrite values on existing images with the new ones"),
         ] = False,
     ) -> None:
+        # TODO: Configure BATCH_SIZE via SiteSettings
+        # TODO: Config root-dir via SiteSettings
+
         view_groups = None
         if view_group:
             view_groups = get_or_create_groups(view_group)
@@ -120,32 +125,108 @@ class Command(TyperCommand):
 
         found_images.sort()
 
-        hash_to_path: dict[str, FoundImage] = {}
-        for image in found_images:
-            hash_to_path[image.checksum] = image
+        # Get all existing images for comparison
+        existing_images = Image.objects.all()
+        existing_by_hash: dict[str, Image] = {}
+        existing_by_path: dict[Path, Image] = {}
 
-        existing_images_map = {
-            img.original_checksum: img for img in Image.objects.filter(original_checksum__in=hash_to_path.keys())
-        }
+        for img in existing_images:
+            if TYPE_CHECKING:
+                assert isinstance(img, Image)
+            if img.original_checksum:
+                existing_by_hash[img.original_checksum] = img
+            if img.original_path:
+                existing_by_path[img.original_path] = img
 
-        self.new_images: list[FoundImage] = []
-        self.existing_images: dict[FoundImage, Image] = {}
+        # Categorize images based on the four scenarios
+        new_images: list[FoundImage] = []  # Scenario 3: Unknown checksum and path
+        moved_images: list[tuple[FoundImage, Image]] = []  # Scenario 2: Checksum changed, path known
+        changed_images: list[tuple[FoundImage, Image]] = []  # Scenario 1: Path known, checksum changed
+        unchanged_images: list[tuple[FoundImage, Image]] = []  # Scenario 4: No action needed
 
-        for image_hash, found_image in hash_to_path.items():
-            if image_hash in existing_images_map:
-                self.existing_images[found_image] = existing_images_map[image_hash]
+        for found_image in found_images:
+            checksum_match = existing_by_hash.get(found_image.checksum)
+            path_match = existing_by_path.get(found_image.image_path)
+
+            if checksum_match and path_match and checksum_match == path_match:
+                # Both checksum and path match the same image - no changes needed
+                unchanged_images.append((found_image, checksum_match))
+            elif path_match and not checksum_match:
+                # Path exists but checksum is different - image content changed
+                changed_images.append((found_image, path_match))
+            elif checksum_match and not path_match:
+                # Checksum exists but path is different - image moved
+                moved_images.append((found_image, checksum_match))
             else:
-                self.new_images.append(found_image)
+                # Neither checksum nor path match - new image
+                new_images.append(found_image)
 
-        logger.info(f"Found {len(self.new_images)} images to index")
-        logger.info(f"Found {len(self.existing_images)} images to check for modifications")
+        # Log what we found
+        logger.info(f"Found {len(new_images)} new images to index")
+        logger.info(f"Found {len(changed_images)} images with changed content")
+        logger.info(f"Found {len(moved_images)} images that have moved")
+        logger.info(f"Found {len(unchanged_images)} images with no changes")
+
         site_settings = SiteSettings.objects.first()
         if TYPE_CHECKING:
             assert site_settings is not None
 
-        # Process new images in batches
-        for i in range(0, len(self.new_images), BATCH_SIZE):
-            batch = self.new_images[i : i + BATCH_SIZE]
+        # Process new images (Scenario 3)
+        if new_images:
+            if not synchronous:
+                logger.info("Starting async task for new images")
+            self._process_new_images(
+                new_images,
+                root_dir,
+                view_groups,
+                edit_groups,
+                hash_threads,
+                site_settings,
+                synchronous=synchronous,
+            )
+
+        # Process changed images (Scenario 1)
+        if changed_images:
+            if not synchronous:
+                logger.info("Starting async task for changed images")
+            self._process_changed_images(
+                changed_images,
+                root_dir,
+                view_groups,
+                edit_groups,
+                site_settings,
+                synchronous=synchronous,
+            )
+
+        # Process moved images (Scenario 2)
+        if moved_images:
+            if not synchronous:
+                logger.info("Starting async task for moved images")
+            self._process_moved_images(
+                moved_images,
+                root_dir,
+                view_groups,
+                edit_groups,
+                overwrite=overwrite,
+                synchronous=synchronous,
+            )
+
+    def _process_new_images(
+        self,
+        new_images: list[FoundImage],
+        root_dir: Path,
+        view_groups: QuerySet[Group] | None,
+        edit_groups: QuerySet[Group] | None,
+        hash_threads: int,
+        site_settings: SiteSettings,
+        *,
+        synchronous: bool,
+    ) -> None:
+        """
+        Process completely new images.
+        """
+        for i in range(0, len(new_images), BATCH_SIZE):
+            batch = new_images[i : i + BATCH_SIZE]
             batch_packages = []
 
             for found_image in sorted(batch):
@@ -165,20 +246,68 @@ class Command(TyperCommand):
                 batch_packages.append(pkg)
 
             if synchronous:
-                index_image_batch.call_local(batch_packages)
+                index_new_images.call_local(batch_packages)
             else:  # pragma: no cover
-                index_image_batch(batch_packages)
+                index_new_images(batch_packages)
 
-        images = list(self.existing_images.items())
-        for i in range(0, len(self.existing_images), BATCH_SIZE):
-            batch = images[i : i + BATCH_SIZE]
+    def _process_changed_images(
+        self,
+        changed_images: list[tuple[FoundImage, Image]],
+        root_dir: Path,
+        view_groups: QuerySet[Group] | None,
+        edit_groups: QuerySet[Group] | None,
+        site_settings: SiteSettings,
+        *,
+        synchronous: bool,
+    ) -> None:
+        """
+        Process images where the path is known but checksum has changed.
+        """
+        for i in range(0, len(changed_images), BATCH_SIZE):
+            batch = changed_images[i : i + BATCH_SIZE]
             batch_packages = []
 
             for found_image, existing_image in batch:
-                pkg = ImageUpdateTaskModel(
+                pkg = ImageReplaceTaskModel(
+                    root_dir=root_dir.resolve(),
+                    image_id=existing_image.pk,
+                    image_path=found_image.image_path,
+                    logger=logger,
+                    view_groups=view_groups,
+                    edit_groups=edit_groups,
+                    thumbnail_size=site_settings.thumbnail_max_size,
+                    large_image_size=site_settings.large_image_max_size,
+                    large_image_quality=site_settings.large_image_quality,
+                )
+                batch_packages.append(pkg)
+
+            if synchronous:
+                index_changed_image.call_local(batch_packages)
+            else:  # pragma: no cover
+                index_changed_image(batch_packages)
+
+    def _process_moved_images(
+        self,
+        moved_images: list[tuple[FoundImage, Image]],
+        root_dir: Path,
+        view_groups: QuerySet[Group] | None,
+        edit_groups: QuerySet[Group] | None,
+        *,
+        overwrite: bool,
+        synchronous: bool,
+    ) -> None:
+        """
+        Process images where the checksum is known but path has changed.
+        """
+        for i in range(0, len(moved_images), BATCH_SIZE):
+            batch = moved_images[i : i + BATCH_SIZE]
+            batch_packages = []
+
+            for found_image, existing_image in batch:
+                pkg = ImageMovedTaskModel(
                     root_dir=root_dir.resolve(),
                     image_path=found_image.image_path,
-                    image=existing_image,
+                    image_id=existing_image.pk,
                     logger=logger,
                     view_groups=view_groups,
                     edit_groups=edit_groups,
@@ -187,6 +316,6 @@ class Command(TyperCommand):
                 batch_packages.append(pkg)
 
             if synchronous:
-                index_update_existing_images.call_local(batch_packages)
+                index_moved_image.call_local(batch_packages)
             else:  # pragma: no cover
-                index_update_existing_images(batch_packages)
+                index_moved_image(batch_packages)

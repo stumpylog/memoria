@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from exifmwg.models import DimensionsStruct
 from exifmwg.models import ImageMetadata
 from exifmwg.models import KeywordInfoModel
@@ -10,7 +12,12 @@ from exifmwg.models import XmpAreaStruct
 from memoria.models import Image as ImageModel
 from memoria.models import PersonInImage
 from memoria.models import PetInImage
+from memoria.models import RoughDate
+from memoria.models import RoughLocation
 from memoria.utils.constants import DATE_KEYWORD
+
+if TYPE_CHECKING:
+    import datetime
 
 
 def fill_image_metadata_from_db(image: ImageModel, image_metadata: ImageMetadata) -> bool:
@@ -19,6 +26,12 @@ def fill_image_metadata_from_db(image: ImageModel, image_metadata: ImageMetadata
 
     For use in syncing the database into the image file.
     """
+
+    def _update_title() -> bool:
+        if image.title is not None:
+            image_metadata.Title = image.title
+            return True
+        return False
 
     def _update_description() -> bool:
         if image.description is not None:
@@ -69,7 +82,11 @@ def fill_image_metadata_from_db(image: ImageModel, image_metadata: ImageMetadata
 
         if image.people.count() > 0 or image.pets.count() > 0:
             region_info = RegionInfoStruct(
-                AppliedToDimensions=DimensionsStruct(H=float(image.height), W=float(image.width), Unit="pixel"),
+                AppliedToDimensions=DimensionsStruct(
+                    H=float(image.original_height),
+                    W=float(image.original_width),
+                    Unit="pixel",
+                ),
                 RegionList=[],
             )
             _add_people_regions()
@@ -80,6 +97,8 @@ def fill_image_metadata_from_db(image: ImageModel, image_metadata: ImageMetadata
 
     def _update_location() -> bool:
         if image.location is not None:
+            if TYPE_CHECKING:
+                assert isinstance(image.location, RoughLocation)
             image_metadata.Country = image.location.country_name
             if image.location.city is not None:
                 image_metadata.City = image.location.city
@@ -92,6 +111,9 @@ def fill_image_metadata_from_db(image: ImageModel, image_metadata: ImageMetadata
 
     def _update_date() -> bool:
         if image.date is not None:
+            if TYPE_CHECKING:
+                assert isinstance(image.date, RoughDate)
+                assert isinstance(image.date.date, datetime.date)
             year_keyword = KeywordStruct(Keyword=str(image.date.date.year))
             month_keyword = None
             if image.date.month_valid:
@@ -115,7 +137,8 @@ def fill_image_metadata_from_db(image: ImageModel, image_metadata: ImageMetadata
         # TODO: Construct the keywords
         return False
 
-    updated = _update_description()
+    updated = _update_title()
+    updated = _update_description() or updated
     updated = _update_orientation() or updated
     updated = _update_region_info() or updated
     updated = _update_location() or updated

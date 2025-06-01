@@ -11,7 +11,9 @@ from memoria.imageops.metadata import update_image_location_from_mwg
 from memoria.imageops.metadata import update_image_people_and_pets
 from memoria.models import Image as ImageModel
 from memoria.tasks.models import ImageIndexTaskModel
-from memoria.tasks.models import ImageUpdateTaskModel
+from memoria.tasks.models import ImageMovedTaskModel
+from memoria.tasks.models import ImageReplaceTaskModel
+from memoria.utils.hashing import calculate_blake3_hash
 from memoria.utils.hashing import calculate_image_phash
 from memoria.utils.photos import generate_image_versions
 
@@ -19,35 +21,33 @@ if TYPE_CHECKING:
     from logging import Logger
 
 
-def handle_existing_image(pkg: ImageUpdateTaskModel) -> None:
+def handle_moved_image(pkg: ImageMovedTaskModel) -> None:
     """
-    Handles an image that has already been indexed, either updating its source or changing the location
+    Handles an image that has already been indexed, but the location has changed
     """
     pkg.logger = cast("Logger", pkg.logger)
 
+    image = ImageModel.objects.get(pk=pkg.image_id)
+
     pkg.logger.info("  Image already indexed")
-    # Set the source if requested
-    # Check for an updated location
-    if pkg.image_path.resolve() != pkg.image.original_path.resolve():
-        pkg.logger.info(f"  Updating path from {pkg.image.original_path.resolve()} to {pkg.image_path.resolve()}")
-        pkg.image.original_path = pkg.image_path.resolve()
-        pkg.image.save()
-        pkg.image.mark_as_clean()
-    else:
-        pkg.logger.debug("  Original path is still matching")
+    pkg.logger.info(f"  Updating path from {image.original_path.resolve()} to {pkg.image_path.resolve()}")
+    image.original_path = pkg.image_path.resolve()
+    image.folder = update_image_folder_structure(pkg)
+    image.save()
+    image.mark_as_clean()
 
     if pkg.view_groups:
         if pkg.overwrite:
-            pkg.image.view_groups.set(pkg.view_groups.all())
+            image.view_groups.set(pkg.view_groups.all())
         else:
-            pkg.image.view_groups.add(*pkg.view_groups.all())
+            image.view_groups.add(*pkg.view_groups.all())
     if pkg.edit_groups:
         if pkg.overwrite:
-            pkg.image.edit_groups.set(pkg.edit_groups.all())
+            image.edit_groups.set(pkg.edit_groups.all())
         else:
-            pkg.image.edit_groups.add(*pkg.edit_groups.all())
+            image.edit_groups.add(*pkg.edit_groups.all())
 
-    pkg.logger.info(f"  {pkg.image_path.name} indexing completed")
+    pkg.logger.info(f"  {pkg.image_path.name} updates completed")
 
 
 def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
@@ -123,3 +123,56 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     # And done.  Image cannot be dirty, use update to avoid getting marked as such
     new_img.mark_as_clean()
     pkg.logger.info("  Indexing completed")
+
+
+def handle_replaced_image(pkg: ImageReplaceTaskModel, tool: ExifTool) -> None:
+    """
+    Handles an image that has already been indexed via Path, but the checksum has changed
+    """
+
+    if TYPE_CHECKING:
+        assert pkg.logger is not None
+
+    image = ImageModel.objects.get(pk=pkg.image_id)
+
+    if TYPE_CHECKING:
+        assert isinstance(image, ImageModel)
+
+    metadata = tool.read_image_metadata(image.original_path)
+
+    image.tags.clear()
+    update_image_keyword_tree(pkg, image, metadata)
+
+    image.people.clear()
+    image.pets.clear()
+    update_image_people_and_pets(pkg, image, metadata)
+
+    image.location = None
+    update_image_location_from_mwg(pkg, image, metadata)
+    if image.location is None:
+        update_image_location_from_keywords(pkg, image, metadata)
+
+    image.folder = update_image_folder_structure(pkg)
+    image.date = None
+    update_image_date_from_keywords(pkg, image, metadata)
+
+    image.original_checksum = calculate_blake3_hash(image.original_path)
+    image.phash = calculate_image_phash(pkg.image_path)
+
+    file_info = generate_image_versions(
+        pkg.image_path,
+        image.thumbnail_path,
+        image.full_size_path,
+        pkg.logger,
+        thumbnail_size=pkg.thumbnail_size,
+        webp_quality=pkg.large_image_quality,
+        scaled_image_side_max=pkg.large_image_size,
+    )
+
+    image.thumbnail_width = file_info.thumbnail_width
+    image.thumbnail_height = file_info.thumbnail_height
+    image.large_version_width = file_info.large_img_width
+    image.large_version_height = file_info.large_img_height
+    image.save()
+
+    image.mark_as_clean()

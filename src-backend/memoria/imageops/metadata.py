@@ -18,8 +18,8 @@ from memoria.models import Tag
 from memoria.models import TagOnImage
 from memoria.models.abstract import ObjectPermissionModelMixin
 from memoria.tasks.models import ImageIndexTaskModel
+from memoria.tasks.models import ImageMovedTaskModel
 from memoria.tasks.models import ImageReplaceTaskModel
-from memoria.tasks.models import ImageUpdateTaskModel
 from memoria.utils.constants import DATE_KEYWORD
 from memoria.utils.constants import LOCATION_KEYWORD
 from memoria.utils.constants import PEOPLE_KEYWORD
@@ -29,7 +29,7 @@ from memoria.utils.geo import get_subdivision_code_from_name
 
 
 def handle_view_edit_groups(
-    pkg: ImageIndexTaskModel | ImageUpdateTaskModel | ImageReplaceTaskModel,
+    pkg: ImageIndexTaskModel | ImageMovedTaskModel | ImageReplaceTaskModel,
     db_object: ObjectPermissionModelMixin,
     *,
     was_created: bool,
@@ -50,7 +50,7 @@ def handle_view_edit_groups(
 
 
 def update_image_people_and_pets(
-    pkg: ImageIndexTaskModel | ImageUpdateTaskModel | ImageReplaceTaskModel,
+    pkg: ImageIndexTaskModel | ImageMovedTaskModel | ImageReplaceTaskModel,
     image_to_update: ImageModel,
     metadata: ImageMetadata,
 ):
@@ -142,7 +142,7 @@ def update_image_people_and_pets(
 
 
 def update_image_keyword_tree(
-    pkg: ImageIndexTaskModel | ImageUpdateTaskModel | ImageReplaceTaskModel,
+    pkg: ImageIndexTaskModel | ImageMovedTaskModel | ImageReplaceTaskModel,
     image_to_update: ImageModel,
     metadata: ImageMetadata,
 ):
@@ -206,7 +206,7 @@ def update_image_keyword_tree(
 
 
 def update_image_location_from_mwg(
-    pkg: ImageIndexTaskModel | ImageUpdateTaskModel | ImageReplaceTaskModel,
+    pkg: ImageIndexTaskModel | ImageMovedTaskModel | ImageReplaceTaskModel,
     image_to_update: ImageModel,
     metadata: ImageMetadata,
 ):
@@ -268,7 +268,7 @@ def update_image_location_from_mwg(
 
 
 def update_image_location_from_keywords(
-    pkg: ImageIndexTaskModel | ImageUpdateTaskModel | ImageReplaceTaskModel,
+    pkg: ImageIndexTaskModel | ImageMovedTaskModel | ImageReplaceTaskModel,
     image_to_update: ImageModel,
     metadata: ImageMetadata,
 ):
@@ -349,7 +349,7 @@ def update_image_location_from_keywords(
 
 
 def update_image_date_from_keywords(
-    pkg: ImageIndexTaskModel | ImageUpdateTaskModel | ImageReplaceTaskModel,
+    pkg: ImageIndexTaskModel | ImageMovedTaskModel | ImageReplaceTaskModel,
     image_to_update: ImageModel,
     metadata: ImageMetadata,
 ):
@@ -454,7 +454,7 @@ def update_image_date_from_keywords(
         pkg.logger.exception("    Failed to create rough date")
 
 
-def update_image_folder_structure(pkg: ImageIndexTaskModel | ImageUpdateTaskModel | ImageReplaceTaskModel):
+def update_image_folder_structure(pkg: ImageIndexTaskModel | ImageMovedTaskModel | ImageReplaceTaskModel):
     """
     Builds a folder structure, according to the relation from the image, to the top level directory
 

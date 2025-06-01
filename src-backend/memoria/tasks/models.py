@@ -4,8 +4,6 @@ from pathlib import Path
 
 from django.db.models.query import QuerySet
 
-from memoria.models import Image
-
 
 @dataclass(slots=True)
 class ImageIndexTaskModel:
@@ -25,10 +23,10 @@ class ImageIndexTaskModel:
 
 
 @dataclass(slots=True)
-class ImageUpdateTaskModel:
+class ImageMovedTaskModel:
     root_dir: Path
     image_path: Path
-    image: Image
+    image_id: int
 
     logger: Logger | None = None
     overwrite: bool = False
@@ -39,7 +37,11 @@ class ImageUpdateTaskModel:
 @dataclass(slots=True)
 class ImageReplaceTaskModel:
     root_dir: Path
-    image: Image
+    image_id: int
+    image_path: Path
+    thumbnail_size: int
+    large_image_size: int
+    large_image_quality: int
     logger: Logger | None = None
     view_groups: QuerySet | None = None
     edit_groups: QuerySet | None = None
