@@ -69,7 +69,12 @@ class PersonQuerySet(PermittedQueryset):
         )
 
 
-class Person(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
+class Person(
+    AbstractSimpleNamedModelMixin,
+    AbstractTimestampMixin,
+    ObjectPermissionModelMixin,
+    models.Model,
+):
     """
     Holds the information about a single person
     """
@@ -111,7 +116,12 @@ class PetQuerySet(PermittedQueryset):
         )
 
 
-class Pet(AbstractSimpleNamedModelMixin, AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
+class Pet(
+    AbstractSimpleNamedModelMixin,
+    AbstractTimestampMixin,
+    ObjectPermissionModelMixin,
+    models.Model,
+):
     """
     Holds the information about a single person
     """
@@ -166,7 +176,6 @@ class RoughDate(AbstractTimestampMixin, models.Model):
     """
 
     date = models.DateField(
-        unique=True,
         help_text="The date of the image, maybe not exact",
     )
 
@@ -182,13 +191,28 @@ class RoughDate(AbstractTimestampMixin, models.Model):
     class Meta:
         ordering: Sequence = ["date"]
         constraints: Sequence = [
+            # Logical constraint: day can't be valid if month isn't valid
             models.CheckConstraint(
-                condition=(models.Q(day_valid=False) | ~models.Q(month_valid=False)),
-                name="invalid-month-day-combo",
+                condition=models.Q(day_valid=False) | models.Q(month_valid=True),
+                name="day_requires_valid_month",
             ),
+            # Only year is valid (month_valid=False, day_valid=False)
             models.UniqueConstraint(
-                fields=["date", "month_valid", "day_valid"],
-                name="unique-date",
+                fields=["date__year"],
+                condition=models.Q(month_valid=False, day_valid=False),
+                name="unique_year_only",
+            ),
+            # Year and month are valid (month_valid=True, day_valid=False)
+            models.UniqueConstraint(
+                fields=["date__year", "date__month"],
+                condition=models.Q(month_valid=True, day_valid=False),
+                name="unique_year_month",
+            ),
+            # Full date is valid (month_valid=True, day_valid=True)
+            models.UniqueConstraint(
+                fields=["date"],
+                condition=models.Q(month_valid=True, day_valid=True),
+                name="unique_full_date",
             ),
         ]
 
@@ -218,21 +242,18 @@ class RoughLocation(AbstractTimestampMixin, models.Model):
         max_length=12,  # Longest subdivision in the world is 6 characters, double that
         db_index=True,
         null=True,
-        blank=True,
         help_text="State, province or subdivision ISO 3166-2 alpha 2 format",
     )
     city = models.CharField(  # noqa: DJ001
         max_length=255,
         db_index=True,
         null=True,
-        blank=True,
         help_text="City or town",
     )
     sub_location = models.CharField(  # noqa: DJ001
         max_length=255,
         db_index=True,
         null=True,
-        blank=True,
         help_text="Detailed location within a city or town",
     )
 
@@ -244,29 +265,9 @@ class RoughLocation(AbstractTimestampMixin, models.Model):
             "sub_location",
         ]
         constraints: Sequence = [
-            # 1. All four fields provided (sub_location NOT NULL)
             models.UniqueConstraint(
                 fields=["country_code", "subdivision_code", "city", "sub_location"],
                 name="unique_location_all_fields",
-                condition=Q(sub_location__isnull=False),
-            ),
-            # 2. sub_location is NULL, but city is NOT NULL
-            models.UniqueConstraint(
-                fields=["country_code", "subdivision_code", "city"],
-                name="unique_location_no_sub_location",
-                condition=Q(sub_location__isnull=True, city__isnull=False),
-            ),
-            # 3. sub_location and city are NULL, but subdivision_code is NOT NULL
-            models.UniqueConstraint(
-                fields=["country_code", "subdivision_code"],
-                name="unique_location_no_city_sub_location",
-                condition=Q(sub_location__isnull=True, city__isnull=True, subdivision_code__isnull=False),
-            ),
-            # 4. sub_location, city, and subdivision_code are NULL (only country_code provided)
-            models.UniqueConstraint(
-                fields=["country_code"],
-                name="unique_location_only_country",
-                condition=Q(sub_location__isnull=True, city__isnull=True, subdivision_code__isnull=True),
             ),
         ]
 

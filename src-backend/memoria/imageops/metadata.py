@@ -24,6 +24,7 @@ from memoria.utils.constants import DATE_KEYWORD
 from memoria.utils.constants import LOCATION_KEYWORD
 from memoria.utils.constants import PEOPLE_KEYWORD
 from memoria.utils.constants import PET_KEYWORD
+from memoria.utils.database import get_or_create_robust
 from memoria.utils.geo import get_country_code_from_name
 from memoria.utils.geo import get_subdivision_code_from_name
 
@@ -71,7 +72,7 @@ def update_image_people_and_pets(
         """
         if TYPE_CHECKING:
             assert pkg.logger is not None
-        person, created = Person.objects.get_or_create(name=region.Name)
+        person, created = get_or_create_robust(Person, name=region.Name)
 
         handle_view_edit_groups(pkg, person, was_created=created)
 
@@ -99,7 +100,7 @@ def update_image_people_and_pets(
         """
         if TYPE_CHECKING:
             assert pkg.logger is not None
-        pet, created = Pet.objects.get_or_create(name=region.Name)
+        pet, created = get_or_create_robust(Pet, name=region.Name)
 
         handle_view_edit_groups(pkg, pet, was_created=created)
 
@@ -129,16 +130,13 @@ def update_image_people_and_pets(
             pkg.logger.warning("    Skipping region with empty Name")
             continue
 
-        try:
-            match region.Type:
-                case "Face":
-                    _process_person_region(region)
-                case "Pet":
-                    _process_pet_region(region)
-                case _:
-                    pkg.logger.warning(f"    Skipping region of type {region.Type}")
-        except Exception:
-            pkg.logger.exception(f"    Error processing region '{region.Name}'")
+        match region.Type:
+            case "Face":
+                _process_person_region(region)
+            case "Pet":
+                _process_pet_region(region)
+            case _:
+                pkg.logger.warning(f"    Skipping region of type {region.Type}")
 
 
 def update_image_keyword_tree(
@@ -159,7 +157,8 @@ def update_image_keyword_tree(
         parent: Tag,
         tree_node: KeywordStruct,
     ):
-        existing_node, _ = Tag.objects.get_or_create(
+        existing_node, _ = get_or_create_robust(
+            Tag,
             name=tree_node.Keyword,
             tn_parent=parent,
         )
@@ -188,7 +187,7 @@ def update_image_keyword_tree(
                 PET_KEYWORD.lower(),
             }:
                 continue
-            existing_root_tag, _ = Tag.objects.get_or_create(name=keyword.Keyword, tn_parent=None)
+            existing_root_tag, _ = get_or_create_robust(Tag, name=keyword.Keyword, tn_parent=None)
             applied_value = False
             # If the keyword is applied, then it is applied
             if keyword.Applied is not None and keyword.Applied:
@@ -244,27 +243,24 @@ def update_image_location_from_mwg(
         else:
             pkg.logger.warning(f"    No subdivision code found for: {metadata.State}")
 
-    try:
-        # Create or retrieve location record
-        location, created = RoughLocation.objects.get_or_create(
-            country_code=country_alpha_2,
-            subdivision_code=subdivision_code,
-            city=metadata.City,
-            sub_location=metadata.Location,
-        )
+    # Create or retrieve location record
+    location, created = get_or_create_robust(
+        RoughLocation,
+        country_code=country_alpha_2,
+        subdivision_code=subdivision_code,
+        city=metadata.City.strip() if metadata.City else metadata.City,
+        sub_location=metadata.Location.strip() if metadata.Location else metadata.Location,
+    )
 
-        # Update image with location
-        image_to_update.location = location
-        image_to_update.save()
+    # Update image with location
+    image_to_update.location = location
+    image_to_update.save()
 
-        if created:
-            pkg.logger.debug(f"    Created new RoughLocation: {location}")
-        else:
-            pkg.logger.debug(f"    Using existing RoughLocation: {location}")
-        pkg.logger.info(f"    Location is {location}")
-
-    except Exception:
-        pkg.logger.exception("    Failed to set location")
+    if created:
+        pkg.logger.debug(f"    Created new RoughLocation: {location}")
+    else:
+        pkg.logger.debug(f"    Using existing RoughLocation: {location}")
+    pkg.logger.info(f"    Location is {location}")
 
 
 def update_image_location_from_keywords(
@@ -316,36 +312,35 @@ def update_image_location_from_keywords(
 
         if not subdivision_code:
             # No matching subdivision - treat as city
-            city = subdivision_node.Keyword
+            city = subdivision_node.Keyword.strip()
         elif subdivision_node.Children:
             # Use first child as city
             city_node = subdivision_node.Children[0]
-            city = city_node.Keyword
+            city = city_node.Keyword.strip()
 
             # Extract sub-location if present
             if city_node.Children:
-                sub_location = city_node.Children[0].Keyword
+                sub_location = city_node.Children[0].Keyword.strip()
+
+    pkg.logger.info(f"    Setting {country_alpha2} - {subdivision_code} - {city} - {sub_location}")
 
     # Create or retrieve location record
-    try:
-        location, created = RoughLocation.objects.get_or_create(
-            country_code=country_alpha2,
-            subdivision_code=subdivision_code,
-            city=city,
-            sub_location=sub_location,
-        )
+    location, created = get_or_create_robust(
+        RoughLocation,
+        country_code=country_alpha2,
+        subdivision_code=subdivision_code,
+        city=city,
+        sub_location=sub_location,
+    )
 
-        image_to_update.location = location
-        image_to_update.save()
+    image_to_update.location = location
+    image_to_update.save()
 
-        if created:
-            pkg.logger.debug(f"    Created new RoughLocation: {location}")
-        else:
-            pkg.logger.debug(f"    Using existing RoughLocation: {location}")
-        pkg.logger.info(f"    Set location as {location}")
-
-    except Exception:
-        pkg.logger.exception("    Failed to set location")
+    if created:
+        pkg.logger.debug(f"    Created new RoughLocation: {location}")
+    else:
+        pkg.logger.debug(f"    Using existing RoughLocation: {location}")
+    pkg.logger.info(f"    Set location as {location}")
 
 
 def update_image_date_from_keywords(
@@ -437,21 +432,19 @@ def update_image_date_from_keywords(
         day = 1
         day_valid = False
 
-    try:
-        rough_date, created = RoughDate.objects.get_or_create(
-            date=date(year=year, month=month, day=day),
-            month_valid=month_valid,
-            day_valid=day_valid,
-        )
-        if created:
-            pkg.logger.debug(f"    Created new RoughDate: {rough_date}")
-        else:
-            pkg.logger.debug(f"    Using existing RoughDate: {rough_date}")
-        pkg.logger.info(f"    Set rough date of {rough_date}")
-        image_to_update.date = rough_date
-        image_to_update.save()
-    except Exception:
-        pkg.logger.exception("    Failed to create rough date")
+    rough_date, created = get_or_create_robust(
+        RoughDate,
+        date=date(year=year, month=month, day=day),
+        month_valid=month_valid,
+        day_valid=day_valid,
+    )
+    if created:
+        pkg.logger.debug(f"    Created new RoughDate: {rough_date}")
+    else:
+        pkg.logger.debug(f"    Using existing RoughDate: {rough_date}")
+    pkg.logger.info(f"    Set rough date of {rough_date}")
+    image_to_update.date = rough_date
+    image_to_update.save()
 
 
 def update_image_folder_structure(pkg: ImageIndexTaskModel | ImageMovedTaskModel | ImageReplaceTaskModel):
@@ -466,14 +459,14 @@ def update_image_folder_structure(pkg: ImageIndexTaskModel | ImageMovedTaskModel
     # TODO: Handle a replace/move better here
     path_from_parent = pkg.image_path.relative_to(pkg.root_dir).parent
 
-    parent, created = ImageFolder.objects.get_or_create(name=path_from_parent.parts[0], tn_parent=None)
+    parent, created = get_or_create_robust(ImageFolder, name=path_from_parent.parts[0], tn_parent=None)
     handle_view_edit_groups(pkg, parent, was_created=created)
     if created:
         pkg.logger.info(f"  Created new parent folder: {parent.name}")
     else:
         pkg.logger.info(f"  Using existing parent folder: {parent.name}")
     for depth, child_name in enumerate(path_from_parent.parts[1:]):
-        child, created = ImageFolder.objects.get_or_create(name=child_name, tn_parent=parent)
+        child, created = get_or_create_robust(ImageFolder, name=child_name, tn_parent=parent)
         handle_view_edit_groups(pkg, child, was_created=created)
         if created:
             pkg.logger.info(f"  {' ' * (depth + 2)}Created new child folder: {child.name}")
