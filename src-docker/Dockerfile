@@ -26,7 +26,7 @@ RUN set -eux && pnpm run build
 # Purpose: Installs s6-overlay, uv and rootfs
 # Comments:
 #  - Don't leave anything extra in here either
-FROM docker.io/python:3.12-alpine3.21 AS s6-overlay-base
+FROM docker.io/python:3.12-alpine3.22 AS s6-overlay-base
 
 COPY --from=ghcr.io/astral-sh/uv:0.7.8 /uv /uvx /bin/
 
@@ -99,7 +99,7 @@ RUN set -eux \
       exiftool \
       tzdata \
       shadow \
-      libvips
+      vips
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -114,7 +114,7 @@ RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
         postgresql-dev \
         mariadb-dev \
         pkgconfig \
-        libvips-dev \
+        vips-dev \
   && echo "Installing Python requirements" \
     # We rename the folder in the image for better ux
     && sed -i 's/"src-backend"/"memoria"/' /app/pyproject.toml \
