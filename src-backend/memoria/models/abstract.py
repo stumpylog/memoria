@@ -8,6 +8,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
+from django.utils.translation import gettext_lazy as _
 
 if TYPE_CHECKING:
     from memoria.models.image import Image  # noqa: F401
@@ -50,7 +51,7 @@ class AbstractBoxInImage(AbstractTimestampMixin, models.Model):
     image = models.ForeignKey(
         "Image",
         on_delete=models.CASCADE,
-        help_text="A Thing is in this Image at the given location",
+        help_text=_("A Thing is in this Image at the given location"),
     )
 
     # bounding box around a region
@@ -88,13 +89,13 @@ class ObjectPermissionModelMixin(models.Model):
         Group,
         blank=True,
         related_name="%(class)ss_viewable",
-        help_text="Groups allowed to view this object",
+        help_text=_("Groups allowed to view this object"),
     )
     edit_groups = models.ManyToManyField(
         Group,
         blank=True,
         related_name="%(class)ss_editable",
-        help_text="Groups allowed to edit this object",
+        help_text=_("Groups allowed to edit this object"),
     )
 
     class Meta:

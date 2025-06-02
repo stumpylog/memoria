@@ -98,7 +98,8 @@ RUN set -eux \
       postgresql-client \
       exiftool \
       tzdata \
-      shadow
+      shadow \
+      libvips
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -113,6 +114,7 @@ RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
         postgresql-dev \
         mariadb-dev \
         pkgconfig \
+        libvips-dev \
   && echo "Installing Python requirements" \
     # We rename the folder in the image for better ux
     && sed -i 's/"src-backend"/"memoria"/' /app/pyproject.toml \

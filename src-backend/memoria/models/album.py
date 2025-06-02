@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 from django.db import models
 from django.db.models import Count
 from django.db.models import Prefetch
+from django.utils.translation import gettext_lazy as _
 
 from memoria.models.abstract import AbstractSimpleNamedModelMixin
 from memoria.models.abstract import AbstractTimestampMixin
@@ -113,7 +114,7 @@ class ImageInAlbum(AbstractTimestampMixin, models.Model):
     )
 
     sort_order = models.PositiveBigIntegerField(
-        verbose_name="Order of this image in the album",
+        help_text=_("Order of this image in the album"),
     )
 
     class Meta:

@@ -1,4 +1,3 @@
-from datetime import date
 from typing import TYPE_CHECKING
 from typing import Final
 
@@ -375,10 +374,8 @@ def update_image_date_from_keywords(
 
     # Default values
     year = None
-    month = 1
-    month_valid = False
-    day = 1
-    day_valid = False
+    month = None
+    day = None
 
     # Try to parse year
     try:
@@ -394,24 +391,21 @@ def update_image_date_from_keywords(
             # Extract first part before dash if present
             month_parts = month_node.Keyword.split("-")
             month = int(month_parts[0].strip())
-            month_valid = True
         except (ValueError, IndexError):
             pkg.logger.warning(f"    Could not parse month from: {month_node.Keyword}")
 
         # Try to parse day if month is valid and day node exists
-        if month_valid and month_node.Children:
+        if month is not None and month_node.Children:
             day_node = month_node.Children[0]
             try:
                 day = int(day_node.Keyword)
-                day_valid = True
             except ValueError:
                 pkg.logger.warning(f"    Could not parse day from: {day_node.Keyword}")
 
     # Validate date ranges
-    if not (1 <= month <= 12):
+    if month is not None and not (1 <= month <= 12):
         pkg.logger.warning(f"    Invalid month value: {month}")
-        month = 1
-        month_valid = False
+        month = None
 
     max_days: Final[dict[int, int]] = {
         1: 31,
@@ -427,16 +421,15 @@ def update_image_date_from_keywords(
         11: 30,
         12: 31,
     }
-    if not (1 <= day <= max_days.get(month, 31)):
+    if day is not None and month is not None and not (1 <= day <= max_days.get(month, 31)):
         pkg.logger.warning(f"    Invalid day value: {day}")
-        day = 1
-        day_valid = False
+        day = None
 
     rough_date, created = get_or_create_robust(
         RoughDate,
-        date=date(year=year, month=month, day=day),
-        month_valid=month_valid,
-        day_valid=day_valid,
+        year=year,
+        month=month,
+        day=day,
     )
     if created:
         pkg.logger.debug(f"    Created new RoughDate: {rough_date}")

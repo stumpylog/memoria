@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import datetime
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-    from memoria.models.image import Image  # noqa: F401
-
+from django.core.validators import MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
+from django.db.models.functions import Cast
+from django.db.models.functions import Coalesce
+from django.db.models.functions import Concat
+from django.db.models.functions import LPad
+from django.utils.translation import gettext_lazy as _
 from simpleiso3166 import Country
 from treenode.models import TreeNodeModel
 
@@ -17,6 +20,11 @@ from memoria.models.abstract import AbstractSimpleNamedModelMixin
 from memoria.models.abstract import AbstractTimestampMixin
 from memoria.models.abstract import ObjectPermissionModelMixin
 from memoria.models.abstract import PermittedQueryset
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from memoria.models.image import Image  # noqa: F401
 
 
 class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, TreeNodeModel):
@@ -47,12 +55,17 @@ class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, TreeNodeModel):
 
 
 class TagOnImage(models.Model):  # noqa: DJ008
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, help_text="Tag is on this Image", related_name="image_links")
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE,
+        help_text=_("Tag is on this Image"),
+        related_name="image_links",
+    )
 
     image = models.ForeignKey(
         "Image",
         on_delete=models.CASCADE,
-        help_text="A Tag is on this Image",
+        help_text=_("A Tag is on this Image"),
         related_name="applied_tags",
     )
 
@@ -91,12 +104,12 @@ class PersonInImage(AbstractBoxInImage):
         # TODO: This would need to update if we allow boxes without a name/person attached
         on_delete=models.CASCADE,
         related_name="person_appearances",
-        help_text="Person is in this Image at the given location",
+        help_text=_("Person is in this Image at the given location"),
     )
 
     exclude_from_training = models.BooleanField(
         default=False,
-        help_text="For future growth, do not use this box for facial recognition training",
+        help_text=_("For future growth, do not use this box for facial recognition training"),
     )
 
     @property
@@ -136,7 +149,7 @@ class Pet(
         choices=PetTypeChoices.choices,
         null=True,
         blank=True,
-        help_text="The type of pet this is",
+        help_text=_("The type of pet this is"),
     )
 
     objects: PetQuerySet = PetQuerySet.as_manager()
@@ -150,7 +163,7 @@ class PetInImage(AbstractBoxInImage):
         Pet,
         on_delete=models.CASCADE,
         related_name="pet_appearances",
-        help_text="Pet is in this Image at the given location",
+        help_text=_("Pet is in this Image at the given location"),
         null=True,
     )
 
@@ -175,55 +188,109 @@ class RoughDate(AbstractTimestampMixin, models.Model):
     The rough date of the image
     """
 
-    date = models.DateField(
-        help_text="The date of the image, maybe not exact",
+    year = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(9999)],
+        help_text=_("The year (always required)"),
+    )
+    month = models.PositiveSmallIntegerField(
+        null=True,
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        help_text=_("The month (1-12, null if unknown)"),
+    )
+    day = models.PositiveSmallIntegerField(
+        null=True,
+        validators=[MinValueValidator(1), MaxValueValidator(31)],
+        help_text=_("The day (1-31, null if unknown)"),
     )
 
-    month_valid = models.BooleanField(
-        default=False,
-        help_text="Is the month of this date valid?",
-    )
-    day_valid = models.BooleanField(
-        default=False,
-        help_text="Is the day of this date valid?",
+    # Generated field for comparisons and ordering
+    # This creates a date using defaults for missing values
+    comparison_date = models.GeneratedField(
+        expression=Coalesce(
+            Cast(
+                Concat(
+                    models.F("year"),
+                    models.Value("-"),
+                    LPad(
+                        Cast(Coalesce(models.F("month"), 1), output_field=models.CharField()),
+                        2,
+                        models.Value("0"),
+                    ),
+                    models.Value("-"),
+                    LPad(
+                        Cast(Coalesce(models.F("day"), 1), output_field=models.CharField()),
+                        2,
+                        models.Value("0"),
+                    ),
+                ),
+                output_field=models.DateField(),
+            ),
+            models.Value(datetime.date(1900, 1, 1)),  # fallback
+        ),
+        output_field=models.DateField(),
+        db_persist=True,
     )
 
     class Meta:
-        ordering: Sequence = ["date"]
+        ordering: Sequence = ["comparison_date"]
         constraints: Sequence = [
-            # Logical constraint: day can't be valid if month isn't valid
+            # Logical constraint: day can't exist without month
             models.CheckConstraint(
-                condition=models.Q(day_valid=False) | models.Q(month_valid=True),
-                name="day_requires_valid_month",
+                condition=models.Q(day__isnull=True) | models.Q(month__isnull=False),
+                name="day_requires_month",
             ),
-            # Only year is valid (month_valid=False, day_valid=False)
+            # Database-level validation for ranges (backup to validators)
+            models.CheckConstraint(
+                condition=models.Q(year__gte=1, year__lte=9999),
+                name="valid_year_range",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(month__isnull=True) | models.Q(month__gte=1, month__lte=12),
+                name="valid_month_range",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(day__isnull=True) | models.Q(day__gte=1, day__lte=31),
+                name="valid_day_range",
+            ),
+            # Uniqueness constraints using the separate fields
+            # Year-only entries (month and day are null)
             models.UniqueConstraint(
-                fields=["date__year"],
-                condition=models.Q(month_valid=False, day_valid=False),
+                fields=["year"],
+                condition=models.Q(month__isnull=True, day__isnull=True),
                 name="unique_year_only",
             ),
-            # Year and month are valid (month_valid=True, day_valid=False)
+            # Year-month entries (day is null, month is not null)
             models.UniqueConstraint(
-                fields=["date__year", "date__month"],
-                condition=models.Q(month_valid=True, day_valid=False),
+                fields=["year", "month"],
+                condition=models.Q(month__isnull=False, day__isnull=True),
                 name="unique_year_month",
             ),
-            # Full date is valid (month_valid=True, day_valid=True)
+            # Full date entries (all fields present)
             models.UniqueConstraint(
-                fields=["date"],
-                condition=models.Q(month_valid=True, day_valid=True),
+                fields=["year", "month", "day"],
+                condition=models.Q(month__isnull=False, day__isnull=False),
                 name="unique_full_date",
             ),
         ]
 
     def __str__(self) -> str:
-        year = self.date.year
-        month = self.date.month if self.month_valid else "MM"
-        day = self.date.day if self.day_valid else "DD"
-        return f"{year}-{month}-{day}"
+        if self.day is not None:
+            return f"{self.year}-{self.month:02d}-{self.day:02d}"
+        if self.month is not None:
+            return f"{self.year}-{self.month:02d}-DD"
+        return f"{self.year}-MM-DD"
 
     def __repr__(self) -> str:
         return f"RoughDate: {self!s}"
+
+    @property
+    def precision(self):
+        """Return the precision level of this date"""
+        if self.day is not None:
+            return "day"
+        if self.month is not None:
+            return "month"
+        return "year"
 
 
 class RoughLocation(AbstractTimestampMixin, models.Model):
@@ -236,25 +303,25 @@ class RoughLocation(AbstractTimestampMixin, models.Model):
     country_code = models.CharField(
         max_length=4,
         db_index=True,
-        help_text="Country code in ISO 3166-1 alpha 2 format",
+        help_text=_("Country code in ISO 3166-1 alpha 2 format"),
     )
     subdivision_code = models.CharField(  # noqa: DJ001
         max_length=12,  # Longest subdivision in the world is 6 characters, double that
         db_index=True,
         null=True,
-        help_text="State, province or subdivision ISO 3166-2 alpha 2 format",
+        help_text=_("State, province or subdivision ISO 3166-2 alpha 2 format"),
     )
     city = models.CharField(  # noqa: DJ001
         max_length=255,
         db_index=True,
         null=True,
-        help_text="City or town",
+        help_text=_("City or town"),
     )
     sub_location = models.CharField(  # noqa: DJ001
         max_length=255,
         db_index=True,
         null=True,
-        help_text="Detailed location within a city or town",
+        help_text=_("Detailed location within a city or town"),
     )
 
     class Meta:
@@ -265,9 +332,29 @@ class RoughLocation(AbstractTimestampMixin, models.Model):
             "sub_location",
         ]
         constraints: Sequence = [
+            # 1. All four fields provided (sub_location NOT NULL)
             models.UniqueConstraint(
                 fields=["country_code", "subdivision_code", "city", "sub_location"],
                 name="unique_location_all_fields",
+                condition=Q(sub_location__isnull=False),
+            ),
+            # 2. sub_location is NULL, but city is NOT NULL
+            models.UniqueConstraint(
+                fields=["country_code", "subdivision_code", "city"],
+                name="unique_location_no_sub_location",
+                condition=Q(sub_location__isnull=True, city__isnull=False),
+            ),
+            # 3. sub_location and city are NULL, but subdivision_code is NOT NULL
+            models.UniqueConstraint(
+                fields=["country_code", "subdivision_code"],
+                name="unique_location_no_city_sub_location",
+                condition=Q(sub_location__isnull=True, city__isnull=True, subdivision_code__isnull=False),
+            ),
+            # 4. sub_location, city, and subdivision_code are NULL (only country_code provided)
+            models.UniqueConstraint(
+                fields=["country_code"],
+                name="unique_location_only_country",
+                condition=Q(sub_location__isnull=True, city__isnull=True, subdivision_code__isnull=True),
             ),
         ]
 

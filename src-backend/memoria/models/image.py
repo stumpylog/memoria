@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from exifmwg.models import RotationEnum
 
 from memoria.models.abstract import AbstractTimestampMixin
@@ -96,19 +97,19 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         unique=True,
         db_index=True,
         verbose_name="blake3 hex digest",
-        help_text="The BLAKE3 checksum of the original file",
+        help_text=_("The BLAKE3 checksum of the original file"),
     )
 
     phash = models.CharField(
         max_length=32,
         db_index=True,
         verbose_name="perceptual average hash of the image",
-        help_text="The pHash (average) of the original file",
+        help_text=_("The pHash (average) of the original file"),
     )
 
     file_size = models.PositiveBigIntegerField(
         verbose_name="file size in bytes",
-        help_text="Size of the original file in bytes",
+        help_text=_("Size of the original file in bytes"),
     )
 
     original_height = models.PositiveIntegerField(verbose_name="original image height in pixels")
@@ -123,39 +124,39 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     orientation = models.PositiveSmallIntegerField(
         choices=OrientationChoices.choices,
         default=OrientationChoices.HORIZONTAL,
-        help_text="MWG Orientation flag",
+        help_text=_("MWG Orientation flag"),
     )
 
     title = models.TextField(
-        help_text="Title of the image (used for display only currently)",
+        help_text=_("Title of the image (used for display only currently)"),
     )
 
     description = models.TextField(  # noqa: DJ001
         blank=True,
         null=True,
-        help_text="MWG Description tag",
+        help_text=_("MWG Description tag"),
     )
 
     original = models.CharField(
-        max_length=1024,
+        max_length=4096,
         unique=True,
         verbose_name="Path to the original image",
     )
 
     is_dirty = models.BooleanField(
         default=False,
-        help_text="The metadata is dirty and needs to be synced to the file",
+        help_text=_("The metadata is dirty and needs to be synced to the file"),
     )
 
     deleted_at = models.DateTimeField(
         default=None,
         null=True,
-        help_text="Date the image was deleted or None if it has not been",
+        help_text=_("Date the image was deleted or None if it has not been"),
     )
 
     is_starred = models.BooleanField(
         default=False,
-        help_text="The image has been starred",
+        help_text=_("The image has been starred"),
     )
 
     source = models.ForeignKey(
@@ -164,7 +165,7 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         null=True,
         blank=True,
         related_name="images",
-        help_text="Source of the original image (box, deck, carousel, etc)",
+        help_text=_("Source of the original image (box, deck, carousel, etc)"),
     )
 
     location = models.ForeignKey(
@@ -173,7 +174,7 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         null=True,
         blank=True,
         related_name="images",
-        help_text="Location where the image was taken, with as much refinement as possible",
+        help_text=_("Location where the image was taken, with as much refinement as possible"),
     )
 
     date = models.ForeignKey(
@@ -182,34 +183,34 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
         null=True,
         blank=True,
         related_name="images",
-        help_text="RoughDate when the image was taken, with as much refinement as possible",
+        help_text=_("RoughDate when the image was taken, with as much refinement as possible"),
     )
 
     people = models.ManyToManyField(
         Person,
         through=PersonInImage,
-        help_text="These people are in the image",
+        help_text=_("These people are in the image"),
         related_name="images_featured_in",
     )
 
     pets = models.ManyToManyField(
         Pet,
         through=PetInImage,
-        help_text="These pets are in the image",
+        help_text=_("These pets are in the image"),
         related_name="images_featured_in",
     )
 
     tags = models.ManyToManyField(
         Tag,
         through=TagOnImage,
-        help_text="These tags apply to the image",
+        help_text=_("These tags apply to the image"),
     )
 
     folder = models.ForeignKey(
         ImageFolder,
         related_name="images",
         on_delete=models.CASCADE,
-        help_text="The folder this image belongs to",
+        help_text=_("The folder this image belongs to"),
     )
 
     objects: ImageQuerySet = ImageQuerySet.as_manager()
