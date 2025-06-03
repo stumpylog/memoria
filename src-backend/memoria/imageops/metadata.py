@@ -231,15 +231,14 @@ def update_image_location_from_mwg(
     # Process subdivision (state) if available
     subdivision_code = None
     if metadata.State:
-        subdivision_code = get_subdivision_code_from_name(
-            country_alpha_2,
-            metadata.State,
-        )
-
-        if subdivision_code:
+        if "-" in metadata.State:
+            subdivision_code, _ = metadata.State.split("-")
+            subdivision_code = subdivision_code.strip()
             pkg.logger.info(f"    Got subdivision code {subdivision_code} from {metadata.State}")
         else:
             pkg.logger.warning(f"    No subdivision code found for: {metadata.State}")
+    else:
+        pkg.logger.warning(f"    No subdivision code found for: {metadata.State}")
 
     # Create or retrieve location record
     location, created = RoughLocation.objects.get_or_create(
