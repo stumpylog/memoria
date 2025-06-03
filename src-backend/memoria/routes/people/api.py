@@ -87,7 +87,7 @@ def get_person_images(
     person: Person = get_object_or_404(Person.objects.permitted(request.user).with_images(), pk=person_id)
     permitted_image_filter = PermittedQueryset.get_permitted_filter_q(request.user)
 
-    return person.images_featured_in.filter(permitted_image_filter).distinct().order_by("-created_at")
+    return person.images_featured_in.filter(permitted_image_filter).distinct().order_by("title")
 
 
 @router.patch(
