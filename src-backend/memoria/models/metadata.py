@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import datetime
 from typing import TYPE_CHECKING
 
 from django.core.validators import MaxValueValidator
@@ -225,7 +224,10 @@ class RoughDate(AbstractTimestampMixin, models.Model):
                 ),
                 output_field=models.DateField(),
             ),
-            models.Value(datetime.date(1900, 1, 1)),  # fallback
+            Cast(
+                models.Value("1900-01-01"),
+                output_field=models.DateField(),
+            ),  # fallback
         ),
         output_field=models.DateField(),
         db_persist=True,
