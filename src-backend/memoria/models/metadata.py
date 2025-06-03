@@ -224,10 +224,7 @@ class RoughDate(AbstractTimestampMixin, models.Model):
                 ),
                 output_field=models.DateField(),
             ),
-            Cast(
-                models.Value("1900-01-01"),
-                output_field=models.DateField(),
-            ),  # fallback
+            models.Value("1900-01-01"),
         ),
         output_field=models.DateField(),
         db_persist=True,

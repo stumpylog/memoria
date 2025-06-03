@@ -650,10 +650,7 @@ class Migration(migrations.Migration):
                                 ),
                                 output_field=models.DateField(),
                             ),
-                            django.db.models.functions.comparison.Cast(
-                                models.Value("1900-01-01"),
-                                output_field=models.DateField(),
-                            ),
+                            models.Value("1900-01-01"),
                         ),
                         output_field=models.DateField(),
                     ),
