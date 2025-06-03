@@ -41,6 +41,19 @@ class Tag(AbstractTimestampMixin, AbstractSimpleNamedModelMixin, TreeNodeModel):
     class Meta(TreeNodeModel.Meta):
         verbose_name = "Tag"
         verbose_name_plural = "Tags"
+        constraints: Sequence = [
+            # Constraint for child tags: name must be unique per parent.
+            models.UniqueConstraint(
+                fields=["tn_parent", "name"],
+                name="unique_child_tag_name_for_parent",
+            ),
+            # Constraint for root tags: name must be unique when there is no parent.
+            models.UniqueConstraint(
+                fields=["name"],
+                condition=Q(tn_parent__isnull=True),
+                name="unique_root_tag_name",
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"Tag {self.name}"
