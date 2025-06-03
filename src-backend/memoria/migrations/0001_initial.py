@@ -623,7 +623,7 @@ class Migration(migrations.Migration):
                 (
                     "comparison_date",
                     models.GeneratedField(
-                        db_persist=True,
+                        db_persist=False,
                         expression=django.db.models.functions.comparison.Coalesce(
                             django.db.models.functions.comparison.Cast(
                                 django.db.models.functions.text.Concat(

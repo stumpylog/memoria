@@ -228,7 +228,7 @@ class RoughDate(AbstractTimestampMixin, models.Model):
             output_field=models.DateField(),
         ),
         output_field=models.DateField(),
-        db_persist=True,
+        db_persist=False,
     )
 
     class Meta:
