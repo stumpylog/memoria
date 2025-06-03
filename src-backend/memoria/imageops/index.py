@@ -1,7 +1,10 @@
+import tempfile
+from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import cast
 
 from exifmwg import ExifTool
+from filelock import FileLock
 
 from memoria.imageops.metadata import update_image_date_from_keywords
 from memoria.imageops.metadata import update_image_folder_structure
@@ -20,6 +23,9 @@ from memoria.utils.photos import generate_image_versions
 if TYPE_CHECKING:
     from logging import Logger
 
+LOCK_DIR = Path(tempfile.gettempdir()) / "locks"
+LOCK_DIR.mkdir(parents=True, exist_ok=True)
+
 
 def handle_moved_image(pkg: ImageMovedTaskModel) -> None:
     """
@@ -32,7 +38,8 @@ def handle_moved_image(pkg: ImageMovedTaskModel) -> None:
     pkg.logger.info("  Image already indexed")
     pkg.logger.info(f"  Updating path from {image.original_path.resolve()} to {pkg.image_path.resolve()}")
     image.original_path = pkg.image_path.resolve()
-    image.folder = update_image_folder_structure(pkg)
+    with FileLock(LOCK_DIR / "metadata.lock"):
+        image.folder = update_image_folder_structure(pkg)
     image.save()
     image.mark_as_clean()
 
@@ -106,19 +113,22 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     new_img.large_version_height = file_info.large_img_height
     new_img.save()
 
-    # Parse Faces/pets/regions
-    update_image_people_and_pets(pkg, new_img, metadata)
+    pkg.logger.debug("Waiting for new image lock")
+    with FileLock(LOCK_DIR / "metadata.lock"):
+        pkg.logger.debug("new image lock acquired")
+        # Parse Faces/pets/regions
+        update_image_people_and_pets(pkg, new_img, metadata)
 
-    # Parse Keywords
-    update_image_keyword_tree(pkg, new_img, metadata)
+        # Parse Keywords
+        update_image_keyword_tree(pkg, new_img, metadata)
 
-    # Parse Location
-    update_image_location_from_mwg(pkg, new_img, metadata)
-    if not new_img.location:
-        update_image_location_from_keywords(pkg, new_img, metadata)
+        # Parse Location
+        update_image_location_from_mwg(pkg, new_img, metadata)
+        if not new_img.location:
+            update_image_location_from_keywords(pkg, new_img, metadata)
 
-    # Parse date information from keywords?
-    update_image_date_from_keywords(pkg, new_img, metadata)
+        # Parse date information from keywords?
+        update_image_date_from_keywords(pkg, new_img, metadata)
 
     # And done.  Image cannot be dirty, use update to avoid getting marked as such
     new_img.mark_as_clean()
@@ -140,21 +150,22 @@ def handle_replaced_image(pkg: ImageReplaceTaskModel, tool: ExifTool) -> None:
 
     metadata = tool.read_image_metadata(image.original_path)
 
-    image.tags.clear()
-    update_image_keyword_tree(pkg, image, metadata)
+    with FileLock(LOCK_DIR / "metadata.lock"):
+        image.tags.clear()
+        update_image_keyword_tree(pkg, image, metadata)
 
-    image.people.clear()
-    image.pets.clear()
-    update_image_people_and_pets(pkg, image, metadata)
+        image.people.clear()
+        image.pets.clear()
+        update_image_people_and_pets(pkg, image, metadata)
 
-    image.location = None
-    update_image_location_from_mwg(pkg, image, metadata)
-    if image.location is None:
-        update_image_location_from_keywords(pkg, image, metadata)
+        image.location = None
+        update_image_location_from_mwg(pkg, image, metadata)
+        if image.location is None:
+            update_image_location_from_keywords(pkg, image, metadata)
 
-    image.folder = update_image_folder_structure(pkg)
-    image.date = None
-    update_image_date_from_keywords(pkg, image, metadata)
+        image.folder = update_image_folder_structure(pkg)
+        image.date = None
+        update_image_date_from_keywords(pkg, image, metadata)
 
     image.original_checksum = calculate_blake3_hash(image.original_path)
     image.phash = calculate_image_phash(pkg.image_path)
