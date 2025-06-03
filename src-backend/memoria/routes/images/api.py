@@ -37,6 +37,7 @@ from memoria.routes.images.schemas import ImageThumbnailSchemaOut
 from memoria.routes.images.schemas import PersonInImageSchemaOut
 from memoria.routes.images.schemas import PetInImageSchemaOut
 from memoria.routes.images.schemas import RoughDateComparisonFilterSchema
+from memoria.routes.images.schemas import RoughDateExactFilterSchema
 from memoria.routes.images.schemas import RoughLocationFilterSchema
 
 router = Router(tags=["images"])
@@ -68,16 +69,26 @@ def list_images(
     boolean_filters: ImageBooleanFilterSchema = Query(...),
     fk_filters: ImageFKFilterSchema = Query(...),
     m2m_filters: ImageM2MFilterSchema = Query(...),
-    date_filters: RoughDateComparisonFilterSchema = Query(...),
+    date_range_filters: RoughDateComparisonFilterSchema = Query(...),
+    date_exact_filters: RoughDateExactFilterSchema = Query(...),
     location_filters: RoughLocationFilterSchema = Query(...),
 ):
-    qs = Image.objects.permitted(request.user)
+    qs = (
+        Image.objects.permitted(request.user)
+        .with_date()
+        .with_folder()
+        .with_location()
+        .with_people()
+        .with_pets()
+        .with_tags()
+    )
 
     qs = Image.objects.permitted(request.user)
     qs = boolean_filters.filter_queryset(qs)
     qs = fk_filters.filter_queryset(qs)
     qs = m2m_filters.filter_queryset(qs)
-    qs = date_filters.filter_queryset(qs)
+    qs = date_range_filters.filter_queryset(qs)
+    qs = date_exact_filters.filter_queryset(qs)
     return location_filters.filter_queryset(qs)
 
 

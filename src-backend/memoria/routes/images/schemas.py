@@ -126,29 +126,59 @@ class RoughDateComparisonFilterSchema(FilterSchema):
 
         # Use comparison_date for precise date range filtering
         if self.date_start is not None:
-            filters &= Q(comparison_date__gte=self.date_start)
+            filters &= Q(date__comparison_date__gte=self.date_start)
         if self.date_end is not None:
-            filters &= Q(comparison_date__lte=self.date_end)
+            filters &= Q(date__comparison_date__lte=self.date_end)
 
         # Individual field filtering for more granular control
         if self.year_start is not None:
-            filters &= Q(year__gte=self.year_start)
+            filters &= Q(date__year__gte=self.year_start)
         if self.year_end is not None:
-            filters &= Q(year__lte=self.year_end)
+            filters &= Q(date__year__lte=self.year_end)
 
         # For month/day, include nulls to match "incomplete" dates
         if self.year_start:
-            filters &= Q(year__gte=self.year_start)
+            filters &= Q(date__year__gte=self.year_start)
         if self.year_end:
             filters &= Q(year__lte=self.year_end)
         if self.month_start:
-            filters &= Q(month__gte=self.month_start)
+            filters &= Q(date__month__gte=self.month_start)
         if self.month_end:
-            filters &= Q(month__lte=self.month_end)
+            filters &= Q(date__month__lte=self.month_end)
         if self.day_start:
-            filters &= Q(day__gte=self.day_start)
+            filters &= Q(date__day__gte=self.day_start)
         if self.day_end:
-            filters &= Q(day__lte=self.day_end)
+            filters &= Q(date__day__lte=self.day_end)
+
+        return queryset.filter(filters)
+
+
+class RoughDateExactFilterSchema(FilterSchema):
+    """Exact matching for specific year/month/day combinations"""
+
+    year: int | None = Field(None, description="Filter images from this exact year")
+    month: int | None = Field(None, ge=1, le=12, description="Filter images from this exact month (1-12)")
+    day: int | None = Field(None, ge=1, le=31, description="Filter images from this exact day (1-31)")
+
+    @model_validator(mode="after")
+    def validate_date_hierarchy(self):
+        if self.day is not None and self.month is None:
+            raise ValueError("Day filter requires month to be specified")
+        if self.month is not None and self.year is None:
+            raise ValueError("Month filter requires year to be specified")
+        return self
+
+    def filter_queryset(self, queryset):
+        filters = Q()
+
+        if self.year is not None:
+            filters &= Q(date__year=self.year)
+
+        if self.month is not None:
+            filters &= Q(date__month=self.month)
+
+        if self.day is not None:
+            filters &= Q(date__day=self.day)
 
         return queryset.filter(filters)
 
