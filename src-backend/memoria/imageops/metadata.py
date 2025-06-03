@@ -237,8 +237,6 @@ def update_image_location_from_mwg(
             pkg.logger.info(f"    Got subdivision code {subdivision_code} from {metadata.State}")
         else:
             pkg.logger.warning(f"    No subdivision code found for: {metadata.State}")
-    else:
-        pkg.logger.warning(f"    No subdivision code found for: {metadata.State}")
 
     # Create or retrieve location record
     location, created = RoughLocation.objects.get_or_create(

@@ -32,7 +32,7 @@ LOCATION_KEYWORD: Final[str] = "Locations"
 MIN_IMAGES_PER_PAGE: Final[int] = 1
 MAX_IMAGES_PER_PAGE: Final[int] = 200
 
-BATCH_SIZE: Final[int] = 2
+BATCH_SIZE: Final[int] = 10
 
 IMAGE_EXTENSIONS: Final[set[str]] = {
     ".jpg",
