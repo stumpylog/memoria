@@ -93,6 +93,7 @@ def _generate_with_pillow(
             large_img_width, large_img_height = new_webp_width, new_webp_height  # Update dimensions after resize
         else:
             logger.debug("Image within max size or max size is 0, no scaling needed for WebP.")
+            webp_img = img
 
         # Save the image as WebP with specified quality
         logger.info("    Creating WebP version with Pillow")
@@ -152,6 +153,7 @@ def _generate_with_pyvips(
         large_img_width, large_img_height = webp_img.width, webp_img.height  # Update dimensions after resize
     else:
         logger.debug("Image within max size or max size is 0, no scaling needed for WebP.")
+        webp_img = image
 
     logger.info("    Creating WebP version with pyvips")
     # For WebP, pyvips uses Q for quality, and can specify lossless=True/False
