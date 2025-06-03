@@ -224,11 +224,14 @@ class RoughDate(AbstractTimestampMixin, models.Model):
                 ),
                 output_field=models.DateField(),
             ),
-            models.Value("1900-01-01"),
+            Cast(
+                models.Value("1900-01-01"),
+                output_field=models.DateField(),  # Cast the string to DateField
+            ),
             output_field=models.DateField(),
         ),
         output_field=models.DateField(),
-        db_persist=False,
+        db_persist=True,
     )
 
     class Meta:
