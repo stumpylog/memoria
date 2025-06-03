@@ -21,6 +21,7 @@ dependencies = [
   "django-treenode",
   "django-typer[rich]>=2.2.1",
   "exifmwg",
+  "filelock",
   "huey>=2.5.1",
   "imagehash",
   "orjson",

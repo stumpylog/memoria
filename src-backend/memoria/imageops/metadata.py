@@ -1,10 +1,13 @@
+import tempfile
 from datetime import date
+from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Final
 
 from exifmwg.models import ImageMetadata
 from exifmwg.models import KeywordStruct
 from exifmwg.models import RegionStruct
+from filelock import FileLock
 
 from memoria.models import Image as ImageModel
 from memoria.models import ImageFolder
@@ -24,9 +27,11 @@ from memoria.utils.constants import DATE_KEYWORD
 from memoria.utils.constants import LOCATION_KEYWORD
 from memoria.utils.constants import PEOPLE_KEYWORD
 from memoria.utils.constants import PET_KEYWORD
-from memoria.utils.database import get_or_create_robust
 from memoria.utils.geo import get_country_code_from_name
 from memoria.utils.geo import get_subdivision_code_from_name
+
+LOCK_DIR = Path(tempfile.gettempdir()) / "locks"
+LOCK_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def handle_view_edit_groups(
@@ -72,7 +77,8 @@ def update_image_people_and_pets(
         """
         if TYPE_CHECKING:
             assert pkg.logger is not None
-        person, created = get_or_create_robust(Person, name=region.Name)
+        with FileLock(Path(LOCK_DIR / "Person.get_or_create.lock")):
+            person, created = Person.objects.get_or_create(name=region.Name.strip())
 
         handle_view_edit_groups(pkg, person, was_created=created)
 
@@ -100,7 +106,8 @@ def update_image_people_and_pets(
         """
         if TYPE_CHECKING:
             assert pkg.logger is not None
-        pet, created = get_or_create_robust(Pet, name=region.Name)
+        with FileLock(Path(LOCK_DIR / "Pet.get_or_create.lock")):
+            pet, created = Pet.objects.get_or_create(name=region.Name)
 
         handle_view_edit_groups(pkg, pet, was_created=created)
 
@@ -157,11 +164,11 @@ def update_image_keyword_tree(
         parent: Tag,
         tree_node: KeywordStruct,
     ):
-        existing_node, _ = get_or_create_robust(
-            Tag,
-            name=tree_node.Keyword,
-            tn_parent=parent,
-        )
+        with FileLock(Path(LOCK_DIR / "Tag.get_or_create.lock")):
+            existing_node, _ = Tag.objects.get_or_create(
+                name=tree_node.Keyword,
+                tn_parent=parent,
+            )
 
         applied_value = False
         # If the keyword is applied, then it is applied
@@ -187,7 +194,8 @@ def update_image_keyword_tree(
                 PET_KEYWORD.lower(),
             }:
                 continue
-            existing_root_tag, _ = get_or_create_robust(Tag, name=keyword.Keyword, tn_parent=None)
+            with FileLock(Path(LOCK_DIR / "Tag.get_or_create.lock")):
+                existing_root_tag, _ = Tag.objects.get_or_create(name=keyword.Keyword, tn_parent=None)
             applied_value = False
             # If the keyword is applied, then it is applied
             if keyword.Applied is not None and keyword.Applied:
@@ -243,14 +251,14 @@ def update_image_location_from_mwg(
         else:
             pkg.logger.warning(f"    No subdivision code found for: {metadata.State}")
 
-    # Create or retrieve location record
-    location, created = get_or_create_robust(
-        RoughLocation,
-        country_code=country_alpha_2,
-        subdivision_code=subdivision_code,
-        city=metadata.City.strip() if metadata.City else metadata.City,
-        sub_location=metadata.Location.strip() if metadata.Location else metadata.Location,
-    )
+    with FileLock(Path(LOCK_DIR / "RoughLocation.get_or_create.lock")):
+        # Create or retrieve location record
+        location, created = RoughLocation.objects.get_or_create(
+            country_code=country_alpha_2,
+            subdivision_code=subdivision_code,
+            city=metadata.City.strip() if metadata.City else metadata.City,
+            sub_location=metadata.Location.strip() if metadata.Location else metadata.Location,
+        )
 
     # Update image with location
     image_to_update.location = location
@@ -324,14 +332,14 @@ def update_image_location_from_keywords(
 
     pkg.logger.info(f"    Setting {country_alpha2} - {subdivision_code} - {city} - {sub_location}")
 
-    # Create or retrieve location record
-    location, created = get_or_create_robust(
-        RoughLocation,
-        country_code=country_alpha2,
-        subdivision_code=subdivision_code,
-        city=city,
-        sub_location=sub_location,
-    )
+    with FileLock(Path(LOCK_DIR / "RoughLocation.get_or_create.lock")):
+        # Create or retrieve location record
+        location, created = RoughLocation.objects.get_or_create(
+            country_code=country_alpha2,
+            subdivision_code=subdivision_code,
+            city=city,
+            sub_location=sub_location,
+        )
 
     image_to_update.location = location
     image_to_update.save()
@@ -425,14 +433,13 @@ def update_image_date_from_keywords(
     if day is not None and month is not None and not (1 <= day <= max_days.get(month, 31)):
         pkg.logger.warning(f"    Invalid day value: {day}")
         day = None
-
-    rough_date, created = get_or_create_robust(
-        RoughDate,
-        year=year,
-        month=month,
-        day=day,
-        comparison_date=date(year, month or 1, day or 1),
-    )
+    with FileLock(Path(LOCK_DIR / "RoughDate.get_or_create.lock")):
+        rough_date, created = RoughDate.objects.get_or_create(
+            year=year,
+            month=month,
+            day=day,
+            comparison_date=date(year, month or 1, day or 1),
+        )
     if created:
         pkg.logger.debug(f"    Created new RoughDate: {rough_date}")
     else:
@@ -453,15 +460,16 @@ def update_image_folder_structure(pkg: ImageIndexTaskModel | ImageMovedTaskModel
 
     # TODO: Handle a replace/move better here
     path_from_parent = pkg.image_path.relative_to(pkg.root_dir).parent
-
-    parent, created = get_or_create_robust(ImageFolder, name=path_from_parent.parts[0], tn_parent=None)
+    with FileLock(Path(LOCK_DIR / "ImageFolder.get_or_create.lock")):
+        parent, created = ImageFolder.objects.get_or_create(name=path_from_parent.parts[0], tn_parent=None)
     handle_view_edit_groups(pkg, parent, was_created=created)
     if created:
         pkg.logger.info(f"  Created new parent folder: {parent.name}")
     else:
         pkg.logger.info(f"  Using existing parent folder: {parent.name}")
     for depth, child_name in enumerate(path_from_parent.parts[1:]):
-        child, created = get_or_create_robust(ImageFolder, name=child_name, tn_parent=parent)
+        with FileLock(Path(LOCK_DIR / "ImageFolder.get_or_create.lock")):
+            child, created = ImageFolder.objects.get_or_create(name=child_name, tn_parent=parent)
         handle_view_edit_groups(pkg, child, was_created=created)
         if created:
             pkg.logger.info(f"  {' ' * (depth + 2)}Created new child folder: {child.name}")
