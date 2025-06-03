@@ -5,10 +5,12 @@ from typing import TYPE_CHECKING
 from django.db.models import Q
 from django.http import HttpRequest
 from exifmwg.models import RotationEnum
+from ninja import Field
 from ninja import FilterSchema
 from ninja import Schema
 from pydantic import FilePath
 from pydantic import field_serializer
+from pydantic import model_validator
 
 from memoria.models import Image
 from memoria.routes.common.schemas import GroupPermissionReadOutMixin
@@ -20,9 +22,9 @@ if TYPE_CHECKING:
 
 
 class ImageBooleanFilterSchema(FilterSchema):
-    is_dirty: bool | None = None
-    is_starred: bool | None = None
-    is_deleted: bool | None = None
+    is_dirty: bool | None = Field(None, description="Filter by dirty status")
+    is_starred: bool | None = Field(None, description="Filter by starred status")
+    is_deleted: bool | None = Field(None, description="Filter by deletion status")
 
     def filter_queryset(self, queryset):
         if self.is_dirty is not None:
@@ -41,21 +43,9 @@ class ImageBooleanFilterSchema(FilterSchema):
 
 
 class ImageFKFilterSchema(FilterSchema):
-    source_id: int | None = None
-    location_id: int | None = None
-    date_id: int | None = None
-    folder_id: int | None = None
+    folder_id: int | None = Field(None, description="Filter by ImageFolder ID")
 
     def filter_queryset(self, queryset):
-        if self.source_id is not None:
-            queryset = queryset.filter(source_id=self.source_id)
-
-        if self.location_id is not None:
-            queryset = queryset.filter(location_id=self.location_id)
-
-        if self.date_id is not None:
-            queryset = queryset.filter(date_id=self.date_id)
-
         if self.folder_id is not None:
             queryset = queryset.filter(folder_id=self.folder_id)
 
@@ -63,9 +53,9 @@ class ImageFKFilterSchema(FilterSchema):
 
 
 class ImageM2MFilterSchema(FilterSchema):
-    people_ids: list[int] | None = None
-    pets_ids: list[int] | None = None
-    tags_ids: list[int] | None = None
+    people_ids: list[int] | None = Field(None, description="Filter by Person IDs")
+    pets_ids: list[int] | None = Field(None, description="Filter by Pet IDs")
+    tags_ids: list[int] | None = Field(None, description="Filter by Tag IDs")
 
     def filter_queryset(self, queryset):
         if self.people_ids:
@@ -80,58 +70,12 @@ class ImageM2MFilterSchema(FilterSchema):
         return queryset
 
 
-class RoughDateComparisonFilterSchema(FilterSchema):
-    date_start: date | None = None
-    date_end: date | None = None
-    year_start: int | None = None
-    year_end: int | None = None
-    month_start: int | None = None
-    month_end: int | None = None
-    day_start: int | None = None
-    day_end: int | None = None
-
-    def filter_queryset(self, queryset):
-        filters = Q()
-
-        # Use comparison_date for precise date range filtering
-        if self.date_start is not None:
-            filters &= Q(date__comparison_date__gte=self.date_start)
-        if self.date_end is not None:
-            filters &= Q(date__comparison_date__lte=self.date_end)
-
-        # Individual field filtering for more granular control
-        if self.year_start is not None:
-            filters &= Q(date__year__gte=self.year_start)
-        if self.year_end is not None:
-            filters &= Q(date__year__lte=self.year_end)
-
-        # For month/day, include nulls to match "incomplete" dates
-        if self.month_start is not None:
-            filters &= Q(
-                Q(date__month__gte=self.month_start) | Q(date__month__isnull=True),
-            )
-        if self.month_end is not None:
-            filters &= Q(
-                Q(date__month__lte=self.month_end) | Q(date__month__isnull=True),
-            )
-
-        if self.day_start is not None:
-            filters &= Q(
-                Q(date__day__gte=self.day_start) | Q(date__day__isnull=True),
-            )
-        if self.day_end is not None:
-            filters &= Q(
-                Q(date__day__lte=self.day_end) | Q(date__day__isnull=True),
-            )
-
-        return queryset.filter(filters)
-
-
+# RoughLocation filter schema
 class RoughLocationFilterSchema(FilterSchema):
-    country_code: str | None = None
-    subdivision_code: str | None = None
-    city: str | None = None
-    sub_location: str | None = None
+    country_code: str | None = Field(None, description="Filter by country code (ISO 3166-1 alpha 2)")
+    subdivision_code: str | None = Field(None, description="Filter by state/province code (ISO 3166-2)")
+    city: str | None = Field(None, description="Filter by city name (partial match)")
+    sub_location: str | None = Field(None, description="Filter by sub-location (partial match)")
 
     def filter_queryset(self, queryset):
         if self.country_code is not None:
@@ -147,6 +91,66 @@ class RoughLocationFilterSchema(FilterSchema):
             queryset = queryset.filter(location__sub_location__icontains=self.sub_location)
 
         return queryset
+
+
+class RoughDateComparisonFilterSchema(FilterSchema):
+    date_start: date | None = Field(None, description="Filter images from this date onwards using comparison_date")
+    date_end: date | None = Field(None, description="Filter images up to this date using comparison_date")
+    year_start: int | None = Field(None, description="Filter images from this year onwards")
+    year_end: int | None = Field(None, description="Filter images up to this year")
+    month_start: int | None = Field(
+        None,
+        description="Filter images from this month onwards (1-12, includes null months)",
+    )
+    month_end: int | None = Field(None, description="Filter images up to this month (1-12, includes null months)")
+    day_start: int | None = Field(None, description="Filter images from this day onwards (1-31, includes null days)")
+    day_end: int | None = Field(None, description="Filter images up to this day (1-31, includes null days)")
+
+    @model_validator(mode="after")
+    def validate_date_hierarchy(self):
+        # Day filters require month filters
+        # Month filters require year filters
+        if self.day_start is not None and self.month_start is None:
+            raise ValueError("Starting day filter is missing a starting month")  # noqa: EM101, TRY003
+        if self.month_start is not None and self.year_start is None:
+            raise ValueError("Starting month filter is missing a starting year value")  # noqa: EM101, TRY003
+
+        if self.date_end is not None and self.month_end is None:
+            raise ValueError("Ending day filter is missing an ending month")  # noqa: EM101, TRY003
+        if self.month_end is not None and self.year_end is None:
+            raise ValueError("Ending month filter is missing an ending year value")  # noqa: EM101, TRY003
+        return self
+
+    def filter_queryset(self, queryset):
+        filters = Q()
+
+        # Use comparison_date for precise date range filtering
+        if self.date_start is not None:
+            filters &= Q(comparison_date__gte=self.date_start)
+        if self.date_end is not None:
+            filters &= Q(comparison_date__lte=self.date_end)
+
+        # Individual field filtering for more granular control
+        if self.year_start is not None:
+            filters &= Q(year__gte=self.year_start)
+        if self.year_end is not None:
+            filters &= Q(year__lte=self.year_end)
+
+        # For month/day, include nulls to match "incomplete" dates
+        if self.year_start:
+            filters &= Q(year__gte=self.year_start)
+        if self.year_end:
+            filters &= Q(year__lte=self.year_end)
+        if self.month_start:
+            filters &= Q(month__gte=self.month_start)
+        if self.month_end:
+            filters &= Q(month__lte=self.month_end)
+        if self.day_start:
+            filters &= Q(day__gte=self.day_start)
+        if self.day_end:
+            filters &= Q(day__lte=self.day_end)
+
+        return queryset.filter(filters)
 
 
 class ImageThumbnailSchemaOut(IdMixin, Schema):

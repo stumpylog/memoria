@@ -197,15 +197,18 @@ class RoughDate(AbstractTimestampMixin, models.Model):
     """
 
     year = models.PositiveSmallIntegerField(
+        db_index=True,
         validators=[MinValueValidator(1), MaxValueValidator(9999)],
         help_text=_("The year (always required)"),
     )
     month = models.PositiveSmallIntegerField(
+        db_index=True,
         null=True,
         validators=[MinValueValidator(1), MaxValueValidator(12)],
         help_text=_("The month (1-12, null if unknown)"),
     )
     day = models.PositiveSmallIntegerField(
+        db_index=True,
         null=True,
         validators=[MinValueValidator(1), MaxValueValidator(31)],
         help_text=_("The day (1-31, null if unknown)"),
