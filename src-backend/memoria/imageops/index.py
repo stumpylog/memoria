@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 from typing import cast
 
 from exifmwg import ExifTool
-from filelock import FileLock
 
 from memoria.imageops.metadata import update_image_date_from_keywords
 from memoria.imageops.metadata import update_image_folder_structure
@@ -18,6 +17,7 @@ from memoria.tasks.models import ImageMovedTaskModel
 from memoria.tasks.models import ImageReplaceTaskModel
 from memoria.utils.hashing import calculate_blake3_hash
 from memoria.utils.hashing import calculate_image_phash
+from memoria.utils.locking import file_lock_with_cleanup
 from memoria.utils.photos import generate_image_versions
 
 if TYPE_CHECKING:
@@ -38,7 +38,7 @@ def handle_moved_image(pkg: ImageMovedTaskModel) -> None:
     pkg.logger.info("  Image already indexed")
     pkg.logger.info(f"  Updating path from {image.original_path.resolve()} to {pkg.image_path.resolve()}")
     image.original_path = pkg.image_path.resolve()
-    with FileLock(LOCK_DIR / "metadata.lock"):
+    with file_lock_with_cleanup(LOCK_DIR / "metadata.lock"):
         image.folder = update_image_folder_structure(pkg)
     image.save()
     image.mark_as_clean()
@@ -114,7 +114,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     new_img.save()
 
     pkg.logger.debug("Waiting for new image lock")
-    with FileLock(LOCK_DIR / "metadata.lock"):
+    with file_lock_with_cleanup(LOCK_DIR / "metadata.lock"):
         pkg.logger.debug("new image lock acquired")
         # Parse Faces/pets/regions
         update_image_people_and_pets(pkg, new_img, metadata)
@@ -150,7 +150,7 @@ def handle_replaced_image(pkg: ImageReplaceTaskModel, tool: ExifTool) -> None:
 
     metadata = tool.read_image_metadata(image.original_path)
 
-    with FileLock(LOCK_DIR / "metadata.lock"):
+    with file_lock_with_cleanup(LOCK_DIR / "metadata.lock"):
         image.tags.clear()
         update_image_keyword_tree(pkg, image, metadata)
 
