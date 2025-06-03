@@ -205,26 +205,31 @@ class RoughDate(AbstractTimestampMixin, models.Model):
     # Generated field for comparisons and ordering
     # This creates a date using defaults for missing values
     comparison_date = models.GeneratedField(
-        expression=Coalesce(
+        expression=Cast(
             Concat(
                 models.F("year"),
                 models.Value("-"),
                 LPad(
-                    Cast(Coalesce(models.F("month"), 1), output_field=models.CharField()),
+                    Cast(
+                        Coalesce(models.F("month"), models.Value(1)),
+                        models.CharField(),
+                    ),
                     2,
                     models.Value("0"),
                 ),
                 models.Value("-"),
                 LPad(
-                    Cast(Coalesce(models.F("day"), 1), output_field=models.CharField()),
+                    Cast(
+                        Coalesce(models.F("day"), models.Value(1)),
+                        models.CharField(),
+                    ),
                     2,
                     models.Value("0"),
                 ),
             ),
-            models.Value("1900-01-01"),
-            output_field=models.CharField(),  # Keep as string
+            models.DateField(),
         ),
-        output_field=models.DateField(),  # Django converts string to date
+        output_field=models.DateField(),
         db_persist=True,
     )
 
