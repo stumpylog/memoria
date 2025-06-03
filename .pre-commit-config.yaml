@@ -51,7 +51,7 @@ repos:
           - tsx
           - ts
   - repo: https://github.com/thibaudcolas/pre-commit-stylelint
-    rev: v16.19.1
+    rev: v16.20.0
     hooks:
       - id: stylelint
         args: [--fix]
@@ -64,7 +64,8 @@ repos:
     rev: "v0.11.12"
     hooks:
       # Run the linter.
-      - id: ruff
+      - id: ruff-check
+        args: [--fix]
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/tox-dev/pyproject-fmt

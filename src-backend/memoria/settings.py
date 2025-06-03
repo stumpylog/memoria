@@ -235,13 +235,11 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            # Include more detail like time
-            "format": "{asctime} {levelname} {name} : {message}",
+            "format": "{asctime} {levelname:<8} {name} : {message}",
             "style": "{",
         },
         "simple": {
-            # A concise format
-            "format": "{asctime} {levelname} {name} : {message}",
+            "format": "{asctime} {levelname:<8} {name} : {message}",
             "style": "{",
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },

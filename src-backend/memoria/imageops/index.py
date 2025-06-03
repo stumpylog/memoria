@@ -113,9 +113,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     new_img.large_version_height = file_info.large_img_height
     new_img.save()
 
-    pkg.logger.debug("Waiting for new image lock")
     with file_lock_with_cleanup(LOCK_DIR / "metadata.lock"):
-        pkg.logger.debug("new image lock acquired")
         # Parse Faces/pets/regions
         update_image_people_and_pets(pkg, new_img, metadata)
 
