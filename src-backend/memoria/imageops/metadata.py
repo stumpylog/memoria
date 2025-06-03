@@ -1,3 +1,4 @@
+from datetime import date
 from typing import TYPE_CHECKING
 from typing import Final
 
@@ -430,6 +431,7 @@ def update_image_date_from_keywords(
         year=year,
         month=month,
         day=day,
+        comparison_date=date(year, month or 1, day or 1),
     )
     if created:
         pkg.logger.debug(f"    Created new RoughDate: {rough_date}")

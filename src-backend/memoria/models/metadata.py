@@ -198,16 +198,8 @@ class RoughDate(AbstractTimestampMixin, models.Model):
         help_text=_("The day (1-31, null if unknown)"),
     )
 
-    # Generated field for comparisons and ordering
-    # This creates a date using defaults for missing values
-    comparison_date = models.GeneratedField(
-        expression=models.expressions.RawSQL(
-            "date(printf('%04d-%02d-%02d', year, COALESCE(month, 1), COALESCE(day, 1)))",
-            [],
-        ),
-        output_field=models.DateField(),
-        db_persist=True,
-    )
+    # TODO: I really want this to be a GeneratedField
+    comparison_date = models.DateField(db_index=True)
 
     class Meta:
         ordering: Sequence = ["comparison_date"]
