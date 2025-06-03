@@ -2,7 +2,10 @@ import datetime
 from datetime import date
 from typing import TYPE_CHECKING
 
+from django.db.models import Q
+from django.http import HttpRequest
 from exifmwg.models import RotationEnum
+from ninja import FilterSchema
 from ninja import Schema
 from pydantic import FilePath
 from pydantic import field_serializer
@@ -14,6 +17,136 @@ from memoria.routes.common.schemas import IdMixin
 
 if TYPE_CHECKING:
     from django.http import HttpRequest
+
+
+class ImageBooleanFilterSchema(FilterSchema):
+    is_dirty: bool | None = None
+    is_starred: bool | None = None
+    is_deleted: bool | None = None
+
+    def filter_queryset(self, queryset):
+        if self.is_dirty is not None:
+            queryset = queryset.filter(is_dirty=self.is_dirty)
+
+        if self.is_starred is not None:
+            queryset = queryset.filter(is_starred=self.is_starred)
+
+        if self.is_deleted is not None:
+            if self.is_deleted:
+                queryset = queryset.exclude(deleted_at__isnull=True)
+            else:
+                queryset = queryset.filter(deleted_at__isnull=True)
+
+        return queryset
+
+
+class ImageFKFilterSchema(FilterSchema):
+    source_id: int | None = None
+    location_id: int | None = None
+    date_id: int | None = None
+    folder_id: int | None = None
+
+    def filter_queryset(self, queryset):
+        if self.source_id is not None:
+            queryset = queryset.filter(source_id=self.source_id)
+
+        if self.location_id is not None:
+            queryset = queryset.filter(location_id=self.location_id)
+
+        if self.date_id is not None:
+            queryset = queryset.filter(date_id=self.date_id)
+
+        if self.folder_id is not None:
+            queryset = queryset.filter(folder_id=self.folder_id)
+
+        return queryset
+
+
+class ImageM2MFilterSchema(FilterSchema):
+    people_ids: list[int] | None = None
+    pets_ids: list[int] | None = None
+    tags_ids: list[int] | None = None
+
+    def filter_queryset(self, queryset):
+        if self.people_ids:
+            queryset = queryset.filter(people__id__in=self.people_ids).distinct()
+
+        if self.pets_ids:
+            queryset = queryset.filter(pets__id__in=self.pets_ids).distinct()
+
+        if self.tags_ids:
+            queryset = queryset.filter(tags__id__in=self.tags_ids).distinct()
+
+        return queryset
+
+
+class RoughDateComparisonFilterSchema(FilterSchema):
+    date_start: date | None = None
+    date_end: date | None = None
+    year_start: int | None = None
+    year_end: int | None = None
+    month_start: int | None = None
+    month_end: int | None = None
+    day_start: int | None = None
+    day_end: int | None = None
+
+    def filter_queryset(self, queryset):
+        filters = Q()
+
+        # Use comparison_date for precise date range filtering
+        if self.date_start is not None:
+            filters &= Q(date__comparison_date__gte=self.date_start)
+        if self.date_end is not None:
+            filters &= Q(date__comparison_date__lte=self.date_end)
+
+        # Individual field filtering for more granular control
+        if self.year_start is not None:
+            filters &= Q(date__year__gte=self.year_start)
+        if self.year_end is not None:
+            filters &= Q(date__year__lte=self.year_end)
+
+        # For month/day, include nulls to match "incomplete" dates
+        if self.month_start is not None:
+            filters &= Q(
+                Q(date__month__gte=self.month_start) | Q(date__month__isnull=True),
+            )
+        if self.month_end is not None:
+            filters &= Q(
+                Q(date__month__lte=self.month_end) | Q(date__month__isnull=True),
+            )
+
+        if self.day_start is not None:
+            filters &= Q(
+                Q(date__day__gte=self.day_start) | Q(date__day__isnull=True),
+            )
+        if self.day_end is not None:
+            filters &= Q(
+                Q(date__day__lte=self.day_end) | Q(date__day__isnull=True),
+            )
+
+        return queryset.filter(filters)
+
+
+class RoughLocationFilterSchema(FilterSchema):
+    country_code: str | None = None
+    subdivision_code: str | None = None
+    city: str | None = None
+    sub_location: str | None = None
+
+    def filter_queryset(self, queryset):
+        if self.country_code is not None:
+            queryset = queryset.filter(location__country_code=self.country_code)
+
+        if self.subdivision_code is not None:
+            queryset = queryset.filter(location__subdivision_code=self.subdivision_code)
+
+        if self.city is not None:
+            queryset = queryset.filter(location__city__icontains=self.city)
+
+        if self.sub_location is not None:
+            queryset = queryset.filter(location__sub_location__icontains=self.sub_location)
+
+        return queryset
 
 
 class ImageThumbnailSchemaOut(IdMixin, Schema):

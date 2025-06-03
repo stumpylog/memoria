@@ -1,4 +1,5 @@
 import logging
+from datetime import date
 from http import HTTPStatus
 from typing import cast
 
@@ -11,7 +12,10 @@ from django.db.models import Value
 from django.db.models import When
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
+from ninja import Query
 from ninja import Router
+from ninja.pagination import LimitOffsetPagination
+from ninja.pagination import paginate
 from simpleiso3166 import Country
 from simpleiso3166 import CountryCodeAlpha2Type
 
@@ -20,15 +24,20 @@ from memoria.common.errors import HttpBadRequestError
 from memoria.models import Image
 from memoria.models import RoughDate
 from memoria.models import RoughLocation
+from memoria.routes.images.schemas import ImageBooleanFilterSchema
 from memoria.routes.images.schemas import ImageDateSchemaOut
 from memoria.routes.images.schemas import ImageDateUpdateSchemaIn
+from memoria.routes.images.schemas import ImageFKFilterSchema
 from memoria.routes.images.schemas import ImageLocationSchemaOut
 from memoria.routes.images.schemas import ImageLocationUpdateSchemaIn
+from memoria.routes.images.schemas import ImageM2MFilterSchema
 from memoria.routes.images.schemas import ImageMetadataSchemaOut
 from memoria.routes.images.schemas import ImageMetadataUpdateSchemaIn
 from memoria.routes.images.schemas import ImageThumbnailSchemaOut
 from memoria.routes.images.schemas import PersonInImageSchemaOut
 from memoria.routes.images.schemas import PetInImageSchemaOut
+from memoria.routes.images.schemas import RoughDateComparisonFilterSchema
+from memoria.routes.images.schemas import RoughLocationFilterSchema
 
 router = Router(tags=["images"])
 logger = logging.getLogger(__name__)
@@ -50,6 +59,26 @@ def get_annotated_image_queryset(user: UserModelT):
             ),
         )
     )
+
+
+@router.get("/", response=list[ImageThumbnailSchemaOut], auth=active_user_auth, operation_id="list_images")
+@paginate(LimitOffsetPagination)
+def list_images(
+    request: HttpRequest,
+    boolean_filters: ImageBooleanFilterSchema = Query(...),
+    fk_filters: ImageFKFilterSchema = Query(...),
+    m2m_filters: ImageM2MFilterSchema = Query(...),
+    date_filters: RoughDateComparisonFilterSchema = Query(...),
+    location_filters: RoughLocationFilterSchema = Query(...),
+):
+    qs = Image.objects.permitted(request.user)
+
+    qs = Image.objects.permitted(request.user)
+    qs = boolean_filters.filter_queryset(qs)
+    qs = fk_filters.filter_queryset(qs)
+    qs = m2m_filters.filter_queryset(qs)
+    qs = date_filters.filter_queryset(qs)
+    return location_filters.filter_queryset(qs)
 
 
 @router.get(
@@ -244,9 +273,10 @@ def update_image_location(request: HttpRequest, image_id: int, data: ImageLocati
 def update_image_date(request: HttpRequest, image_id: int, data: ImageDateUpdateSchemaIn):
     img = get_object_or_404(Image.objects.editable_by(request.user), pk=image_id)
     new_date, created = RoughDate.objects.get_or_create(
-        date=data.date,
-        month_valid=data.month_valid,
-        day_valid=data.day_valid,
+        year=data.date.year,
+        month=data.date.month if data.month_valid else None,
+        day=data.date.day if data.day_valid else None,
+        date=date(data.date.year, data.date.month if data.month_valid else 1, data.date.day if data.day_valid else 1),
     )
 
     if created:
