@@ -322,6 +322,6 @@ HUEY = {
         "scheduler_interval": 60,
         "periodic": True,  # Enable crontab feature.
         "check_worker_health": True,  # Enable worker health checks.
-        "health_check_interval": 60,  # Check worker health every second.
+        "health_check_interval": 60,  # Check worker health every minute.
     },
 }

@@ -221,7 +221,11 @@ def update_image_location_from_mwg(
         pkg.logger.info("    No country set, will try keywords")
         return
 
-    country_alpha_2 = get_country_code_from_name(metadata.Country)
+    if "-" in metadata.Country:
+        country_alpha_2, _ = metadata.Country.split("-")
+        country_alpha_2 = country_alpha_2.strip()
+    else:
+        country_alpha_2 = get_country_code_from_name(metadata.Country)
     if not country_alpha_2:
         pkg.logger.warning(f"    No country code found for: {metadata.Country}")
         return
@@ -231,6 +235,7 @@ def update_image_location_from_mwg(
     # Process subdivision (state) if available
     subdivision_code = None
     if metadata.State:
+        # We expect Code - Name, ie: US-HI - Hawaii, even though this isn't quite the standard, which requires just Code
         if "-" in metadata.State:
             subdivision_code, _ = metadata.State.split("-")
             subdivision_code = subdivision_code.strip()

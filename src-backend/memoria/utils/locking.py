@@ -24,6 +24,7 @@ def file_lock_with_cleanup(lock_path: Path, timeout: int | float = 5.0):
 
             # Retry with the same timeout
             with lock.acquire(timeout=timeout):
+                logger.debug(f"Successfully acquired {lock_path} after cleanup")
                 yield
 
         except (OSError, PermissionError) as e:
