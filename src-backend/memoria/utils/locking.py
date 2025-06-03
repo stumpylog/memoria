@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 @contextmanager
-def file_lock_with_cleanup(lock_path: Path, timeout: int | float = 10):
+def file_lock_with_cleanup(lock_path: Path, timeout: int | float = 5.0):
     lock = FileLock(lock_path)
 
     try:
