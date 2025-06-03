@@ -6,10 +6,6 @@ from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
-from django.db.models.functions import Cast
-from django.db.models.functions import Coalesce
-from django.db.models.functions import Concat
-from django.db.models.functions import LPad
 from django.utils.translation import gettext_lazy as _
 from simpleiso3166 import Country
 from treenode.models import TreeNodeModel
@@ -205,29 +201,9 @@ class RoughDate(AbstractTimestampMixin, models.Model):
     # Generated field for comparisons and ordering
     # This creates a date using defaults for missing values
     comparison_date = models.GeneratedField(
-        expression=Cast(
-            Concat(
-                models.F("year"),
-                models.Value("-"),
-                LPad(
-                    Cast(
-                        Coalesce(models.F("month"), models.Value(1)),
-                        models.CharField(),
-                    ),
-                    2,
-                    models.Value("0"),
-                ),
-                models.Value("-"),
-                LPad(
-                    Cast(
-                        Coalesce(models.F("day"), models.Value(1)),
-                        models.CharField(),
-                    ),
-                    2,
-                    models.Value("0"),
-                ),
-            ),
-            models.DateField(),
+        expression=models.expressions.RawSQL(
+            "date(printf('%04d-%02d-%02d', year, COALESCE(month, 1), COALESCE(day, 1)))",
+            [],
         ),
         output_field=models.DateField(),
         db_persist=True,
