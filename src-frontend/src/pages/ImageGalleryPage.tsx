@@ -40,6 +40,7 @@ interface ImageFilterFormInputs {
   year: number | null;
   month: number | null;
   day: number | null;
+  sort_by: "created" | "-created" | "modified" | "-modified" | "pk" | "title" | "-title"; // Added sort_by
 }
 
 // Helper to fetch all paginated data from an API endpoint
@@ -118,6 +119,7 @@ const ImageGalleryPage: React.FC = () => {
       year: searchParams.get("year") ? parseInt(searchParams.get("year")!, 10) : null,
       month: searchParams.get("month") ? parseInt(searchParams.get("month")!, 10) : null,
       day: searchParams.get("day") ? parseInt(searchParams.get("day")!, 10) : null,
+      sort_by: (searchParams.get("sort_by") || "pk") as ImageFilterFormInputs["sort_by"], // Initialize sort_by
     },
   });
 
@@ -132,6 +134,7 @@ const ImageGalleryPage: React.FC = () => {
   const watchedYear = watch("year");
   const watchedMonth = watch("month");
   const watchedDay = watch("day");
+  const watchedSortBy = watch("sort_by"); // Watch sort_by
 
   // For react-select values, watch their 'value' properties directly
   // This helps keep query keys stable and avoids unnecessary re-renders
@@ -264,6 +267,7 @@ const ImageGalleryPage: React.FC = () => {
       watchedYear,
       watchedMonth,
       watchedDay,
+      watchedSortBy, // Add sort_by to queryKey
     ],
     queryFn: async ({ signal }) => {
       const query: {
@@ -282,6 +286,7 @@ const ImageGalleryPage: React.FC = () => {
         year?: number;
         month?: number;
         day?: number;
+        sort_by?: "created" | "-created" | "modified" | "-modified" | "pk" | "title" | "-title"; // Define sort_by type
       } = {
         limit: pageSize,
         offset: offset,
@@ -300,6 +305,7 @@ const ImageGalleryPage: React.FC = () => {
       if (watchedYear !== null) query.year = watchedYear;
       if (watchedMonth !== null) query.month = watchedMonth;
       if (watchedDay !== null) query.day = watchedDay;
+      if (watchedSortBy) query.sort_by = watchedSortBy; // Add sort_by to query
 
       const response = await listImages({ query, throwOnError: true, signal });
       return response.data as PagedImageThumbnailSchemaOut;
@@ -331,6 +337,8 @@ const ImageGalleryPage: React.FC = () => {
     const currentPetsIdsFromUrl = searchParams.getAll("pets_ids").map(Number);
     const currentCountryCodeFromUrl = searchParams.get("country_code");
     const currentSubdivisionCodeFromUrl = searchParams.get("subdivision_code");
+    const currentSortBy = (searchParams.get("sort_by") ||
+      "pk") as ImageFilterFormInputs["sort_by"]; // Read sort_by from URL
 
     const initialPeopleSelections = currentPeopleIdsFromUrl.map((id) => ({
       value: id,
@@ -362,6 +370,7 @@ const ImageGalleryPage: React.FC = () => {
       year: currentYear,
       month: currentMonth,
       day: currentDay,
+      sort_by: currentSortBy, // Set sort_by in reset
     });
   }, [searchParams, reset]);
 
@@ -503,6 +512,7 @@ const ImageGalleryPage: React.FC = () => {
     if (data.year !== null) newParams.set("year", data.year.toString());
     if (data.month !== null) newParams.set("month", data.month.toString());
     if (data.day !== null) newParams.set("day", data.day.toString());
+    if (data.sort_by) newParams.set("sort_by", data.sort_by); // Add sort_by to URL params
 
     newParams.set("page", "1"); // Reset to first page on filter change
     newParams.set("limit", pageSize.toString()); // Ensure limit is always in params
@@ -897,6 +907,29 @@ const ImageGalleryPage: React.FC = () => {
               />
             </Form.Group>
 
+            <hr />
+
+            {/* Sort By Filter */}
+            <Form.Group className="mb-3">
+              <Form.Label>Sort By</Form.Label>
+              <Form.Select
+                {...control.register("sort_by")}
+                value={watchedSortBy}
+                onChange={(e) =>
+                  setValue("sort_by", e.target.value as ImageFilterFormInputs["sort_by"], {
+                    shouldDirty: true,
+                  })
+                }
+              >
+                <option value="pk">Default (ID)</option>
+                <option value="created_at">Created (Ascending)</option>
+                <option value="-created_at">Created (Descending)</option>
+                <option value="updated_at">Modified (Ascending)</option>
+                <option value="-updated_at">Modified (Descending)</option>
+                <option value="title">Title (Ascending)</option>
+                <option value="-title">Title (Descending)</option>
+              </Form.Select>
+            </Form.Group>
             <Button
               variant="outline-secondary"
               className="w-100 mt-2"

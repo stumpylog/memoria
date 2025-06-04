@@ -73,7 +73,7 @@ def list_images(
     date_range_filters: ImageDateFilterSchema = Query(...),
     date_exact_filters: ImageExactDateFilterSchema = Query(...),
     location_filters: ImageLocationFilterSchema = Query(...),
-    sort_by: Literal["created", "-created", "modified", "-modified", "pk", "title", "-title"] = Query(
+    sort_by: Literal["created_at", "-created_at", "updated_at", "-updated_at", "pk", "title", "-title"] = Query(
         "pk",
         description="Field to sort by",
     ),
