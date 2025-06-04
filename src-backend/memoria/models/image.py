@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -221,38 +220,42 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     def __str__(self) -> str:
         return f"Image {self.original_path.name}"
 
-    @cached_property
+    @property
     def original_path(self) -> Path:
         return Path(self.original).resolve()
 
-    @cached_property
+    @original_path.setter
+    def original_path(self, value: Path) -> None:
+        self.original = str(value.resolve())
+
+    @property
     def thumbnail_path(self) -> Path:
         if TYPE_CHECKING:
             assert hasattr(settings, "THUMBNAIL_DIR")
             assert isinstance(settings.THUMBNAIL_DIR, Path)
         return (settings.THUMBNAIL_DIR / self.image_fs_id).with_suffix(".webp").resolve()
 
-    @cached_property
+    @property
     def thumbnail_url(self) -> str | None:
         """
         Constructs the full URL for the thumbnail.
         """
         return settings.MEDIA_URL + self.thumbnail_path.relative_to(settings.MEDIA_ROOT).as_posix()
 
-    @cached_property
+    @property
     def full_size_path(self) -> Path:
         if TYPE_CHECKING:
             assert isinstance(settings.LARGE_SIZE_DIR, Path)
         return (settings.LARGE_SIZE_DIR / self.image_fs_id).with_suffix(".webp").resolve()
 
-    @cached_property
+    @property
     def larger_size_url(self) -> str | None:
         """
         Constructs the full URL for the full size image.
         """
         return settings.MEDIA_URL + self.full_size_path.relative_to(settings.MEDIA_ROOT).as_posix()
 
-    @cached_property
+    @property
     def image_fs_id(self) -> str:
         return f"{self.pk:010}"
 
