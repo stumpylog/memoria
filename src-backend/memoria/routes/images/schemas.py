@@ -202,8 +202,20 @@ class ImageThumbnailSchemaOut(IdMixin, Schema):
 
 class ImageDateSchemaOut(Schema):
     date: date
+    year: int
+    month: int | None = None
+    day: int | None = None
+
     month_valid: bool
     day_valid: bool
+
+    @classmethod
+    def resolve_month_valid(cls, obj) -> bool:
+        return obj.month is not None
+
+    @classmethod
+    def resolve_day_valid(cls, obj) -> bool:
+        return obj.day is not None
 
 
 class ImageDateUpdateSchemaIn(Schema):

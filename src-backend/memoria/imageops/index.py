@@ -69,8 +69,8 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
 
     metadata = tool.read_image_metadata(pkg.image_path)
 
-    # TODO: This could run into race conditions as well
-    containing_folder = update_image_folder_structure(pkg)
+    with file_lock_with_cleanup(LOCK_DIR / "metadata.lock"):
+        containing_folder = update_image_folder_structure(pkg)
 
     new_img: ImageModel = ImageModel.objects.create(
         file_size=pkg.image_path.stat().st_size,
