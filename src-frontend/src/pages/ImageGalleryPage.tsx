@@ -40,7 +40,8 @@ interface ImageFilterFormInputs {
   year: number | null;
   month: number | null;
   day: number | null;
-  sort_by: "created" | "-created" | "modified" | "-modified" | "pk" | "title" | "-title"; // Added sort_by
+  sort_by: "created_at" | "-created_at" | "updated_at" | "-updated_at" | "pk" | "title" | "-title";
+  require_all: boolean;
 }
 
 // Helper to fetch all paginated data from an API endpoint
@@ -119,7 +120,8 @@ const ImageGalleryPage: React.FC = () => {
       year: searchParams.get("year") ? parseInt(searchParams.get("year")!, 10) : null,
       month: searchParams.get("month") ? parseInt(searchParams.get("month")!, 10) : null,
       day: searchParams.get("day") ? parseInt(searchParams.get("day")!, 10) : null,
-      sort_by: (searchParams.get("sort_by") || "pk") as ImageFilterFormInputs["sort_by"], // Initialize sort_by
+      sort_by: (searchParams.get("sort_by") || "pk") as ImageFilterFormInputs["sort_by"],
+      require_all: searchParams.get("require_all") === "true", // Add this line
     },
   });
 
@@ -134,7 +136,8 @@ const ImageGalleryPage: React.FC = () => {
   const watchedYear = watch("year");
   const watchedMonth = watch("month");
   const watchedDay = watch("day");
-  const watchedSortBy = watch("sort_by"); // Watch sort_by
+  const watchedSortBy = watch("sort_by");
+  const watchedRequireAll = watch("require_all");
 
   // For react-select values, watch their 'value' properties directly
   // This helps keep query keys stable and avoids unnecessary re-renders
@@ -267,7 +270,8 @@ const ImageGalleryPage: React.FC = () => {
       watchedYear,
       watchedMonth,
       watchedDay,
-      watchedSortBy, // Add sort_by to queryKey
+      watchedSortBy,
+      watchedRequireAll, // Add this line
     ],
     queryFn: async ({ signal }) => {
       const query: {
@@ -286,7 +290,15 @@ const ImageGalleryPage: React.FC = () => {
         year?: number;
         month?: number;
         day?: number;
-        sort_by?: "created" | "-created" | "modified" | "-modified" | "pk" | "title" | "-title"; // Define sort_by type
+        sort_by?:
+          | "created_at"
+          | "-created_at"
+          | "updated_at"
+          | "-updated_at"
+          | "pk"
+          | "title"
+          | "-title";
+        require_all?: boolean; // Add this line
       } = {
         limit: pageSize,
         offset: offset,
@@ -305,7 +317,8 @@ const ImageGalleryPage: React.FC = () => {
       if (watchedYear !== null) query.year = watchedYear;
       if (watchedMonth !== null) query.month = watchedMonth;
       if (watchedDay !== null) query.day = watchedDay;
-      if (watchedSortBy) query.sort_by = watchedSortBy; // Add sort_by to query
+      if (watchedSortBy) query.sort_by = watchedSortBy;
+      if (watchedRequireAll) query.require_all = watchedRequireAll;
 
       const response = await listImages({ query, throwOnError: true, signal });
       return response.data as PagedImageThumbnailSchemaOut;
@@ -338,7 +351,8 @@ const ImageGalleryPage: React.FC = () => {
     const currentCountryCodeFromUrl = searchParams.get("country_code");
     const currentSubdivisionCodeFromUrl = searchParams.get("subdivision_code");
     const currentSortBy = (searchParams.get("sort_by") ||
-      "pk") as ImageFilterFormInputs["sort_by"]; // Read sort_by from URL
+      "pk") as ImageFilterFormInputs["sort_by"];
+    const currentRequireAll = searchParams.get("require_all") === "true";
 
     const initialPeopleSelections = currentPeopleIdsFromUrl.map((id) => ({
       value: id,
@@ -370,7 +384,8 @@ const ImageGalleryPage: React.FC = () => {
       year: currentYear,
       month: currentMonth,
       day: currentDay,
-      sort_by: currentSortBy, // Set sort_by in reset
+      sort_by: currentSortBy,
+      require_all: currentRequireAll,
     });
   }, [searchParams, reset]);
 
@@ -512,10 +527,11 @@ const ImageGalleryPage: React.FC = () => {
     if (data.year !== null) newParams.set("year", data.year.toString());
     if (data.month !== null) newParams.set("month", data.month.toString());
     if (data.day !== null) newParams.set("day", data.day.toString());
-    if (data.sort_by) newParams.set("sort_by", data.sort_by); // Add sort_by to URL params
+    if (data.sort_by) newParams.set("sort_by", data.sort_by);
+    if (data.require_all) newParams.set("require_all", "true"); // Add this line
 
-    newParams.set("page", "1"); // Reset to first page on filter change
-    newParams.set("limit", pageSize.toString()); // Ensure limit is always in params
+    newParams.set("page", "1");
+    newParams.set("limit", pageSize.toString());
 
     setSearchParams(newParams);
   };
@@ -671,6 +687,16 @@ const ImageGalleryPage: React.FC = () => {
                     }}
                   />
                 )}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                id="requireAll"
+                label="Require ALL selected people/pets to appear"
+                {...control.register("require_all")}
+                checked={watchedRequireAll}
+                onChange={(e) => setValue("require_all", e.target.checked, { shouldDirty: true })}
               />
             </Form.Group>
 

@@ -43,11 +43,11 @@ const NavigationBar: React.FC = () => {
                 <Nav.Link as={Link} to="/people">
                   <i className="bi bi-people-fill me-1"></i> People
                 </Nav.Link>
-                <Nav.Link as={Link} to="/albums">
-                  <i className="bi bi-border-all me-1"></i> Albums
-                </Nav.Link>
                 <Nav.Link as={Link} to="/pets">
                   <i className="bi bi-heart me-1"></i> Pets
+                </Nav.Link>
+                <Nav.Link as={Link} to="/albums">
+                  <i className="bi bi-border-all me-1"></i> Albums
                 </Nav.Link>
               </>
             )}

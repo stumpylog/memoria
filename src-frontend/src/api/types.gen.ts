@@ -621,6 +621,21 @@ export type ImageLocationUpdateSchemaIn = {
  */
 export type ImageM2mFilterSchema = {
   /**
+   * Exclude People Ids
+   * Exclude images with these Person IDs
+   */
+  exclude_people_ids?: Array<number> | null;
+  /**
+   * Exclude Pets Ids
+   * Exclude images with these Pet IDs
+   */
+  exclude_pets_ids?: Array<number> | null;
+  /**
+   * Exclude Tags Ids
+   * Exclude images with these Tag IDs
+   */
+  exclude_tags_ids?: Array<number> | null;
+  /**
    * People Ids
    * Filter by Person IDs
    */
@@ -630,6 +645,11 @@ export type ImageM2mFilterSchema = {
    * Filter by Pet IDs
    */
   pets_ids?: Array<number> | null;
+  /**
+   * Require All
+   * Require ALL specified IDs to be present (AND logic)
+   */
+  require_all?: boolean;
   /**
    * Tags Ids
    * Filter by Tag IDs
@@ -2396,6 +2416,26 @@ export type ListImagesData = {
      */
     tags_ids?: Array<number> | null;
     /**
+     * Exclude People Ids
+     * Exclude images with these Person IDs
+     */
+    exclude_people_ids?: Array<number> | null;
+    /**
+     * Exclude Pets Ids
+     * Exclude images with these Pet IDs
+     */
+    exclude_pets_ids?: Array<number> | null;
+    /**
+     * Exclude Tags Ids
+     * Exclude images with these Tag IDs
+     */
+    exclude_tags_ids?: Array<number> | null;
+    /**
+     * Require All
+     * Require ALL specified IDs to be present (AND logic)
+     */
+    require_all?: boolean;
+    /**
      * Date Start
      * Filter images from this date onwards using comparison_date
      */
@@ -2474,7 +2514,14 @@ export type ListImagesData = {
      * Sort By
      * Field to sort by
      */
-    sort_by?: "created" | "-created" | "modified" | "-modified" | "pk" | "title" | "-title";
+    sort_by?:
+      | "created_at"
+      | "-created_at"
+      | "updated_at"
+      | "-updated_at"
+      | "pk"
+      | "title"
+      | "-title";
     /**
      * Limit
      */

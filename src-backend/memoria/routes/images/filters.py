@@ -44,18 +44,43 @@ class ImageM2MFilterSchema(FilterSchema):
     people_ids: list[int] | None = Field(None, description="Filter by Person IDs")
     pets_ids: list[int] | None = Field(None, description="Filter by Pet IDs")
     tags_ids: list[int] | None = Field(None, description="Filter by Tag IDs")
+    exclude_people_ids: list[int] | None = Field(None, description="Exclude images with these Person IDs")
+    exclude_pets_ids: list[int] | None = Field(None, description="Exclude images with these Pet IDs")
+    exclude_tags_ids: list[int] | None = Field(None, description="Exclude images with these Tag IDs")
+    require_all: bool = Field(False, description="Require ALL specified IDs to be present (AND logic)")
 
     def filter_queryset(self, queryset):
-        if self.people_ids:
-            queryset = queryset.filter(people__id__in=self.people_ids).distinct()
+        if self.require_all:
+            # AND logic: images must have ALL specified items
+            if self.people_ids:
+                for person_id in self.people_ids:
+                    queryset = queryset.filter(people__id=person_id)
 
-        if self.pets_ids:
-            queryset = queryset.filter(pets__id__in=self.pets_ids).distinct()
+            if self.pets_ids:
+                for pet_id in self.pets_ids:
+                    queryset = queryset.filter(pets__id=pet_id)
 
-        if self.tags_ids:
-            queryset = queryset.filter(tags__id__in=self.tags_ids).distinct()
+            if self.tags_ids:
+                for tag_id in self.tags_ids:
+                    queryset = queryset.filter(tags__id=tag_id)
+        else:
+            # OR logic: original behavior - images with ANY specified items
+            if self.people_ids:
+                queryset = queryset.filter(people__id__in=self.people_ids).distinct()
+            if self.pets_ids:
+                queryset = queryset.filter(pets__id__in=self.pets_ids).distinct()
+            if self.tags_ids:
+                queryset = queryset.filter(tags__id__in=self.tags_ids).distinct()
 
-        return queryset
+        # Exclusion filters (always applied)
+        if self.exclude_people_ids:
+            queryset = queryset.exclude(people__id__in=self.exclude_people_ids)
+        if self.exclude_pets_ids:
+            queryset = queryset.exclude(pets__id__in=self.exclude_pets_ids)
+        if self.exclude_tags_ids:
+            queryset = queryset.exclude(tags__id__in=self.exclude_tags_ids)
+
+        return queryset.distinct()
 
 
 class ImageLocationFilterSchema(FilterSchema):

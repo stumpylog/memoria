@@ -30,6 +30,9 @@ const HomePage: React.FC = () => {
                 This is your dashboard. Navigate using the links above.
                 <br />
                 <br />
+                <strong>Gallery</strong> shows all the images in the system, with options to filter
+                them.
+                <br />
                 <strong>Folders</strong> show the folders scans were stored in when they were
                 index. Browse them like a file system.
                 <br />

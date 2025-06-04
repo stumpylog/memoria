@@ -998,6 +998,51 @@
       },
       "ImageM2MFilterSchema": {
         "properties": {
+          "exclude_people_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Exclude images with these Person IDs",
+            "title": "Exclude People Ids"
+          },
+          "exclude_pets_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Exclude images with these Pet IDs",
+            "title": "Exclude Pets Ids"
+          },
+          "exclude_tags_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Exclude images with these Tag IDs",
+            "title": "Exclude Tags Ids"
+          },
           "people_ids": {
             "anyOf": [
               {
@@ -1027,6 +1072,12 @@
             ],
             "description": "Filter by Pet IDs",
             "title": "Pets Ids"
+          },
+          "require_all": {
+            "default": false,
+            "description": "Require ALL specified IDs to be present (AND logic)",
+            "title": "Require All",
+            "type": "boolean"
           },
           "tags_ids": {
             "anyOf": [
@@ -3693,6 +3744,81 @@
             }
           },
           {
+            "description": "Exclude images with these Person IDs",
+            "in": "query",
+            "name": "exclude_people_ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exclude images with these Person IDs",
+              "title": "Exclude People Ids"
+            }
+          },
+          {
+            "description": "Exclude images with these Pet IDs",
+            "in": "query",
+            "name": "exclude_pets_ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exclude images with these Pet IDs",
+              "title": "Exclude Pets Ids"
+            }
+          },
+          {
+            "description": "Exclude images with these Tag IDs",
+            "in": "query",
+            "name": "exclude_tags_ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exclude images with these Tag IDs",
+              "title": "Exclude Tags Ids"
+            }
+          },
+          {
+            "description": "Require ALL specified IDs to be present (AND logic)",
+            "in": "query",
+            "name": "require_all",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Require ALL specified IDs to be present (AND logic)",
+              "title": "Require All",
+              "type": "boolean"
+            }
+          },
+          {
             "description": "Filter images from this date onwards using comparison_date",
             "in": "query",
             "name": "date_start",
@@ -3976,7 +4102,15 @@
             "schema": {
               "default": "pk",
               "description": "Field to sort by",
-              "enum": ["created", "-created", "modified", "-modified", "pk", "title", "-title"],
+              "enum": [
+                "created_at",
+                "-created_at",
+                "updated_at",
+                "-updated_at",
+                "pk",
+                "title",
+                "-title"
+              ],
               "title": "Sort By",
               "type": "string"
             }
