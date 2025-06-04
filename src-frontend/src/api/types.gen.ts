@@ -377,21 +377,100 @@ export type GroupUpdateInSchema = {
 };
 
 /**
+ * ImageBooleanFilterSchema
+ */
+export type ImageBooleanFilterSchema = {
+  /**
+   * Is Deleted
+   * Filter by deletion status
+   */
+  is_deleted?: boolean | null;
+  /**
+   * Is Dirty
+   * Filter by dirty status
+   */
+  is_dirty?: boolean | null;
+  /**
+   * Is Starred
+   * Filter by starred status
+   */
+  is_starred?: boolean | null;
+};
+
+/**
+ * ImageDateFilterSchema
+ */
+export type ImageDateFilterSchema = {
+  /**
+   * Date End
+   * Filter images up to this date using comparison_date
+   */
+  date_end?: string | null;
+  /**
+   * Date Start
+   * Filter images from this date onwards using comparison_date
+   */
+  date_start?: string | null;
+  /**
+   * Day End
+   * Filter images up to this day (1-31, includes null days)
+   */
+  day_end?: number | null;
+  /**
+   * Day Start
+   * Filter images from this day onwards (1-31, includes null days)
+   */
+  day_start?: number | null;
+  /**
+   * Month End
+   * Filter images up to this month (1-12, includes null months)
+   */
+  month_end?: number | null;
+  /**
+   * Month Start
+   * Filter images from this month onwards (1-12, includes null months)
+   */
+  month_start?: number | null;
+  /**
+   * Year End
+   * Filter images up to this year
+   */
+  year_end?: number | null;
+  /**
+   * Year Start
+   * Filter images from this year onwards
+   */
+  year_start?: number | null;
+};
+
+/**
  * ImageDateSchemaOut
  */
 export type ImageDateSchemaOut = {
   /**
-   * Date
+   * Comparison Date
    */
-  date: string;
+  comparison_date: string;
+  /**
+   * Day
+   */
+  day?: number | null;
   /**
    * Day Valid
    */
-  day_valid: boolean;
+  day_valid?: boolean;
+  /**
+   * Month
+   */
+  month?: number | null;
   /**
    * Month Valid
    */
-  month_valid: boolean;
+  month_valid?: boolean;
+  /**
+   * Year
+   */
+  year: number;
 };
 
 /**
@@ -413,6 +492,39 @@ export type ImageDateUpdateSchemaIn = {
 };
 
 /**
+ * ImageExactDateFilterSchema
+ * Exact matching for specific year/month/day combinations
+ */
+export type ImageExactDateFilterSchema = {
+  /**
+   * Day
+   * Filter images from this exact day (1-31)
+   */
+  day?: number | null;
+  /**
+   * Month
+   * Filter images from this exact month (1-12)
+   */
+  month?: number | null;
+  /**
+   * Year
+   * Filter images from this exact year
+   */
+  year?: number | null;
+};
+
+/**
+ * ImageFKFilterSchema
+ */
+export type ImageFkFilterSchema = {
+  /**
+   * Folder Id
+   * Filter by ImageFolder ID
+   */
+  folder_id?: number | null;
+};
+
+/**
  * ImageFolderSchemaOut
  */
 export type ImageFolderSchemaOut = {
@@ -424,6 +536,32 @@ export type ImageFolderSchemaOut = {
    * Name
    */
   name: string;
+};
+
+/**
+ * ImageLocationFilterSchema
+ */
+export type ImageLocationFilterSchema = {
+  /**
+   * City
+   * Filter by city name (partial match)
+   */
+  city?: string | null;
+  /**
+   * Country Code
+   * Filter by country code (ISO 3166-1 alpha 2)
+   */
+  country_code?: string | null;
+  /**
+   * Sub Location
+   * Filter by sub-location (partial match)
+   */
+  sub_location?: string | null;
+  /**
+   * Subdivision Code
+   * Filter by state/province code (ISO 3166-2)
+   */
+  subdivision_code?: string | null;
 };
 
 /**
@@ -476,6 +614,27 @@ export type ImageLocationUpdateSchemaIn = {
    * Subdivision Code
    */
   subdivision_code: string | null;
+};
+
+/**
+ * ImageM2MFilterSchema
+ */
+export type ImageM2mFilterSchema = {
+  /**
+   * People Ids
+   * Filter by Person IDs
+   */
+  people_ids?: Array<number> | null;
+  /**
+   * Pets Ids
+   * Filter by Pet IDs
+   */
+  pets_ids?: Array<number> | null;
+  /**
+   * Tags Ids
+   * Filter by Tag IDs
+   */
+  tags_ids?: Array<number> | null;
 };
 
 /**
@@ -659,6 +818,20 @@ export type PagedAlbumBasicReadOutSchema = {
    * Items
    */
   items: Array<AlbumBasicReadOutSchema>;
+};
+
+/**
+ * PagedImageThumbnailSchemaOut
+ */
+export type PagedImageThumbnailSchemaOut = {
+  /**
+   * Count
+   */
+  count: number;
+  /**
+   * Items
+   */
+  items: Array<ImageThumbnailSchemaOut>;
 };
 
 /**
@@ -2024,6 +2197,23 @@ export type FolderListRootsResponses = {
 
 export type FolderListRootsResponse = FolderListRootsResponses[keyof FolderListRootsResponses];
 
+export type ListAllFoldersData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/folder/all/";
+};
+
+export type ListAllFoldersResponses = {
+  /**
+   * Response
+   * OK
+   */
+  200: Array<RootFolderSchemaOut>;
+};
+
+export type ListAllFoldersResponse = ListAllFoldersResponses[keyof ListAllFoldersResponses];
+
 export type FolderGetDetailsData = {
   body?: never;
   path: {
@@ -2165,6 +2355,146 @@ export type UpdateGroupResponses = {
 };
 
 export type UpdateGroupResponse = UpdateGroupResponses[keyof UpdateGroupResponses];
+
+export type ListImagesData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Is Dirty
+     * Filter by dirty status
+     */
+    is_dirty?: boolean | null;
+    /**
+     * Is Starred
+     * Filter by starred status
+     */
+    is_starred?: boolean | null;
+    /**
+     * Is Deleted
+     * Filter by deletion status
+     */
+    is_deleted?: boolean | null;
+    /**
+     * Folder Id
+     * Filter by ImageFolder ID
+     */
+    folder_id?: number | null;
+    /**
+     * People Ids
+     * Filter by Person IDs
+     */
+    people_ids?: Array<number> | null;
+    /**
+     * Pets Ids
+     * Filter by Pet IDs
+     */
+    pets_ids?: Array<number> | null;
+    /**
+     * Tags Ids
+     * Filter by Tag IDs
+     */
+    tags_ids?: Array<number> | null;
+    /**
+     * Date Start
+     * Filter images from this date onwards using comparison_date
+     */
+    date_start?: string | null;
+    /**
+     * Date End
+     * Filter images up to this date using comparison_date
+     */
+    date_end?: string | null;
+    /**
+     * Year Start
+     * Filter images from this year onwards
+     */
+    year_start?: number | null;
+    /**
+     * Year End
+     * Filter images up to this year
+     */
+    year_end?: number | null;
+    /**
+     * Month Start
+     * Filter images from this month onwards (1-12, includes null months)
+     */
+    month_start?: number | null;
+    /**
+     * Month End
+     * Filter images up to this month (1-12, includes null months)
+     */
+    month_end?: number | null;
+    /**
+     * Day Start
+     * Filter images from this day onwards (1-31, includes null days)
+     */
+    day_start?: number | null;
+    /**
+     * Day End
+     * Filter images up to this day (1-31, includes null days)
+     */
+    day_end?: number | null;
+    /**
+     * Year
+     * Filter images from this exact year
+     */
+    year?: number | null;
+    /**
+     * Month
+     * Filter images from this exact month (1-12)
+     */
+    month?: number | null;
+    /**
+     * Day
+     * Filter images from this exact day (1-31)
+     */
+    day?: number | null;
+    /**
+     * Country Code
+     * Filter by country code (ISO 3166-1 alpha 2)
+     */
+    country_code?: string | null;
+    /**
+     * Subdivision Code
+     * Filter by state/province code (ISO 3166-2)
+     */
+    subdivision_code?: string | null;
+    /**
+     * City
+     * Filter by city name (partial match)
+     */
+    city?: string | null;
+    /**
+     * Sub Location
+     * Filter by sub-location (partial match)
+     */
+    sub_location?: string | null;
+    /**
+     * Sort By
+     * Field to sort by
+     */
+    sort_by?: "created" | "-created" | "modified" | "-modified" | "pk" | "title" | "-title";
+    /**
+     * Limit
+     */
+    limit?: number;
+    /**
+     * Offset
+     */
+    offset?: number;
+  };
+  url: "/api/image/";
+};
+
+export type ListImagesResponses = {
+  /**
+   * OK
+   */
+  200: PagedImageThumbnailSchemaOut;
+};
+
+export type ListImagesResponse = ListImagesResponses[keyof ListImagesResponses];
 
 export type ImageGetThumbnailsBulkInfoData = {
   /**
@@ -2437,7 +2767,7 @@ export type ImageGetThumbInfoResponses = {
 export type ImageGetThumbInfoResponse =
   ImageGetThumbInfoResponses[keyof ImageGetThumbInfoResponses];
 
-export type LocationGetCitiesData = {
+export type ListPossibleCountryCitiesData = {
   body?: never;
   path?: never;
   query: {
@@ -2453,7 +2783,7 @@ export type LocationGetCitiesData = {
   url: "/api/location/cities/";
 };
 
-export type LocationGetCitiesResponses = {
+export type ListPossibleCountryCitiesResponses = {
   /**
    * Response
    * OK
@@ -2461,17 +2791,17 @@ export type LocationGetCitiesResponses = {
   200: Array<string>;
 };
 
-export type LocationGetCitiesResponse =
-  LocationGetCitiesResponses[keyof LocationGetCitiesResponses];
+export type ListPossibleCountryCitiesResponse =
+  ListPossibleCountryCitiesResponses[keyof ListPossibleCountryCitiesResponses];
 
-export type LocationGetCountriesData = {
+export type ListCountriesData = {
   body?: never;
   path?: never;
   query?: never;
   url: "/api/location/countries/";
 };
 
-export type LocationGetCountriesResponses = {
+export type ListCountriesResponses = {
   /**
    * Response
    * OK
@@ -2479,10 +2809,27 @@ export type LocationGetCountriesResponses = {
   200: Array<CountryListItemSchemaOut>;
 };
 
-export type LocationGetCountriesResponse =
-  LocationGetCountriesResponses[keyof LocationGetCountriesResponses];
+export type ListCountriesResponse = ListCountriesResponses[keyof ListCountriesResponses];
 
-export type LocationGetSubdivisionsData = {
+export type ListAllWorldCountriesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/location/countries/all/";
+};
+
+export type ListAllWorldCountriesResponses = {
+  /**
+   * Response
+   * OK
+   */
+  200: Array<CountryListItemSchemaOut>;
+};
+
+export type ListAllWorldCountriesResponse =
+  ListAllWorldCountriesResponses[keyof ListAllWorldCountriesResponses];
+
+export type ListSubdivisionsData = {
   body?: never;
   path?: never;
   query: {
@@ -2494,7 +2841,7 @@ export type LocationGetSubdivisionsData = {
   url: "/api/location/subdivisions/";
 };
 
-export type LocationGetSubdivisionsResponses = {
+export type ListSubdivisionsResponses = {
   /**
    * Response
    * OK
@@ -2502,8 +2849,30 @@ export type LocationGetSubdivisionsResponses = {
   200: Array<SubdivisionListItemSchemaOut>;
 };
 
-export type LocationGetSubdivisionsResponse =
-  LocationGetSubdivisionsResponses[keyof LocationGetSubdivisionsResponses];
+export type ListSubdivisionsResponse = ListSubdivisionsResponses[keyof ListSubdivisionsResponses];
+
+export type ListAllCountrySubdivisionsData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Country Code
+     */
+    country_code: string;
+  };
+  url: "/api/location/subdivisions/all/";
+};
+
+export type ListAllCountrySubdivisionsResponses = {
+  /**
+   * Response
+   * OK
+   */
+  200: Array<SubdivisionListItemSchemaOut>;
+};
+
+export type ListAllCountrySubdivisionsResponse =
+  ListAllCountrySubdivisionsResponses[keyof ListAllCountrySubdivisionsResponses];
 
 export type LocationGetSubLocationsData = {
   body?: never;

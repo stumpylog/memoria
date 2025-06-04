@@ -9,7 +9,7 @@ vars:
 
 includes:
   backend: ./src-backend
-  frontend: ./src-frontend
+  src-frontend: ./src-frontend
   docs: ./src-docs
 
 tasks:
@@ -41,18 +41,18 @@ tasks:
     cmds:
       - task: backend:deps:install
       - task: docs:deps:install
-      - task: frontend:deps:install
+      - task: src-frontend:deps:install
       - echo "All dependencies installed."
 
   # -----------------------------------------------------------
   # Development Commands
   # -----------------------------------------------------------
   dev:
-    desc: Starts all development servers (backend, frontend, docs).
+    desc: Starts all development servers (backend, src-frontend, docs).
     cmds:
       - echo "Starting dev servers..."
       - task: backend:dev &
-      - task: frontend:dev &
+      - task: src-frontend:dev &
       - task: docs:dev &
       - wait # Wait for all background tasks to complete (or use Ctrl+C to stop)
 
@@ -60,11 +60,11 @@ tasks:
   # Build Commands
   # -----------------------------------------------------------
   build:
-    desc: Builds all project artifacts (backend, frontend, docs).
+    desc: Builds all project artifacts (backend, src-frontend, docs).
     cmds:
       - task: version:sync # Ensure versions are synced before building
       - task: backend:build
-      - task: frontend:build
+      - task: src-frontend:build
       - task: docs:build
       - echo "All projects built."
 
@@ -77,10 +77,10 @@ tasks:
       - task: backend:test
 
   lint:
-    desc: Runs all linting checks across the backend and frontend.
+    desc: Runs all linting checks across the backend and src-frontend.
     cmds:
       - task: backend:lint
-      - task: frontend:lint
+      - task: src-frontend:lint
 
   # -----------------------------------------------------------
   # Cleanup
@@ -89,7 +89,7 @@ tasks:
     desc: Cleans build artifacts and caches from all projects.
     cmds:
       - task: backend:clean
-      - task: frontend:clean
+      - task: src-frontend:clean
       - task: docs:clean
       - echo "All projects cleaned."
 
@@ -97,11 +97,11 @@ tasks:
   # API Client Generation Workflow
   # -----------------------------------------------------------
   api:update-client:
-    desc: Exports backend OpenAPI schema and generates frontend API client.
+    desc: Exports backend OpenAPI schema and generates src-frontend API client.
     cmds:
       - task: backend:api:export-schema
-      - task: frontend:api:generate-client
+      - task: src-frontend:api:generate-client
 
   repomix:
     cmds:
-      - repomix --style markdown --remove-comments --ignore frontend/.prettierignore,frontend/.stylelintignore,frontend/eslint.config.js,frontend/index.html,frontend/openapi-ts.config.ts,frontend/pnpm-workspace.yaml,frontend/README.md,frontend/vite.config.ts,frontend/tsconfig.app.json,frontend/tsconfig.json,frontend/tsconfig.node.json,frontend/public/,docker/,frontend/.env,frontend/.gitignore,memoria/migrations/,api-spec.json,docs/ --remove-empty-lines .
+      - repomix --style markdown --remove-comments --ignore src-frontend/.prettierignore,src-frontend/.stylelintignore,src-frontend/eslint.config.js,src-frontend/index.html,src-frontend/openapi-ts.config.ts,src-frontend/pnpm-workspace.yaml,src-frontend/README.md,src-frontend/vite.config.ts,src-frontend/tsconfig.app.json,src-frontend/tsconfig.json,src-frontend/tsconfig.node.json,src-frontend/public/,docker/,src-frontend/.env,src-frontend/.gitignore,src-backend/memoria/migrations/,api-spec.json,docs/ --remove-empty-lines .

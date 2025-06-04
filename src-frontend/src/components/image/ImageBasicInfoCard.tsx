@@ -25,28 +25,28 @@ interface ImageBasicInfoCardProps {
 }
 
 const formatImageDate = (dateInfo: ImageDateSchemaOut): React.ReactNode => {
-  if (!dateInfo.date) return <span className="fst-italic">Not available</span>;
+  if (!dateInfo.comparison_date) return <span className="fst-italic">Not available</span>;
 
   try {
     // Parse the original date
-    const dateParts = dateInfo.date.split("-");
-    if (dateParts.length !== 3) return dateInfo.date;
+    const dateParts = dateInfo.comparison_date.split("-");
+    if (dateParts.length !== 3) return dateInfo.comparison_date;
 
     let [year, month, day] = dateParts;
 
     // Replace month with XX if invalid
     if (!dateInfo.month_valid) {
-      month = "XX";
+      month = "MM";
     }
 
     // Replace day with YY if invalid
     if (!dateInfo.day_valid) {
-      day = "YY";
+      day = "DD";
     }
 
     return `${year}-${month}-${day}`;
   } catch (e) {
-    return dateInfo.date;
+    return dateInfo.comparison_date;
   }
 };
 

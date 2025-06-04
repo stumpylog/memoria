@@ -18,6 +18,7 @@ from memoria.models import Image as ImageModel
 from memoria.tasks.models import ImageIndexTaskModel
 from memoria.tasks.models import ImageMovedTaskModel
 from memoria.tasks.models import ImageReplaceTaskModel
+from memoria.utils.constants import BATCH_SIZE
 from memoria.utils.constants import EXIF_TOOL_EXE
 from memoria.utils.hashing import calculate_blake3_hash
 
@@ -50,12 +51,15 @@ def sync_metadata_to_files(images: list[ImageModel]) -> None:
             logger.exception(f"Failed to process metadata for image {image.original_path}")
 
     if metadata_items:
-        with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool:
-            tool.bulk_write_image_metadata(metadata_items)
-        for image in images:
-            image.original_checksum = calculate_blake3_hash(image.original_path, hash_threads=8)
-            image.save()
-            image.mark_as_clean()
+        with transaction.atomic():
+            with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool:
+                for idx in range(0, len(metadata_items), BATCH_SIZE):
+                    batch = metadata_items[idx : idx + BATCH_SIZE]
+                    tool.bulk_write_image_metadata(batch)
+            for image in images:
+                image.original_checksum = calculate_blake3_hash(image.original_path, hash_threads=8)
+                image.save()
+                image.mark_as_clean()
 
 
 @db_task()

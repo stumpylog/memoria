@@ -14,30 +14,30 @@ interface DateEditModalProps {
   onHide: () => void;
   imageId: number;
   currentDate: ImageDateSchemaOut | null;
-  onDateUpdated: () => void; // Add this line
+  onDateUpdated: () => void;
 }
 
 // Parse display format (YYYY-MM-DD or YYYY-XX-YY) to actual date value
 const parseDisplayDate = (dateInfo: ImageDateSchemaOut | null): string => {
-  if (!dateInfo || !dateInfo.date) return "";
+  if (!dateInfo || !dateInfo.comparison_date) return "";
 
-  // If date is already in ISO format or doesn't contain XX/YY placeholders, return as is
-  if (!dateInfo.date.includes("XX") && !dateInfo.date.includes("YY")) {
-    return dateInfo.date;
+  // If date is already in ISO format or doesn't contain MM/DD placeholders, return as is
+  if (!dateInfo.comparison_date.includes("MM") && !dateInfo.comparison_date.includes("DD")) {
+    return dateInfo.comparison_date;
   }
 
   try {
     // Parse from display format with placeholders
-    const parts = dateInfo.date.split("-");
-    if (parts.length !== 3) return dateInfo.date;
+    const parts = dateInfo.comparison_date.split("-");
+    if (parts.length !== 3) return dateInfo.comparison_date;
 
     const year = parts[0];
-    const month = parts[1] === "XX" ? "01" : parts[1];
-    const day = parts[2] === "YY" ? "01" : parts[2];
+    const month = parts[1] === "MM" ? "01" : parts[1];
+    const day = parts[2] === "DD" ? "01" : parts[2];
 
     return `${year}-${month}-${day}`;
   } catch (e) {
-    return dateInfo.date;
+    return dateInfo.comparison_date;
   }
 };
 
@@ -109,8 +109,8 @@ const DateEditModal: React.FC<DateEditModalProps> = ({
           )}
 
           <p className="text-muted mb-3">
-            {currentDate && currentDate.date
-              ? `Current date: ${currentDate.date}`
+            {currentDate && currentDate.comparison_date
+              ? `Current date: ${parseDisplayDate(currentDate)}`
               : "No date currently set"}
           </p>
 

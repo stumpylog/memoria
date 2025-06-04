@@ -17,18 +17,18 @@ import type {
 // API functions are assumed to return Promise<AxiosResponse<YourType>>
 import {
   imageUpdateLocation,
-  locationGetCities,
-  locationGetCountries,
-  locationGetSubdivisions,
+  listAllCountrySubdivisions,
+  listAllWorldCountries,
+  listPossibleCountryCities,
   locationGetSubLocations,
-} from "../../api"; // Adjust path as needed
+} from "../../api";
 
 interface LocationEditModalProps {
   show: boolean;
   onHide: () => void;
   imageId: number;
   currentLocation: ImageLocationSchemaOut | null;
-  onLocationUpdated: () => void; // Add this line
+  onLocationUpdated: () => void;
 }
 
 const LocationEditModal: React.FC<LocationEditModalProps> = ({
@@ -80,7 +80,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
   } = useQuery<CountryListItemSchemaOut[], AxiosError>({
     queryKey: ["countries"],
     queryFn: async (): Promise<CountryListItemSchemaOut[]> => {
-      const response: AxiosResponse<CountryListItemSchemaOut[]> = await locationGetCountries({
+      const response: AxiosResponse<CountryListItemSchemaOut[]> = await listAllWorldCountries({
         throwOnError: true,
       });
       return response.data; // Extract data from AxiosResponse
@@ -98,7 +98,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
     queryKey: ["subdivisions", selectedCountry],
     queryFn: async (): Promise<SubdivisionListItemSchemaOut[]> => {
       const response: AxiosResponse<SubdivisionListItemSchemaOut[]> =
-        await locationGetSubdivisions({
+        await listAllCountrySubdivisions({
           query: { country_code: selectedCountry },
           throwOnError: true,
         });
@@ -124,7 +124,7 @@ const LocationEditModal: React.FC<LocationEditModalProps> = ({
         // Conditionally add subdivision_code
         queryParams.subdivision_code = selectedSubdivision;
       }
-      const response: AxiosResponse<string[]> = await locationGetCities({
+      const response: AxiosResponse<string[]> = await listPossibleCountryCities({
         query: queryParams,
         throwOnError: true,
       });

@@ -45,7 +45,7 @@ class LocationCreateInSchema(Schema):
 
 class LocationReadOutSchema(LocationCreateInSchema):
     """
-    Schema to create a Location
+    Schema to read a location
     """
 
     id: int = Field(description="The id of the location")

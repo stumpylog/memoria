@@ -76,14 +76,22 @@ import type {
   ImageUpdateLocationResponses,
   ImageUpdateMetadataData,
   ImageUpdateMetadataResponses,
+  ListAllCountrySubdivisionsData,
+  ListAllCountrySubdivisionsResponses,
+  ListAllFoldersData,
+  ListAllFoldersResponses,
+  ListAllWorldCountriesData,
+  ListAllWorldCountriesResponses,
+  ListCountriesData,
+  ListCountriesResponses,
   ListGroupsData,
   ListGroupsResponses,
-  LocationGetCitiesData,
-  LocationGetCitiesResponses,
-  LocationGetCountriesData,
-  LocationGetCountriesResponses,
-  LocationGetSubdivisionsData,
-  LocationGetSubdivisionsResponses,
+  ListImagesData,
+  ListImagesResponses,
+  ListPossibleCountryCitiesData,
+  ListPossibleCountryCitiesResponses,
+  ListSubdivisionsData,
+  ListSubdivisionsResponses,
   LocationGetSubLocationsData,
   LocationGetSubLocationsResponses,
   UpdateAlbumInfoData,
@@ -431,6 +439,20 @@ export const folderListRoots = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * List All Image Folders
+ * List all image folders with permission filtering
+ */
+export const listAllFolders = <ThrowOnError extends boolean = false>(
+  options?: Options<ListAllFoldersData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<ListAllFoldersResponses, unknown, ThrowOnError>({
+    responseType: "json",
+    url: "/api/folder/all/",
+    ...options,
+  });
+};
+
+/**
  * Get Image Folder
  * Get details of a specific image folder with children and images
  */
@@ -601,6 +623,26 @@ export const updateGroup = <ThrowOnError extends boolean = false>(
       "Content-Type": "application/json",
       ...options.headers,
     },
+  });
+};
+
+/**
+ * List Images
+ */
+export const listImages = <ThrowOnError extends boolean = false>(
+  options?: Options<ListImagesData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<ListImagesResponses, unknown, ThrowOnError>({
+    responseType: "json",
+    security: [
+      {
+        in: "cookie",
+        name: "sessionid",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/image/",
+    ...options,
   });
 };
 
@@ -847,10 +889,14 @@ export const imageGetThumbInfo = <ThrowOnError extends boolean = false>(
 /**
  * Get Existing Cities
  */
-export const locationGetCities = <ThrowOnError extends boolean = false>(
-  options: Options<LocationGetCitiesData, ThrowOnError>,
+export const listPossibleCountryCities = <ThrowOnError extends boolean = false>(
+  options: Options<ListPossibleCountryCitiesData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).get<LocationGetCitiesResponses, unknown, ThrowOnError>({
+  return (options.client ?? _heyApiClient).get<
+    ListPossibleCountryCitiesResponses,
+    unknown,
+    ThrowOnError
+  >({
     responseType: "json",
     url: "/api/location/cities/",
     ...options,
@@ -858,16 +904,13 @@ export const locationGetCities = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Get All Countries
+ * Get Countries With Images In Them
+ * List all countries where images have been taken
  */
-export const locationGetCountries = <ThrowOnError extends boolean = false>(
-  options?: Options<LocationGetCountriesData, ThrowOnError>,
+export const listCountries = <ThrowOnError extends boolean = false>(
+  options?: Options<ListCountriesData, ThrowOnError>,
 ) => {
-  return (options?.client ?? _heyApiClient).get<
-    LocationGetCountriesResponses,
-    unknown,
-    ThrowOnError
-  >({
+  return (options?.client ?? _heyApiClient).get<ListCountriesResponses, unknown, ThrowOnError>({
     responseType: "json",
     url: "/api/location/countries/",
     ...options,
@@ -875,18 +918,51 @@ export const locationGetCountries = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Get Subdivisions For Country
+ * Get All Countries
+ * List all countries in the world, as per ISO-3166-1
  */
-export const locationGetSubdivisions = <ThrowOnError extends boolean = false>(
-  options: Options<LocationGetSubdivisionsData, ThrowOnError>,
+export const listAllWorldCountries = <ThrowOnError extends boolean = false>(
+  options?: Options<ListAllWorldCountriesData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).get<
-    LocationGetSubdivisionsResponses,
+  return (options?.client ?? _heyApiClient).get<
+    ListAllWorldCountriesResponses,
     unknown,
     ThrowOnError
   >({
     responseType: "json",
+    url: "/api/location/countries/all/",
+    ...options,
+  });
+};
+
+/**
+ * Get Subdivisions With Images In Them
+ * List all subdivisions/states where images have been taken, filtered by country code
+ */
+export const listSubdivisions = <ThrowOnError extends boolean = false>(
+  options: Options<ListSubdivisionsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<ListSubdivisionsResponses, unknown, ThrowOnError>({
+    responseType: "json",
     url: "/api/location/subdivisions/",
+    ...options,
+  });
+};
+
+/**
+ * Get Subdivisions For Country
+ * List all subdivisions of a given country, as per ISO-3166-2
+ */
+export const listAllCountrySubdivisions = <ThrowOnError extends boolean = false>(
+  options: Options<ListAllCountrySubdivisionsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    ListAllCountrySubdivisionsResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api/location/subdivisions/all/",
     ...options,
   });
 };

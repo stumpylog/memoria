@@ -538,23 +538,197 @@
         "title": "GroupUpdateInSchema",
         "type": "object"
       },
+      "ImageBooleanFilterSchema": {
+        "properties": {
+          "is_deleted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by deletion status",
+            "title": "Is Deleted"
+          },
+          "is_dirty": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by dirty status",
+            "title": "Is Dirty"
+          },
+          "is_starred": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by starred status",
+            "title": "Is Starred"
+          }
+        },
+        "title": "ImageBooleanFilterSchema",
+        "type": "object"
+      },
+      "ImageDateFilterSchema": {
+        "properties": {
+          "date_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter images up to this date using comparison_date",
+            "title": "Date End"
+          },
+          "date_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter images from this date onwards using comparison_date",
+            "title": "Date Start"
+          },
+          "day_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter images up to this day (1-31, includes null days)",
+            "title": "Day End"
+          },
+          "day_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter images from this day onwards (1-31, includes null days)",
+            "title": "Day Start"
+          },
+          "month_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter images up to this month (1-12, includes null months)",
+            "title": "Month End"
+          },
+          "month_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter images from this month onwards (1-12, includes null months)",
+            "title": "Month Start"
+          },
+          "year_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter images up to this year",
+            "title": "Year End"
+          },
+          "year_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter images from this year onwards",
+            "title": "Year Start"
+          }
+        },
+        "title": "ImageDateFilterSchema",
+        "type": "object"
+      },
       "ImageDateSchemaOut": {
         "properties": {
-          "date": {
+          "comparison_date": {
             "format": "date",
-            "title": "Date",
+            "title": "Comparison Date",
             "type": "string"
           },
+          "day": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day"
+          },
           "day_valid": {
+            "default": true,
             "title": "Day Valid",
             "type": "boolean"
           },
+          "month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Month"
+          },
           "month_valid": {
+            "default": true,
             "title": "Month Valid",
             "type": "boolean"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
           }
         },
-        "required": ["date", "month_valid", "day_valid"],
+        "required": ["comparison_date", "year"],
         "title": "ImageDateSchemaOut",
         "type": "object"
       },
@@ -578,6 +752,71 @@
         "title": "ImageDateUpdateSchemaIn",
         "type": "object"
       },
+      "ImageExactDateFilterSchema": {
+        "description": "Exact matching for specific year/month/day combinations",
+        "properties": {
+          "day": {
+            "anyOf": [
+              {
+                "maximum": 31,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter images from this exact day (1-31)",
+            "title": "Day"
+          },
+          "month": {
+            "anyOf": [
+              {
+                "maximum": 12,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter images from this exact month (1-12)",
+            "title": "Month"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter images from this exact year",
+            "title": "Year"
+          }
+        },
+        "title": "ImageExactDateFilterSchema",
+        "type": "object"
+      },
+      "ImageFKFilterSchema": {
+        "properties": {
+          "folder_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by ImageFolder ID",
+            "title": "Folder Id"
+          }
+        },
+        "title": "ImageFKFilterSchema",
+        "type": "object"
+      },
       "ImageFolderSchemaOut": {
         "properties": {
           "id": {
@@ -591,6 +830,60 @@
         },
         "required": ["id", "name"],
         "title": "ImageFolderSchemaOut",
+        "type": "object"
+      },
+      "ImageLocationFilterSchema": {
+        "properties": {
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by city name (partial match)",
+            "title": "City"
+          },
+          "country_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by country code (ISO 3166-1 alpha 2)",
+            "title": "Country Code"
+          },
+          "sub_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by sub-location (partial match)",
+            "title": "Sub Location"
+          },
+          "subdivision_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by state/province code (ISO 3166-2)",
+            "title": "Subdivision Code"
+          }
+        },
+        "title": "ImageLocationFilterSchema",
         "type": "object"
       },
       "ImageLocationSchemaOut": {
@@ -701,6 +994,57 @@
         },
         "required": ["country_code", "subdivision_code", "city", "sub_location"],
         "title": "ImageLocationUpdateSchemaIn",
+        "type": "object"
+      },
+      "ImageM2MFilterSchema": {
+        "properties": {
+          "people_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by Person IDs",
+            "title": "People Ids"
+          },
+          "pets_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by Pet IDs",
+            "title": "Pets Ids"
+          },
+          "tags_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by Tag IDs",
+            "title": "Tags Ids"
+          }
+        },
+        "title": "ImageM2MFilterSchema",
         "type": "object"
       },
       "ImageMetadataSchemaOut": {
@@ -970,6 +1314,24 @@
         },
         "required": ["items", "count"],
         "title": "PagedAlbumBasicReadOutSchema",
+        "type": "object"
+      },
+      "PagedImageThumbnailSchemaOut": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ImageThumbnailSchemaOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": ["items", "count"],
+        "title": "PagedImageThumbnailSchemaOut",
         "type": "object"
       },
       "PagedPersonImageOutSchema": {
@@ -2911,6 +3273,31 @@
         "tags": ["folders"]
       }
     },
+    "/api/folder/all/": {
+      "get": {
+        "description": "List all image folders with permission filtering",
+        "operationId": "listAllFolders",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RootFolderSchemaOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List All Image Folders",
+        "tags": ["folders"]
+      }
+    },
     "/api/folder/{folder_id}/": {
       "get": {
         "description": "Get details of a specific image folder with children and images",
@@ -3164,6 +3551,478 @@
         ],
         "summary": "Update Group",
         "tags": ["groups"]
+      }
+    },
+    "/api/image/": {
+      "get": {
+        "operationId": "list_images",
+        "parameters": [
+          {
+            "description": "Filter by dirty status",
+            "in": "query",
+            "name": "is_dirty",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by dirty status",
+              "title": "Is Dirty"
+            }
+          },
+          {
+            "description": "Filter by starred status",
+            "in": "query",
+            "name": "is_starred",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by starred status",
+              "title": "Is Starred"
+            }
+          },
+          {
+            "description": "Filter by deletion status",
+            "in": "query",
+            "name": "is_deleted",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by deletion status",
+              "title": "Is Deleted"
+            }
+          },
+          {
+            "description": "Filter by ImageFolder ID",
+            "in": "query",
+            "name": "folder_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by ImageFolder ID",
+              "title": "Folder Id"
+            }
+          },
+          {
+            "description": "Filter by Person IDs",
+            "in": "query",
+            "name": "people_ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by Person IDs",
+              "title": "People Ids"
+            }
+          },
+          {
+            "description": "Filter by Pet IDs",
+            "in": "query",
+            "name": "pets_ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by Pet IDs",
+              "title": "Pets Ids"
+            }
+          },
+          {
+            "description": "Filter by Tag IDs",
+            "in": "query",
+            "name": "tags_ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by Tag IDs",
+              "title": "Tags Ids"
+            }
+          },
+          {
+            "description": "Filter images from this date onwards using comparison_date",
+            "in": "query",
+            "name": "date_start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter images from this date onwards using comparison_date",
+              "title": "Date Start"
+            }
+          },
+          {
+            "description": "Filter images up to this date using comparison_date",
+            "in": "query",
+            "name": "date_end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter images up to this date using comparison_date",
+              "title": "Date End"
+            }
+          },
+          {
+            "description": "Filter images from this year onwards",
+            "in": "query",
+            "name": "year_start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter images from this year onwards",
+              "title": "Year Start"
+            }
+          },
+          {
+            "description": "Filter images up to this year",
+            "in": "query",
+            "name": "year_end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter images up to this year",
+              "title": "Year End"
+            }
+          },
+          {
+            "description": "Filter images from this month onwards (1-12, includes null months)",
+            "in": "query",
+            "name": "month_start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter images from this month onwards (1-12, includes null months)",
+              "title": "Month Start"
+            }
+          },
+          {
+            "description": "Filter images up to this month (1-12, includes null months)",
+            "in": "query",
+            "name": "month_end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter images up to this month (1-12, includes null months)",
+              "title": "Month End"
+            }
+          },
+          {
+            "description": "Filter images from this day onwards (1-31, includes null days)",
+            "in": "query",
+            "name": "day_start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter images from this day onwards (1-31, includes null days)",
+              "title": "Day Start"
+            }
+          },
+          {
+            "description": "Filter images up to this day (1-31, includes null days)",
+            "in": "query",
+            "name": "day_end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter images up to this day (1-31, includes null days)",
+              "title": "Day End"
+            }
+          },
+          {
+            "description": "Filter images from this exact year",
+            "in": "query",
+            "name": "year",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter images from this exact year",
+              "title": "Year"
+            }
+          },
+          {
+            "description": "Filter images from this exact month (1-12)",
+            "in": "query",
+            "name": "month",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 12,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter images from this exact month (1-12)",
+              "title": "Month"
+            }
+          },
+          {
+            "description": "Filter images from this exact day (1-31)",
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 31,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter images from this exact day (1-31)",
+              "title": "Day"
+            }
+          },
+          {
+            "description": "Filter by country code (ISO 3166-1 alpha 2)",
+            "in": "query",
+            "name": "country_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by country code (ISO 3166-1 alpha 2)",
+              "title": "Country Code"
+            }
+          },
+          {
+            "description": "Filter by state/province code (ISO 3166-2)",
+            "in": "query",
+            "name": "subdivision_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by state/province code (ISO 3166-2)",
+              "title": "Subdivision Code"
+            }
+          },
+          {
+            "description": "Filter by city name (partial match)",
+            "in": "query",
+            "name": "city",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by city name (partial match)",
+              "title": "City"
+            }
+          },
+          {
+            "description": "Filter by sub-location (partial match)",
+            "in": "query",
+            "name": "sub_location",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by sub-location (partial match)",
+              "title": "Sub Location"
+            }
+          },
+          {
+            "description": "Field to sort by",
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "pk",
+              "description": "Field to sort by",
+              "enum": ["created", "-created", "modified", "-modified", "pk", "title", "-title"],
+              "title": "Sort By",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedImageThumbnailSchemaOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuthIsActive": []
+          }
+        ],
+        "summary": "List Images",
+        "tags": ["images"]
       }
     },
     "/api/image/bulk/thumbnails/": {
@@ -3591,7 +4450,7 @@
     },
     "/api/location/cities/": {
       "get": {
-        "operationId": "location_get_cities",
+        "operationId": "list_possible_country_cities",
         "parameters": [
           {
             "in": "query",
@@ -3641,7 +4500,33 @@
     },
     "/api/location/countries/": {
       "get": {
-        "operationId": "location_get_countries",
+        "description": "List all countries where images have been taken",
+        "operationId": "list_countries",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CountryListItemSchemaOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Countries With Images In Them",
+        "tags": ["locations"]
+      }
+    },
+    "/api/location/countries/all/": {
+      "get": {
+        "description": "List all countries in the world, as per ISO-3166-1",
+        "operationId": "list_all_world_countries",
         "parameters": [],
         "responses": {
           "200": {
@@ -3665,7 +4550,43 @@
     },
     "/api/location/subdivisions/": {
       "get": {
-        "operationId": "location_get_subdivisions",
+        "description": "List all subdivisions/states where images have been taken, filtered by country code",
+        "operationId": "list_subdivisions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "country_code",
+            "required": true,
+            "schema": {
+              "title": "Country Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SubdivisionListItemSchemaOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Subdivisions With Images In Them",
+        "tags": ["locations"]
+      }
+    },
+    "/api/location/subdivisions/all/": {
+      "get": {
+        "description": "List all subdivisions of a given country, as per ISO-3166-2",
+        "operationId": "list_all_country_subdivisions",
         "parameters": [
           {
             "in": "query",

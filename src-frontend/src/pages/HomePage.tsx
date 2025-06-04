@@ -26,13 +26,23 @@ const HomePage: React.FC = () => {
               ) : (
                 <Card.Text>Loading user information...</Card.Text>
               )}
-              <Card.Text>This is your dashboard. Navigate using the links above.</Card.Text>
+              <Card.Text>
+                This is your dashboard. Navigate using the links above.
+                <br />
+                <br />
+                <strong>Folders</strong> show the folders scans were stored in when they were
+                index. Browse them like a file system.
+                <br />
+                <strong>People & Pets</strong> allows you to browse images which contain a named
+                person or pet.
+                <br />
+                <strong>Albums</strong> can be created and shared by you. Pictures inside albums
+                can be sorted however you want by drag and drop.
+              </Card.Text>
             </Card.Body>
           </Card>
         </Col>
         <Col md={4}>
-          {" "}
-          {/* Statistics display now takes 4 columns on medium screens and up */}
           <StatisticsDisplay />
         </Col>
       </Row>

@@ -1,6 +1,7 @@
 import logging
 from datetime import date
 from http import HTTPStatus
+from typing import Literal
 from typing import cast
 
 from django.contrib.auth import get_user_model
@@ -24,21 +25,21 @@ from memoria.common.errors import HttpBadRequestError
 from memoria.models import Image
 from memoria.models import RoughDate
 from memoria.models import RoughLocation
-from memoria.routes.images.schemas import ImageBooleanFilterSchema
+from memoria.routes.images.filters import ImageBooleanFilterSchema
+from memoria.routes.images.filters import ImageDateFilterSchema
+from memoria.routes.images.filters import ImageExactDateFilterSchema
+from memoria.routes.images.filters import ImageFKFilterSchema
+from memoria.routes.images.filters import ImageLocationFilterSchema
+from memoria.routes.images.filters import ImageM2MFilterSchema
 from memoria.routes.images.schemas import ImageDateSchemaOut
 from memoria.routes.images.schemas import ImageDateUpdateSchemaIn
-from memoria.routes.images.schemas import ImageFKFilterSchema
 from memoria.routes.images.schemas import ImageLocationSchemaOut
 from memoria.routes.images.schemas import ImageLocationUpdateSchemaIn
-from memoria.routes.images.schemas import ImageM2MFilterSchema
 from memoria.routes.images.schemas import ImageMetadataSchemaOut
 from memoria.routes.images.schemas import ImageMetadataUpdateSchemaIn
 from memoria.routes.images.schemas import ImageThumbnailSchemaOut
 from memoria.routes.images.schemas import PersonInImageSchemaOut
 from memoria.routes.images.schemas import PetInImageSchemaOut
-from memoria.routes.images.schemas import RoughDateComparisonFilterSchema
-from memoria.routes.images.schemas import RoughDateExactFilterSchema
-from memoria.routes.images.schemas import RoughLocationFilterSchema
 
 router = Router(tags=["images"])
 logger = logging.getLogger(__name__)
@@ -69,9 +70,13 @@ def list_images(
     boolean_filters: ImageBooleanFilterSchema = Query(...),
     fk_filters: ImageFKFilterSchema = Query(...),
     m2m_filters: ImageM2MFilterSchema = Query(...),
-    date_range_filters: RoughDateComparisonFilterSchema = Query(...),
-    date_exact_filters: RoughDateExactFilterSchema = Query(...),
-    location_filters: RoughLocationFilterSchema = Query(...),
+    date_range_filters: ImageDateFilterSchema = Query(...),
+    date_exact_filters: ImageExactDateFilterSchema = Query(...),
+    location_filters: ImageLocationFilterSchema = Query(...),
+    sort_by: Literal["created", "-created", "modified", "-modified", "pk", "title", "-title"] = Query(
+        "pk",
+        description="Field to sort by",
+    ),
 ):
     qs = (
         Image.objects.permitted(request.user)
@@ -89,7 +94,7 @@ def list_images(
     qs = m2m_filters.filter_queryset(qs)
     qs = date_range_filters.filter_queryset(qs)
     qs = date_exact_filters.filter_queryset(qs)
-    return location_filters.filter_queryset(qs)
+    return location_filters.filter_queryset(qs).order_by(sort_by)
 
 
 @router.get(

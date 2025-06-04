@@ -65,13 +65,34 @@ def annotate_folder_counts(queryset, perm_filter):
 
 @router.get("/", response=list[RootFolderSchemaOut], operation_id="folder_list_roots")
 def list_image_folders(request):
-    """List root image folders with permission filtering"""
+    """
+    List root image folders with permission filtering
+    """
     user = request.user
     perm_filter = get_permission_filter(user)
 
     # Get root folders
     roots = ImageFolder.get_roots_queryset().values_list("pk", flat=True)
     queryset = ImageFolder.objects.prefetch_related("view_groups", "edit_groups").filter(pk__in=roots).order_by("name")
+
+    # Apply permission filtering to base queryset if not superuser
+    if not user.is_superuser:
+        queryset = queryset.filter(perm_filter).distinct()
+
+    # Annotate with counts
+    return annotate_folder_counts(queryset, perm_filter)
+
+
+@router.get("/all/", response=list[RootFolderSchemaOut], operation_id="listAllFolders")
+def list_all_image_folders(request):
+    """
+    List all image folders with permission filtering
+    """
+    user = request.user
+    perm_filter = get_permission_filter(user)
+
+    # Get root folders
+    queryset = ImageFolder.objects.prefetch_related("view_groups", "edit_groups").order_by("name")
 
     # Apply permission filtering to base queryset if not superuser
     if not user.is_superuser:
