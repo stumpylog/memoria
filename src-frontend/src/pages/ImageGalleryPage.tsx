@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Button, Col, Container, Form, Pagination, Row, Spinner } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -24,6 +24,7 @@ import {
 import ThemedSelect from "../components/common/ThemedSelect";
 import ImageWall from "../components/image/ImageWall";
 import { useAuth } from "../hooks/useAuth";
+import { useDebounce } from "../hooks/useDebounce";
 
 // Define the form inputs based on backend filter schemas
 interface ImageFilterFormInputs {
@@ -146,6 +147,17 @@ const ImageGalleryPage: React.FC = () => {
   const watchedPeopleIdsValues = watch("people_ids").map((p) => p.value);
   const watchedPetsIdsValues = watch("pets_ids").map((p) => p.value);
 
+  const debouncedCity = useDebounce(watchedCity, 500);
+  const debouncedSubLocation = useDebounce(watchedSubLocation, 500);
+  const debouncedDateStart = useDebounce(watchedDateStart, 300);
+  const debouncedDateEnd = useDebounce(watchedDateEnd, 300);
+  const debouncedYear = useDebounce(watchedYear, 300);
+  const debouncedMonth = useDebounce(watchedMonth, 300);
+  const debouncedDay = useDebounce(watchedDay, 300);
+
+  const debouncedPeopleIds = useDebounce(watchedPeopleIdsValues.join(","), 300);
+  const debouncedPetsIds = useDebounce(watchedPetsIdsValues.join(","), 300);
+
   // State for autocomplete suggestions visibility
   const [showCitySuggestions, setShowCitySuggestions] = useState<boolean>(false);
   const [showSubLocationSuggestions, setShowSubLocationSuggestions] = useState<boolean>(false);
@@ -206,14 +218,14 @@ const ImageGalleryPage: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Sub-locations (depends on selected country, subdivision, and city)
+  // Sub-locations (depends on selected country, subdivision (maybe), and city)
   const { data: subLocations = [], isLoading: isLoadingSubLocations } = useQuery<string[], Error>({
-    queryKey: ["subLocations", watchedCountryValue, watchedSubdivisionValue, watchedCity],
+    queryKey: ["subLocations", watchedCountryValue, watchedSubdivisionValue, debouncedCity],
     queryFn: async () => {
-      if (!watchedCountryValue || !watchedCity) return [];
+      if (!watchedCountryValue || !debouncedCity) return [];
       const queryParams: { country_code: string; city_name: string; subdivision_code?: string } = {
         country_code: watchedCountryValue,
-        city_name: watchedCity,
+        city_name: debouncedCity,
       };
       if (watchedSubdivisionValue) {
         queryParams.subdivision_code = watchedSubdivisionValue;
@@ -224,7 +236,7 @@ const ImageGalleryPage: React.FC = () => {
       });
       return response.data || [];
     },
-    enabled: !!watchedCountryValue && !!watchedCity,
+    enabled: !!watchedCountryValue && !!debouncedCity,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -259,19 +271,19 @@ const ImageGalleryPage: React.FC = () => {
       pageSize,
       watchedIsStarred,
       watchedIsDeleted,
-      watchedPeopleIdsValues.join(","),
-      watchedPetsIdsValues.join(","),
+      debouncedPeopleIds,
+      debouncedPetsIds,
       watchedCountryValue,
       watchedSubdivisionValue,
-      watchedCity,
-      watchedSubLocation,
-      watchedDateStart,
-      watchedDateEnd,
-      watchedYear,
-      watchedMonth,
-      watchedDay,
+      debouncedCity,
+      debouncedSubLocation,
+      debouncedDateStart,
+      debouncedDateEnd,
+      debouncedYear,
+      debouncedMonth,
+      debouncedDay,
       watchedSortBy,
-      watchedRequireAll, // Add this line
+      watchedRequireAll,
     ],
     queryFn: async ({ signal }) => {
       const query: {
@@ -298,25 +310,44 @@ const ImageGalleryPage: React.FC = () => {
           | "pk"
           | "title"
           | "-title";
-        require_all?: boolean; // Add this line
+        require_all?: boolean;
       } = {
         limit: pageSize,
         offset: offset,
       };
 
-      if (typeof watchedIsStarred === "boolean") query.is_starred = watchedIsStarred;
-      if (typeof watchedIsDeleted === "boolean") query.is_deleted = watchedIsDeleted;
-      if (watchedPeopleIdsValues.length > 0) query.people_ids = watchedPeopleIdsValues;
-      if (watchedPetsIdsValues.length > 0) query.pets_ids = watchedPetsIdsValues;
+      if (typeof watchedIsStarred === "boolean" && watchedIsStarred)
+        query.is_starred = watchedIsStarred;
+      if (typeof watchedIsDeleted === "boolean" && watchedIsDeleted)
+        query.is_deleted = watchedIsDeleted;
+
+      // Use debounced values for arrays by converting back to numbers
+      const debouncedPeopleArray = debouncedPeopleIds
+        ? debouncedPeopleIds
+            .split(",")
+            .map(Number)
+            .filter((n) => !isNaN(n))
+        : [];
+      const debouncedPetsArray = debouncedPetsIds
+        ? debouncedPetsIds
+            .split(",")
+            .map(Number)
+            .filter((n) => !isNaN(n))
+        : [];
+
+      if (debouncedPeopleArray.length > 0) query.people_ids = debouncedPeopleArray;
+      if (debouncedPetsArray.length > 0) query.pets_ids = debouncedPetsArray;
       if (watchedCountryValue) query.country_code = watchedCountryValue;
       if (watchedSubdivisionValue) query.subdivision_code = watchedSubdivisionValue;
-      if (watchedCity) query.city = watchedCity;
-      if (watchedSubLocation) query.sub_location = watchedSubLocation;
-      if (watchedDateStart) query.date_start = watchedDateStart;
-      if (watchedDateEnd) query.date_end = watchedDateEnd;
-      if (watchedYear !== null) query.year = watchedYear;
-      if (watchedMonth !== null) query.month = watchedMonth;
-      if (watchedDay !== null) query.day = watchedDay;
+      if (debouncedCity) query.city = debouncedCity;
+      if (debouncedSubLocation) query.sub_location = debouncedSubLocation;
+      if (debouncedDateStart) query.date_start = debouncedDateStart;
+      if (debouncedDateEnd) query.date_end = debouncedDateEnd;
+      if (debouncedYear !== null) query.year = debouncedYear;
+      if (debouncedMonth !== null && debouncedMonth >= 1 && debouncedMonth <= 12)
+        query.month = debouncedMonth;
+      if (debouncedDay !== null && debouncedDay >= 1 && debouncedDay <= 31)
+        query.day = debouncedDay;
       if (watchedSortBy) query.sort_by = watchedSortBy;
       if (watchedRequireAll) query.require_all = watchedRequireAll;
 
@@ -475,13 +506,19 @@ const ImageGalleryPage: React.FC = () => {
     };
   }, []);
 
-  const filteredCities = watchedCity
-    ? cities.filter((c) => c.toLowerCase().includes(watchedCity.toLowerCase()))
-    : cities;
+  const filteredCities = useMemo(() => {
+    return debouncedCity
+      ? cities.filter((c) => c.toLowerCase().includes(debouncedCity.toLowerCase()))
+      : cities;
+  }, [cities, debouncedCity]);
 
-  const filteredSubLocations = watchedSubLocation
-    ? subLocations.filter((loc) => loc.toLowerCase().includes(watchedSubLocation.toLowerCase()))
-    : subLocations;
+  const filteredSubLocations = useMemo(() => {
+    return debouncedSubLocation
+      ? subLocations.filter((loc) =>
+          loc.toLowerCase().includes(debouncedSubLocation.toLowerCase()),
+        )
+      : subLocations;
+  }, [subLocations, debouncedSubLocation]);
 
   const highlightMatch = (text: string, query: string): React.ReactNode => {
     if (!query.trim()) return text;
@@ -907,14 +944,25 @@ const ImageGalleryPage: React.FC = () => {
                 placeholder="MM (1-12)"
                 min="1"
                 max="12"
-                {...control.register("month", { valueAsNumber: true })}
+                disabled={!watchedYear}
+                {...control.register("month", {
+                  valueAsNumber: true,
+                  min: { value: 1, message: "Month must be between 1 and 12" },
+                  max: { value: 12, message: "Month must be between 1 and 12" },
+                })}
                 value={watchedMonth || ""}
-                onChange={(e) =>
-                  setValue("month", e.target.value ? parseInt(e.target.value, 10) : null, {
-                    shouldDirty: true,
-                  })
-                }
+                onChange={(e) => {
+                  const newMonth = e.target.value ? parseInt(e.target.value, 10) : null;
+                  setValue("month", newMonth, { shouldDirty: true });
+                  // Clear day when month changes
+                  if (!newMonth) {
+                    setValue("day", null, { shouldDirty: true });
+                  }
+                }}
               />
+              {!watchedYear && (
+                <Form.Text className="text-muted">Requires a year to be selected first</Form.Text>
+              )}
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Exact Day</Form.Label>
@@ -923,7 +971,12 @@ const ImageGalleryPage: React.FC = () => {
                 placeholder="DD (1-31)"
                 min="1"
                 max="31"
-                {...control.register("day", { valueAsNumber: true })}
+                disabled={!watchedMonth}
+                {...control.register("day", {
+                  valueAsNumber: true,
+                  min: { value: 1, message: "Day must be between 1 and 31" },
+                  max: { value: 31, message: "Day must be between 1 and 31" },
+                })}
                 value={watchedDay || ""}
                 onChange={(e) =>
                   setValue("day", e.target.value ? parseInt(e.target.value, 10) : null, {
@@ -931,6 +984,9 @@ const ImageGalleryPage: React.FC = () => {
                   })
                 }
               />
+              {!watchedMonth && (
+                <Form.Text className="text-muted">Requires a month to be selected first</Form.Text>
+              )}
             </Form.Group>
 
             <hr />
