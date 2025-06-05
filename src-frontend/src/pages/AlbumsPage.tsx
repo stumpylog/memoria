@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query"; // Import keepPreviousData
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -9,7 +9,6 @@ import {
   InputGroup,
   Modal,
   OverlayTrigger,
-  Pagination,
   Spinner,
   Table,
   Tooltip,
@@ -21,9 +20,10 @@ import type {
   AlbumCreateInSchema,
   GroupOutSchema,
   PagedAlbumBasicReadOutSchema,
-} from "../api"; // Note the correction to PagedAlbumBasicReadOutSchema
+} from "../api";
 
 import { createAlbum, getAllAlbums, listGroups } from "../api";
+import PaginationComponent from "../components/common/PaginationComponent";
 import { useAuth } from "../hooks/useAuth";
 
 const AlbumsPage: React.FC = () => {
@@ -45,19 +45,14 @@ const AlbumsPage: React.FC = () => {
   const [creatingAlbum, setCreatingAlbum] = useState<boolean>(false);
   const [createAlbumError, setCreateAlbumError] = useState<string | null>(null);
 
-  // State for search term
   const [searchTerm, setSearchTerm] = useState(searchParams.get("album_name") || "");
-  // Ref for the search input to manage debounce
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Get pagination parameters from URL or defaults
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
-  const pageSize = profile?.items_per_page || 10; // Default to 10 if not in profile
+  const pageSize = profile?.items_per_page || 10;
 
-  // Calculate offset based on current page and page size
   const offset = (currentPage - 1) * pageSize;
 
-  // Fetch albums using useQuery
   const {
     data: albumsData,
     isLoading: isLoadingAlbums,
@@ -65,24 +60,22 @@ const AlbumsPage: React.FC = () => {
     error: albumsError,
     refetch: refetchAlbums,
   } = useQuery<PagedAlbumBasicReadOutSchema, Error>({
-    // Corrected type for useQuery
     queryKey: ["albums", currentPage, pageSize, searchTerm],
     queryFn: async ({ signal }) => {
       const response = await getAllAlbums({
         query: {
           limit: pageSize,
           offset: offset,
-          album_name: searchTerm || undefined, // Pass search term to backend
+          album_name: searchTerm || undefined,
         },
-        signal, // Pass the AbortController signal to the fetch request
+        signal,
       });
       return response.data as PagedAlbumBasicReadOutSchema;
     },
-    placeholderData: keepPreviousData, // Corrected usage for placeholderData
-    staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
+    placeholderData: keepPreviousData,
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch groups on component mount (no change here, still using useEffect for this static data)
   useEffect(() => {
     const fetchGroups = async () => {
       try {
@@ -101,7 +94,6 @@ const AlbumsPage: React.FC = () => {
     fetchGroups();
   }, []);
 
-  // Debounce effect for search term
   useEffect(() => {
     const handler = setTimeout(() => {
       const newParams = new URLSearchParams(searchParams);
@@ -110,10 +102,9 @@ const AlbumsPage: React.FC = () => {
       } else {
         newParams.delete("album_name");
       }
-      // Reset to first page when search term changes
       newParams.set("page", "1");
       setSearchParams(newParams);
-    }, 500); // 500ms debounce
+    }, 500);
 
     return () => {
       clearTimeout(handler);
@@ -122,7 +113,6 @@ const AlbumsPage: React.FC = () => {
 
   const handleShowModal = () => {
     setShowCreateModal(true);
-    // Reset form data and errors when showing modal
     setNewAlbumData({
       name: "",
       description: "",
@@ -150,7 +140,6 @@ const AlbumsPage: React.FC = () => {
     const selectedValues: number[] = [];
     for (let i = 0; i < options.length; i++) {
       if (options[i].selected) {
-        // Convert string value from select option to number
         selectedValues.push(Number(options[i].value));
       }
     }
@@ -161,7 +150,7 @@ const AlbumsPage: React.FC = () => {
   };
 
   const handleCreateAlbum = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
     if (!newAlbumData.name) {
       setCreateAlbumError("Album name is required.");
@@ -172,8 +161,8 @@ const AlbumsPage: React.FC = () => {
       setCreatingAlbum(true);
       setCreateAlbumError(null);
       await createAlbum({ body: newAlbumData });
-      refetchAlbums(); // Re-fetch albums to show the new one
-      handleCloseModal(); // Close modal on success
+      refetchAlbums();
+      handleCloseModal();
     } catch (error) {
       console.error("Failed to create album:", error);
       setCreateAlbumError("Failed to create album. Please check the details and try again.");
@@ -182,9 +171,8 @@ const AlbumsPage: React.FC = () => {
     }
   };
 
-  // Handler for navigating to the album details page
   const handleViewAlbum = (albumId: number) => {
-    navigate(`/albums/${albumId}`); // Navigate to the details route
+    navigate(`/albums/${albumId}`);
   };
 
   const handlePageChange = (page: number) => {
@@ -194,73 +182,8 @@ const AlbumsPage: React.FC = () => {
     window.scrollTo(0, 0);
   };
 
-  // Calculate total pages
   const totalPages = albumsData ? Math.ceil(albumsData.count / pageSize) : 0;
 
-  const renderPaginationItems = () => {
-    const items = [];
-    if (totalPages === 0) return null;
-
-    items.push(
-      <Pagination.Prev
-        key="prev"
-        onClick={() => handlePageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-      />,
-    );
-
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
-
-    if (startPage > 1) {
-      items.push(
-        <Pagination.Item key={1} active={currentPage === 1} onClick={() => handlePageChange(1)}>
-          1
-        </Pagination.Item>,
-      );
-      if (startPage > 2) {
-        items.push(<Pagination.Ellipsis key="ellipsis-start" />);
-      }
-    }
-
-    for (let page = startPage; page <= endPage; page++) {
-      items.push(
-        <Pagination.Item
-          key={page}
-          active={page === currentPage}
-          onClick={() => handlePageChange(page)}
-        >
-          {page}
-        </Pagination.Item>,
-      );
-    }
-
-    if (endPage < totalPages) {
-      if (endPage < totalPages - 1) {
-        items.push(<Pagination.Ellipsis key="ellipsis-end" />);
-      }
-      items.push(
-        <Pagination.Item
-          key={totalPages}
-          active={currentPage === totalPages}
-          onClick={() => handlePageChange(totalPages)}
-        >
-          {totalPages}
-        </Pagination.Item>,
-      );
-    }
-
-    items.push(
-      <Pagination.Next
-        key="next"
-        onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-      />,
-    );
-    return <Pagination>{items}</Pagination>;
-  };
-
-  // Function to truncate description
   const truncateDescription = (text: string | undefined, maxLength: number) => {
     if (!text) return "N/A";
     if (text.length <= maxLength) return text;
@@ -301,7 +224,6 @@ const AlbumsPage: React.FC = () => {
 
       {isErrorAlbums && <Alert variant="danger">Error: {(albumsError as Error).message}</Alert>}
 
-      {/* Defensive check for albumsData and albumsData.items */}
       {!isLoadingAlbums && !isErrorAlbums && (!albumsData || albumsData.items.length === 0) && (
         <Alert variant="info">
           No albums found matching your criteria. Click "Create New Album" to add one.
@@ -349,18 +271,20 @@ const AlbumsPage: React.FC = () => {
             </tbody>
           </Table>
 
-          {totalPages > 1 && (
-            <div className="d-flex justify-content-center mt-4">{renderPaginationItems()}</div>
-          )}
+          {/* Use the PaginationComponent here */}
+          <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
 
           <div className="mt-3 text-muted">
-            Showing {offset + 1}-{/* Also ensure albumsData is checked before accessing count */}
-            {Math.min(offset + pageSize, albumsData.count)} of {albumsData.count} albums
+            Showing {offset + 1}-{Math.min(offset + pageSize, albumsData.count)} of{" "}
+            {albumsData.count} albums
           </div>
         </>
       )}
 
-      {/* Create Album Modal */}
       <Modal show={showCreateModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>Create New Album</Modal.Title>

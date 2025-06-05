@@ -9,7 +9,6 @@ import {
   FormControl,
   InputGroup,
   OverlayTrigger,
-  Pagination,
   Table,
   Tooltip,
 } from "react-bootstrap";
@@ -17,9 +16,11 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import type { PagedPetReadSchemaOut, PetReadSchemaOut, PetTypeChoices } from "../api";
 
-import { getAllPets } from "../api"; // PET_TYPE_OPTIONS is defined locally now
+import { getAllPets } from "../api";
+import PaginationComponent from "../components/common/PaginationComponent";
 import ThemedSelect from "../components/common/ThemedSelect";
 import { useAuth } from "../hooks/useAuth";
+import { truncateString } from "../utils/truncateString";
 
 // Define a runtime constant for pet types here, outside the API generated file
 const PET_TYPE_OPTIONS = ["cat", "dog", "horse"] as const;
@@ -60,8 +61,10 @@ const PetsPage: React.FC = () => {
 
   const offset = (currentPage - 1) * pageSize;
 
+  const currentQueryKeyPage = searchParams.get("page") || "1";
+
   const { data, isLoading, isError, error } = useQuery<PagedPetReadSchemaOut>({
-    queryKey: ["pets", currentPage, pageSize, searchTerm, selectedPetType, sortBy], // Add sortBy to queryKey
+    queryKey: ["pets", currentQueryKeyPage, pageSize, searchTerm, selectedPetType, sortBy],
     queryFn: async ({ signal }) => {
       const response = await getAllPets({
         query: {
@@ -70,7 +73,7 @@ const PetsPage: React.FC = () => {
           // Pass null if selectedPetType is null or an empty string, otherwise pass the value
           pet_type: selectedPetType || null,
           pet_name: searchTerm || undefined,
-          sort_by: sortBy, // Pass the sortBy state to the API
+          sort_by: sortBy,
         },
         signal,
       });
@@ -83,43 +86,46 @@ const PetsPage: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
+  const prevSearchTermRef = useRef(searchTerm);
+  const prevSortByRef = useRef(sortBy);
+
   useEffect(() => {
-    const handler = setTimeout(() => {
+    // Only update searchParams if searchTerm has genuinely changed
+    if (searchTerm !== prevSearchTermRef.current) {
       const newParams = new URLSearchParams(searchParams);
       if (searchTerm) {
         newParams.set("pet_name", searchTerm);
       } else {
         newParams.delete("pet_name");
       }
-
       // Handle null/empty string for selectedPetType in URL params
       if (selectedPetType === null) {
         newParams.delete("pet_type");
       } else {
         newParams.set("pet_type", selectedPetType);
       }
-
       newParams.set("page", "1");
       setSearchParams(newParams);
-    }, 500);
-
-    return () => {
-      clearTimeout(handler);
-    };
+      prevSearchTermRef.current = searchTerm; // Update the ref
+    }
   }, [searchTerm, selectedPetType, searchParams, setSearchParams]);
 
-  // Effect for sortBy changes
+  // Effect for sortBy changes, only runs when sortBy state itself changes significantly
   useEffect(() => {
-    const newParams = new URLSearchParams(searchParams);
-    // Only set sort_by if it's not the default "name", otherwise delete it for cleaner URLs
-    if (sortBy && sortBy !== "name") {
-      newParams.set("sort_by", sortBy);
-    } else {
-      newParams.delete("sort_by");
+    // Only update searchParams if sortBy has genuinely changed
+    if (sortBy !== prevSortByRef.current) {
+      const newParams = new URLSearchParams(searchParams);
+      // Only set sort_by if it's not the default "name", otherwise delete it for cleaner URLs
+      if (sortBy && sortBy !== "name") {
+        newParams.set("sort_by", sortBy);
+      } else {
+        newParams.delete("sort_by");
+      }
+      // Reset to first page when sort column or direction changes
+      newParams.set("page", "1");
+      setSearchParams(newParams);
+      prevSortByRef.current = sortBy;
     }
-    // Reset to first page when sort column or direction changes
-    newParams.set("page", "1");
-    setSearchParams(newParams);
   }, [sortBy, searchParams, setSearchParams]);
 
   const handleViewDetails = (petId: number) => {
@@ -162,69 +168,6 @@ const PetsPage: React.FC = () => {
 
   const totalPages = data ? Math.ceil(data.count / pageSize) : 0;
 
-  const renderPaginationItems = () => {
-    const items = [];
-    if (totalPages === 0) return null;
-
-    items.push(
-      <Pagination.Prev
-        key="prev"
-        onClick={() => handlePageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-      />,
-    );
-
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
-
-    if (startPage > 1) {
-      items.push(
-        <Pagination.Item key={1} active={currentPage === 1} onClick={() => handlePageChange(1)}>
-          1
-        </Pagination.Item>,
-      );
-      if (startPage > 2) {
-        items.push(<Pagination.Ellipsis key="ellipsis-start" />);
-      }
-    }
-
-    for (let page = startPage; page <= endPage; page++) {
-      items.push(
-        <Pagination.Item
-          key={page}
-          active={page === currentPage}
-          onClick={() => handlePageChange(page)}
-        >
-          {page}
-        </Pagination.Item>,
-      );
-    }
-
-    if (endPage < totalPages) {
-      if (endPage < totalPages - 1) {
-        items.push(<Pagination.Ellipsis key="ellipsis-end" />);
-      }
-      items.push(
-        <Pagination.Item
-          key={totalPages}
-          active={currentPage === totalPages}
-          onClick={() => handlePageChange(totalPages)}
-        >
-          {totalPages}
-        </Pagination.Item>,
-      );
-    }
-
-    items.push(
-      <Pagination.Next
-        key="next"
-        onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-      />,
-    );
-    return <Pagination>{items}</Pagination>;
-  };
-
   if (isLoading) {
     return (
       <Container className="mt-4">
@@ -240,12 +183,6 @@ const PetsPage: React.FC = () => {
       </Container>
     );
   }
-
-  const truncateDescription = (text: string | undefined, maxLength: number) => {
-    if (!text) return "N/A";
-    if (text.length <= maxLength) return text;
-    return `${text.substring(0, maxLength)}...`;
-  };
 
   // Options for react-select Pet Type filter using the local constant
   const petTypeOptions = PET_TYPE_OPTIONS.map((type) => ({
@@ -318,7 +255,7 @@ const PetsPage: React.FC = () => {
                         delay={{ show: 250, hide: 400 }}
                         overlay={<Tooltip id={`tooltip-${pet.id}`}>{pet.description}</Tooltip>}
                       >
-                        <span>{truncateDescription(pet.description, 50)}</span>
+                        <span>{truncateString(pet.description, 50)}</span>
                       </OverlayTrigger>
                     ) : (
                       pet.description || "N/A"
@@ -341,9 +278,11 @@ const PetsPage: React.FC = () => {
             </tbody>
           </Table>
 
-          {totalPages > 1 && (
-            <div className="d-flex justify-content-center mt-4">{renderPaginationItems()}</div>
-          )}
+          <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
 
           <div className="mt-3 text-muted">
             Showing {offset + 1}-{Math.min(offset + pageSize, data.count)} of {data.count} pets

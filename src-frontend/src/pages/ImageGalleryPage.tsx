@@ -1,3 +1,5 @@
+// src/pages/ImageGalleryPage.tsx
+
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -10,7 +12,6 @@ import {
   Col,
   Container,
   Form,
-  Pagination,
   Row,
   Spinner,
 } from "react-bootstrap";
@@ -34,6 +35,7 @@ import {
   listSubdivisions,
   locationGetSubLocations,
 } from "../api";
+import PaginationComponent from "../components/common/PaginationComponent";
 import ThemedSelect from "../components/common/ThemedSelect";
 import ImageWall from "../components/image/ImageWall";
 import { useAuth } from "../hooks/useAuth";
@@ -134,7 +136,7 @@ const ImageGalleryPage: React.FC = () => {
       month: searchParams.get("month") ? parseInt(searchParams.get("month")!, 10) : null,
       day: searchParams.get("day") ? parseInt(searchParams.get("day")!, 10) : null,
       sort_by: (searchParams.get("sort_by") || "pk") as ImageFilterFormInputs["sort_by"],
-      require_all: searchParams.get("require_all") === "true", // Add this line
+      require_all: searchParams.get("require_all") === "true",
     },
   });
 
@@ -561,75 +563,6 @@ const ImageGalleryPage: React.FC = () => {
     newParams.set("page", page.toString());
     setSearchParams(newParams);
     window.scrollTo(0, 0);
-  };
-
-  // Render pagination controls
-  const renderPaginationItems = () => {
-    const items = [];
-    if (totalPages === 0) return null;
-
-    items.push(
-      <Pagination.Prev
-        key="prev"
-        onClick={() => handlePageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-      />,
-    );
-
-    // Always show first page
-    items.push(
-      <Pagination.Item key={1} active={currentPage === 1} onClick={() => handlePageChange(1)}>
-        1
-      </Pagination.Item>,
-    );
-
-    // Ellipsis for pages far from start
-    if (currentPage > 3) {
-      items.push(<Pagination.Ellipsis key="ellipsis-start" />);
-    }
-
-    // Pages around current page
-    const startPage = Math.max(2, currentPage - 1);
-    const endPage = Math.min(totalPages - 1, currentPage + 1);
-    for (let page = startPage; page <= endPage; page++) {
-      items.push(
-        <Pagination.Item
-          key={page}
-          active={page === currentPage}
-          onClick={() => handlePageChange(page)}
-        >
-          {page}
-        </Pagination.Item>,
-      );
-    }
-
-    // Ellipsis for pages far from end
-    if (currentPage < totalPages - 2) {
-      items.push(<Pagination.Ellipsis key="ellipsis-end" />);
-    }
-
-    // Always show last page
-    if (totalPages > 1) {
-      items.push(
-        <Pagination.Item
-          key={totalPages}
-          active={currentPage === totalPages}
-          onClick={() => handlePageChange(totalPages)}
-        >
-          {totalPages}
-        </Pagination.Item>,
-      );
-    }
-
-    items.push(
-      <Pagination.Next
-        key="next"
-        onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-      />,
-    );
-
-    return <Pagination>{items}</Pagination>;
   };
 
   return (
@@ -1134,9 +1067,15 @@ const ImageGalleryPage: React.FC = () => {
                   Showing {offset + 1}-{Math.min(offset + pageSize, totalImages)} of {totalImages}
                 </small>
               </div>
-              <ImageWall images={images} onImageClick={handleImageClick} columns={3} />
+              <ImageWall images={images} onImageClick={handleImageClick} columns={4} />
               {totalPages > 1 && (
-                <div className="d-flex justify-content-center mt-4">{renderPaginationItems()}</div>
+                <div className="d-flex justify-content-center mt-4">
+                  <PaginationComponent
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
               )}
             </>
           )}
