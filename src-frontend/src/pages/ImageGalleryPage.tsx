@@ -498,6 +498,78 @@ const ImageGalleryPage: React.FC = () => {
     );
   }, [subdivisions, searchParams, setValue]);
 
+  useEffect(() => {
+    // Only update the URL if the user has actually made a change.
+    if (!isDirty) {
+      return;
+    }
+
+    const newParams = new URLSearchParams();
+
+    // Helper to add a parameter if its value is non-empty.
+    const addParam = (key: string, value: string | number | boolean | null | undefined) => {
+      if (typeof value === "boolean" && value) {
+        newParams.set(key, "true");
+      } else if (typeof value === "string" && value) {
+        newParams.set(key, value);
+      } else if (typeof value === "number") {
+        newParams.set(key, String(value));
+      }
+    };
+
+    // Add all non-array filter values to the new parameter list.
+    // These now align with the dependencies used by the main useQuery.
+    addParam("is_starred", watchedIsStarred);
+    addParam("is_deleted", watchedIsDeleted);
+    addParam("country_code", watchedCountryValue);
+    addParam("subdivision_code", watchedSubdivisionValue);
+    addParam("city", debouncedCity);
+    addParam("sub_location", debouncedSubLocation);
+    addParam("date_start", debouncedDateStart);
+    addParam("date_end", debouncedDateEnd);
+    addParam("year", debouncedYear);
+    addParam("month", debouncedMonth);
+    addParam("day", debouncedDay);
+    addParam("sort_by", watchedSortBy);
+    addParam("require_all", watchedRequireAll);
+
+    const peopleIds = debouncedPeopleIds ? debouncedPeopleIds.split(",") : [];
+    const petsIds = debouncedPetsIds ? debouncedPetsIds.split(",") : [];
+
+    peopleIds.forEach((id) => {
+      if (id) newParams.append("people_ids", id);
+    });
+
+    petsIds.forEach((id) => {
+      if (id) newParams.append("pets_ids", id);
+    });
+
+    // When filters change, we should always go back to page 1.
+    newParams.set("page", "1");
+
+    // Use `replace: true` to update the URL without pushing a new entry to browser history.
+    setSearchParams(newParams, { replace: true });
+  }, [
+    // The dependency array is correct and uses stable, debounced values.
+    isDirty,
+    setSearchParams,
+    watchedIsStarred,
+    watchedIsDeleted,
+    watchedCountryValue,
+    watchedSubdivisionValue,
+    watchedSortBy,
+    watchedRequireAll,
+    debouncedCity,
+    debouncedSubLocation,
+    debouncedDateStart,
+    debouncedDateEnd,
+    debouncedYear,
+    debouncedMonth,
+    debouncedDay,
+    debouncedPeopleIds,
+    debouncedPetsIds,
+  ]);
+
   // Close autocomplete suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -559,7 +631,9 @@ const ImageGalleryPage: React.FC = () => {
 
   // Handle page change
   const handlePageChange = (page: number) => {
-    const newParams = new URLSearchParams(searchParams);
+    // This function should create a new history entry.
+    // It correctly preserves the existing filter params from the URL.
+    const newParams = new URLSearchParams(searchParams.toString());
     newParams.set("page", page.toString());
     setSearchParams(newParams);
     window.scrollTo(0, 0);
