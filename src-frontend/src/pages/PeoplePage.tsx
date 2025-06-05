@@ -18,6 +18,7 @@ import type { PagedPersonReadOutSchema, PersonReadOutSchema } from "../api";
 import { getAllPeople } from "../api";
 import PaginationComponent from "../components/common/PaginationComponent";
 import { useAuth } from "../hooks/useAuth";
+import { useDebounce } from "../hooks/useDebounce";
 import { truncateString } from "../utils/truncateString";
 
 // Define a type alias for the allowed sort_by values, matching your backend Literal
@@ -29,11 +30,8 @@ const PeoplePage: React.FC = () => {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
 
-  // State for search term
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("person_name") || "");
-  // Ref for the search input to manage debounce
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const prevSearchTermRef = useRef(searchTerm);
+  const [searchInput, setSearchInput] = useState(searchParams.get("person_name") || "");
+  const debouncedSearchTerm = useDebounce(searchInput, 500);
 
   // State for sorting: Stores the raw sort_by string (e.g., "name", "-name", "image_count", "-image_count")
   // The default sort when nothing is specified or cleared is "name" (ascending).
@@ -49,26 +47,23 @@ const PeoplePage: React.FC = () => {
     ) {
       return param;
     }
-    return "name"; // Default to "name" (ascending) if the param is invalid or not present
+    return "name";
   });
   const prevSortByRef = useRef(sortBy);
 
-  // Get pagination parameters from URL or defaults
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
-  const pageSize = profile?.items_per_page || 10; // Default to 10 if not in profile
-  // Calculate offset based on current page and page size
+  const pageSize = profile?.items_per_page || 10;
   const offset = (currentPage - 1) * pageSize;
-
   const currentQueryKeyPage = searchParams.get("page") || "1";
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
-    queryKey: ["people", currentQueryKeyPage, pageSize, searchTerm, sortBy],
+    queryKey: ["people", currentQueryKeyPage, pageSize, debouncedSearchTerm, sortBy],
     queryFn: async ({ signal }) => {
       const response = await getAllPeople({
         query: {
           limit: pageSize,
           offset: offset,
-          person_name: searchTerm || undefined,
+          person_name: debouncedSearchTerm || undefined,
           sort_by: sortBy,
         },
         signal,
@@ -79,22 +74,19 @@ const PeoplePage: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Effect for search term changes, only runs when searchTerm state itself changes significantly
   useEffect(() => {
-    // Only update searchParams if searchTerm has genuinely changed
-    // This effect should handle updating the URL when searchTerm changes
-    if (searchTerm !== prevSearchTermRef.current) {
+    // This check prevents the effect from firing on initial load
+    if (debouncedSearchTerm !== (searchParams.get("person_name") || "")) {
       const newParams = new URLSearchParams(searchParams);
-      if (searchTerm) {
-        newParams.set("person_name", searchTerm);
+      if (debouncedSearchTerm) {
+        newParams.set("person_name", debouncedSearchTerm);
       } else {
         newParams.delete("person_name");
       }
-      newParams.set("page", "1"); // Always reset to page 1 on search term change
+      newParams.set("page", "1"); // Reset to page 1 on new search
       setSearchParams(newParams);
-      prevSearchTermRef.current = searchTerm; // Update the ref
     }
-  }, [searchTerm, searchParams, setSearchParams]); // Keep searchParams in dependencies for the latest version
+  }, [debouncedSearchTerm, searchParams, setSearchParams]);
 
   // Effect for sortBy changes, only runs when sortBy state itself changes significantly
   useEffect(() => {
@@ -176,9 +168,8 @@ const PeoplePage: React.FC = () => {
         <FormControl
           placeholder="Search by person name..."
           aria-label="Search by person name"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          ref={searchInputRef}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
         />
         <Button variant="outline-secondary" disabled>
           <i className="bi bi-search"></i>
