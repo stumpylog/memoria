@@ -38,10 +38,14 @@ def get_all_countries(
 def get_countries_with_images_in_them(
     request: HttpRequest,  # noqa: ARG001
 ):
-    rough_locations_with_images = RoughLocation.objects.annotate(
-        num_images=Count("images"),
-    ).filter(num_images__gt=0)
-    data = []
+    rough_locations_with_images = (
+        RoughLocation.objects.annotate(
+            num_images=Count("images"),
+        )
+        .filter(images__isnull=False, num_images__gt=0)
+        .order_by("country_code")
+    )
+    data: list[CountryListItemSchemaOut] = []
     seen = set()
     for location in rough_locations_with_images:
         if location.country_code not in seen:
@@ -52,7 +56,7 @@ def get_countries_with_images_in_them(
                 ),
             )
             seen.add(location.country_code)
-    return data
+    return sorted(data, key=lambda x: x.best_name)
 
 
 @router.get(
@@ -107,7 +111,7 @@ def get_subdivisions_with_images_in_them(
     # Convert the QuerySet to a list of strings
     subdivision_codes = list(distinct_subdivision_codes_qs)
 
-    result = []
+    result: list[SubdivisionListItemSchemaOut] = []
     for code in subdivision_codes:
         subdivision_obj = country.get_subdivision(code)
         if subdivision_obj:  # Ensure subdivision object exists
@@ -117,7 +121,7 @@ def get_subdivisions_with_images_in_them(
                     name=subdivision_obj.name,
                 ),
             )
-    return result
+    return sorted(result, key=lambda x: x.name)
 
 
 @router.get("/cities/", response=list[str], operation_id="list_possible_country_cities")

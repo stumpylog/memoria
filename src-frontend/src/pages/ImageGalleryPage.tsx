@@ -1,6 +1,19 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Button, Col, Container, Form, Pagination, Row, Spinner } from "react-bootstrap";
+import {
+  Accordion,
+  Alert,
+  Badge,
+  Button,
+  ButtonGroup,
+  Card,
+  Col,
+  Container,
+  Form,
+  Pagination,
+  Row,
+  Spinner,
+} from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -101,7 +114,6 @@ const ImageGalleryPage: React.FC = () => {
   // Form management with react-hook-form
   const {
     control,
-    handleSubmit,
     watch,
     setValue,
     reset,
@@ -543,36 +555,6 @@ const ImageGalleryPage: React.FC = () => {
     navigate(`/images/${id}`);
   };
 
-  // Update URL search params on form submission
-  const onSubmit = (data: ImageFilterFormInputs) => {
-    const newParams = new URLSearchParams();
-
-    if (data.is_starred) newParams.set("is_starred", "true");
-    if (data.is_deleted) newParams.set("is_deleted", "true");
-
-    data.people_ids.forEach((p) => newParams.append("people_ids", p.value.toString()));
-    data.pets_ids.forEach((p) => newParams.append("pets_ids", p.value.toString()));
-
-    if (data.country_code?.value) newParams.set("country_code", data.country_code.value);
-    if (data.subdivision_code?.value)
-      newParams.set("subdivision_code", data.subdivision_code.value);
-    if (data.city) newParams.set("city", data.city);
-    if (data.sub_location) newParams.set("sub_location", data.sub_location);
-
-    if (data.date_start) newParams.set("date_start", data.date_start);
-    if (data.date_end) newParams.set("date_end", data.date_end);
-    if (data.year !== null) newParams.set("year", data.year.toString());
-    if (data.month !== null) newParams.set("month", data.month.toString());
-    if (data.day !== null) newParams.set("day", data.day.toString());
-    if (data.sort_by) newParams.set("sort_by", data.sort_by);
-    if (data.require_all) newParams.set("require_all", "true"); // Add this line
-
-    newParams.set("page", "1");
-    newParams.set("limit", pageSize.toString());
-
-    setSearchParams(newParams);
-  };
-
   // Handle page change
   const handlePageChange = (page: number) => {
     const newParams = new URLSearchParams(searchParams);
@@ -658,372 +640,473 @@ const ImageGalleryPage: React.FC = () => {
       <Row>
         {/* Filters Column */}
         <Col md={3}>
-          <Form onSubmit={handleSubmit(onSubmit)} className="mb-4 p-3 border rounded shadow-sm">
-            <h4 className="mb-3">Filters</h4>
-
-            {/* Boolean Filters */}
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                id="isStarred"
-                label="Starred Images"
-                {...control.register("is_starred")}
-                checked={watchedIsStarred}
-                onChange={(e) => setValue("is_starred", e.target.checked, { shouldDirty: true })}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                id="isDeleted"
-                label="Deleted Images"
-                {...control.register("is_deleted")}
-                checked={watchedIsDeleted}
-                onChange={(e) => setValue("is_deleted", e.target.checked, { shouldDirty: true })}
-              />
-            </Form.Group>
-
-            <hr />
-
-            {/* People Filter */}
-            <Form.Group className="mb-3">
-              <Form.Label>People</Form.Label>
-              <Controller
-                name="people_ids"
-                control={control}
-                render={({ field }) => (
-                  <ThemedSelect
-                    {...field}
-                    isMulti
-                    options={allPeople.map((p) => ({ value: p.id, label: p.name }))}
-                    isLoading={isLoadingAllPeople}
-                    placeholder="Select people."
-                    onChange={(selectedOptions) => {
-                      field.onChange(selectedOptions);
-                    }}
-                  />
-                )}
-              />
-            </Form.Group>
-
-            {/* Pets Filter */}
-            <Form.Group className="mb-3">
-              <Form.Label>Pets</Form.Label>
-              <Controller
-                name="pets_ids"
-                control={control}
-                render={({ field }) => (
-                  <ThemedSelect
-                    {...field}
-                    isMulti
-                    options={allPets.map((p) => ({ value: p.id, label: p.name }))}
-                    isLoading={isLoadingAllPets}
-                    placeholder="Select pets."
-                    onChange={(selectedOptions) => {
-                      field.onChange(selectedOptions);
-                    }}
-                  />
-                )}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                id="requireAll"
-                label="Require ALL selected people/pets to appear"
-                {...control.register("require_all")}
-                checked={watchedRequireAll}
-                onChange={(e) => setValue("require_all", e.target.checked, { shouldDirty: true })}
-              />
-            </Form.Group>
-
-            <hr />
-
-            {/* Location Filters */}
-            <Form.Group className="mb-3">
-              <Form.Label>Country</Form.Label>
-              <Controller
-                name="country_code"
-                control={control}
-                render={({ field }) => (
-                  <ThemedSelect
-                    {...field}
-                    options={countries.map((c) => ({ value: c.alpha2, label: c.best_name }))}
-                    isLoading={isLoadingCountries}
-                    placeholder="Select country."
-                    isClearable
-                    onChange={(selectedOption) => {
-                      field.onChange(selectedOption);
-                      setValue("subdivision_code", null, { shouldDirty: true });
-                      setValue("city", "", { shouldDirty: true });
-                      setValue("sub_location", "", { shouldDirty: true });
-                    }}
-                  />
-                )}
-              />
-            </Form.Group>
-
-            {watchedCountryValue && (
-              <Form.Group className="mb-3">
-                <Form.Label>Subdivision</Form.Label>
-                <Controller
-                  name="subdivision_code"
-                  control={control}
-                  render={({ field }) => (
-                    <ThemedSelect
-                      {...field}
-                      options={subdivisions.map((s) => ({ value: s.code, label: s.name }))}
-                      isLoading={isLoadingSubdivisions}
-                      placeholder="Select subdivision (optional)."
-                      isClearable
-                      onChange={(selectedOption) => {
-                        field.onChange(selectedOption);
-                        setValue("city", "", { shouldDirty: true });
-                        setValue("sub_location", "", { shouldDirty: true });
-                      }}
-                    />
-                  )}
-                />
-              </Form.Group>
-            )}
-
-            {watchedCountryValue && (
-              <Form.Group className="mb-3">
-                <Form.Label>City</Form.Label>
-                <div ref={cityAutocompleteRef} className="position-relative">
-                  <Controller
-                    name="city"
-                    control={control}
-                    render={({ field }) => (
-                      <ThemedSelect
-                        {...field}
-                        options={cities.map((c) => ({ value: c, label: c }))}
-                        isLoading={isLoadingCities}
-                        placeholder="Select city (optional)."
-                        isClearable
-                        onChange={(selectedOption) => {
-                          field.onChange(selectedOption?.value || "");
-                          setValue("sub_location", "", { shouldDirty: true });
-                        }}
-                        value={watchedCity ? { value: watchedCity, label: watchedCity } : null}
-                      />
-                    )}
-                  />
-                  {isLoadingCities && (
-                    <Spinner
-                      animation="border"
-                      size="sm"
-                      className="ms-2 position-absolute top-50 end-0 translate-middle-y"
-                    />
-                  )}
-                  {showCitySuggestions && watchedCity && filteredCities.length > 0 && (
-                    <div
-                      className="position-absolute w-100 border rounded mt-1 bg-body"
-                      style={{
-                        zIndex: 1050,
-                        maxHeight: "200px",
-                        overflowY: "auto",
-                        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                      }}
-                    >
-                      {filteredCities.map((c) => (
-                        <div
-                          key={c}
-                          className="px-3 py-2 cursor-pointer hover-bg-light"
-                          onClick={() => handleCitySelect(c)}
-                          onMouseDown={(e) => e.preventDefault()}
-                        >
-                          {highlightMatch(c, watchedCity)}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+          <div className="d-none d-md-block">
+            <Card className="shadow-sm">
+              <Card.Header className="bg-body-secondary">
+                <div className="d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">Filters</h5>
                 </div>
-              </Form.Group>
-            )}
-
-            {watchedCountryValue && watchedCity && (
-              <Form.Group className="mb-3">
-                <Form.Label>Specific Location</Form.Label>
-                <div ref={subLocationAutocompleteRef} className="position-relative">
-                  <Controller
-                    name="sub_location"
-                    control={control}
-                    render={({ field }) => (
-                      <ThemedSelect
-                        {...field}
-                        options={subLocations.map((loc) => ({ value: loc, label: loc }))}
-                        isLoading={isLoadingSubLocations}
-                        placeholder="Select location (optional)."
-                        isClearable
-                        onChange={(selectedOption) => field.onChange(selectedOption?.value || "")}
-                        value={
-                          watchedSubLocation
-                            ? { value: watchedSubLocation, label: watchedSubLocation }
-                            : null
+              </Card.Header>
+              <Card.Body className="p-0">
+                <Accordion flush>
+                  {/* Quick Filters - Always Visible */}
+                  <div className="p-3 border-bottom">
+                    <h6 className="text-muted mb-2">QUICK FILTERS</h6>
+                    <ButtonGroup className="mb-2 w-100" size="sm">
+                      <Button
+                        variant={watchedIsStarred ? "primary" : "outline-primary"}
+                        onClick={() =>
+                          setValue("is_starred", !watchedIsStarred, { shouldDirty: true })
                         }
-                      />
-                    )}
-                  />
-                  {isLoadingSubLocations && (
-                    <Spinner
-                      animation="border"
-                      size="sm"
-                      className="ms-2 position-absolute top-50 end-0 translate-middle-y"
-                    />
-                  )}
-                  {showSubLocationSuggestions &&
-                    watchedSubLocation &&
-                    filteredSubLocations.length > 0 && (
-                      <div
-                        className="position-absolute w-100 border rounded mt-1 bg-body"
-                        style={{
-                          zIndex: 1050,
-                          maxHeight: "200px",
-                          overflowY: "auto",
-                          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                        }}
                       >
-                        {filteredSubLocations.map((loc) => (
-                          <div
-                            key={loc}
-                            className="px-3 py-2 cursor-pointer hover-bg-light"
-                            onClick={() => handleSubLocationSelect(loc)}
-                            onMouseDown={(e) => e.preventDefault()}
-                          >
-                            {highlightMatch(loc, watchedSubLocation)}
-                          </div>
-                        ))}
+                        <i className="fas fa-star me-1"></i>
+                        Starred
+                      </Button>
+                      <Button
+                        variant={watchedIsDeleted ? "danger" : "outline-danger"}
+                        onClick={() =>
+                          setValue("is_deleted", !watchedIsDeleted, { shouldDirty: true })
+                        }
+                      >
+                        <i className="fas fa-trash me-1"></i>
+                        Deleted
+                      </Button>
+                    </ButtonGroup>
+                  </div>
+
+                  {/* People & Pets */}
+                  <Accordion.Item eventKey="0">
+                    <Accordion.Header>
+                      <div className="d-flex align-items-center w-100">
+                        <i className="fas fa-users me-2"></i>
+                        People & Pets
+                        {(watchedPeopleIdsValues.length > 0 ||
+                          watchedPetsIdsValues.length > 0) && (
+                          <Badge bg="success" className="ms-auto me-2">
+                            {watchedPeopleIdsValues.length + watchedPetsIdsValues.length}
+                          </Badge>
+                        )}
                       </div>
-                    )}
+                    </Accordion.Header>
+                    <Accordion.Body>
+                      {/* People Filter */}
+                      <Form.Group className="mb-3">
+                        <Form.Label>People</Form.Label>
+                        <Controller
+                          name="people_ids"
+                          control={control}
+                          render={({ field }) => (
+                            <ThemedSelect
+                              {...field}
+                              isMulti
+                              options={allPeople.map((p) => ({ value: p.id, label: p.name }))}
+                              isLoading={isLoadingAllPeople}
+                              placeholder="Select people."
+                              onChange={(selectedOptions) => {
+                                field.onChange(selectedOptions);
+                              }}
+                            />
+                          )}
+                        />
+                      </Form.Group>
+
+                      {/* Pets Filter */}
+                      <Form.Group className="mb-3">
+                        <Form.Label>Pets</Form.Label>
+                        <Controller
+                          name="pets_ids"
+                          control={control}
+                          render={({ field }) => (
+                            <ThemedSelect
+                              {...field}
+                              isMulti
+                              options={allPets.map((p) => ({ value: p.id, label: p.name }))}
+                              isLoading={isLoadingAllPets}
+                              placeholder="Select pets."
+                              onChange={(selectedOptions) => {
+                                field.onChange(selectedOptions);
+                              }}
+                            />
+                          )}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Check
+                          type="checkbox"
+                          id="requireAll"
+                          label="Require ALL selected people/pets to appear"
+                          {...control.register("require_all")}
+                          checked={watchedRequireAll}
+                          onChange={(e) =>
+                            setValue("require_all", e.target.checked, { shouldDirty: true })
+                          }
+                        />
+                      </Form.Group>
+                    </Accordion.Body>
+                  </Accordion.Item>
+
+                  {/* Location */}
+                  <Accordion.Item eventKey="1">
+                    <Accordion.Header>
+                      <div className="d-flex align-items-center w-100">
+                        <i className="fas fa-map-marker-alt me-2"></i>
+                        Location
+                        {(watchedCountryValue || watchedCity) && (
+                          <Badge bg="success" className="ms-auto me-2">
+                            Active
+                          </Badge>
+                        )}
+                      </div>
+                    </Accordion.Header>
+                    <Accordion.Body>
+                      {/* Location Filters */}
+                      <Form.Group className="mb-3">
+                        <Form.Label>Country</Form.Label>
+                        <Controller
+                          name="country_code"
+                          control={control}
+                          render={({ field }) => (
+                            <ThemedSelect
+                              {...field}
+                              options={countries.map((c) => ({
+                                value: c.alpha2,
+                                label: c.best_name,
+                              }))}
+                              isLoading={isLoadingCountries}
+                              placeholder="Select country."
+                              isClearable
+                              onChange={(selectedOption) => {
+                                field.onChange(selectedOption);
+                                setValue("subdivision_code", null, { shouldDirty: true });
+                                setValue("city", "", { shouldDirty: true });
+                                setValue("sub_location", "", { shouldDirty: true });
+                              }}
+                            />
+                          )}
+                        />
+                      </Form.Group>
+
+                      {watchedCountryValue && (
+                        <Form.Group className="mb-3">
+                          <Form.Label>Subdivision</Form.Label>
+                          <Controller
+                            name="subdivision_code"
+                            control={control}
+                            render={({ field }) => (
+                              <ThemedSelect
+                                {...field}
+                                options={subdivisions.map((s) => ({
+                                  value: s.code,
+                                  label: s.name,
+                                }))}
+                                isLoading={isLoadingSubdivisions}
+                                placeholder="Select subdivision (optional)."
+                                isClearable
+                                onChange={(selectedOption) => {
+                                  field.onChange(selectedOption);
+                                  setValue("city", "", { shouldDirty: true });
+                                  setValue("sub_location", "", { shouldDirty: true });
+                                }}
+                              />
+                            )}
+                          />
+                        </Form.Group>
+                      )}
+
+                      {watchedCountryValue && (
+                        <Form.Group className="mb-3">
+                          <Form.Label>City</Form.Label>
+                          <div ref={cityAutocompleteRef} className="position-relative">
+                            <Controller
+                              name="city"
+                              control={control}
+                              render={({ field }) => (
+                                <ThemedSelect
+                                  {...field}
+                                  options={cities.map((c) => ({ value: c, label: c }))}
+                                  isLoading={isLoadingCities}
+                                  placeholder="Select city (optional)."
+                                  isClearable
+                                  onChange={(selectedOption) => {
+                                    field.onChange(selectedOption?.value || "");
+                                    setValue("sub_location", "", { shouldDirty: true });
+                                  }}
+                                  value={
+                                    watchedCity ? { value: watchedCity, label: watchedCity } : null
+                                  }
+                                />
+                              )}
+                            />
+                            {isLoadingCities && (
+                              <Spinner
+                                animation="border"
+                                size="sm"
+                                className="ms-2 position-absolute top-50 end-0 translate-middle-y"
+                              />
+                            )}
+                            {showCitySuggestions && watchedCity && filteredCities.length > 0 && (
+                              <div
+                                className="position-absolute w-100 border rounded mt-1 bg-body"
+                                style={{
+                                  zIndex: 1050,
+                                  maxHeight: "200px",
+                                  overflowY: "auto",
+                                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                                }}
+                              >
+                                {filteredCities.map((c) => (
+                                  <div
+                                    key={c}
+                                    className="px-3 py-2 cursor-pointer hover-bg-light"
+                                    onClick={() => handleCitySelect(c)}
+                                    onMouseDown={(e) => e.preventDefault()}
+                                  >
+                                    {highlightMatch(c, watchedCity)}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </Form.Group>
+                      )}
+
+                      {watchedCountryValue && watchedCity && (
+                        <Form.Group className="mb-3">
+                          <Form.Label>Specific Location</Form.Label>
+                          <div ref={subLocationAutocompleteRef} className="position-relative">
+                            <Controller
+                              name="sub_location"
+                              control={control}
+                              render={({ field }) => (
+                                <ThemedSelect
+                                  {...field}
+                                  options={subLocations.map((loc) => ({ value: loc, label: loc }))}
+                                  isLoading={isLoadingSubLocations}
+                                  placeholder="Select location (optional)."
+                                  isClearable
+                                  onChange={(selectedOption) =>
+                                    field.onChange(selectedOption?.value || "")
+                                  }
+                                  value={
+                                    watchedSubLocation
+                                      ? { value: watchedSubLocation, label: watchedSubLocation }
+                                      : null
+                                  }
+                                />
+                              )}
+                            />
+                            {isLoadingSubLocations && (
+                              <Spinner
+                                animation="border"
+                                size="sm"
+                                className="ms-2 position-absolute top-50 end-0 translate-middle-y"
+                              />
+                            )}
+                            {showSubLocationSuggestions &&
+                              watchedSubLocation &&
+                              filteredSubLocations.length > 0 && (
+                                <div
+                                  className="position-absolute w-100 border rounded mt-1 bg-body"
+                                  style={{
+                                    zIndex: 1050,
+                                    maxHeight: "200px",
+                                    overflowY: "auto",
+                                    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                                  }}
+                                >
+                                  {filteredSubLocations.map((loc) => (
+                                    <div
+                                      key={loc}
+                                      className="px-3 py-2 cursor-pointer hover-bg-light"
+                                      onClick={() => handleSubLocationSelect(loc)}
+                                      onMouseDown={(e) => e.preventDefault()}
+                                    >
+                                      {highlightMatch(loc, watchedSubLocation)}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                          </div>
+                        </Form.Group>
+                      )}
+                    </Accordion.Body>
+                  </Accordion.Item>
+
+                  {/* Date & Time */}
+                  <Accordion.Item eventKey="2">
+                    <Accordion.Header>
+                      <div className="d-flex align-items-center w-100">
+                        <i className="fas fa-calendar me-2"></i>
+                        Date & Time
+                        {(watchedDateStart || watchedDateEnd || watchedYear) && (
+                          <Badge bg="success" className="ms-auto me-2">
+                            Active
+                          </Badge>
+                        )}
+                      </div>
+                    </Accordion.Header>
+                    <Accordion.Body>
+                      {/* Date Range Filters */}
+                      <Form.Group className="mb-3">
+                        <Form.Label>Date Start</Form.Label>
+                        <Form.Control
+                          type="date"
+                          {...control.register("date_start")}
+                          value={watchedDateStart}
+                          onChange={(e) =>
+                            setValue("date_start", e.target.value, { shouldDirty: true })
+                          }
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Date End</Form.Label>
+                        <Form.Control
+                          type="date"
+                          {...control.register("date_end")}
+                          value={watchedDateEnd}
+                          onChange={(e) =>
+                            setValue("date_end", e.target.value, { shouldDirty: true })
+                          }
+                        />
+                      </Form.Group>
+
+                      {/* Exact Date Filters */}
+                      <Form.Group className="mb-3">
+                        <Form.Label>Exact Year</Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="YYYY"
+                          {...control.register("year", { valueAsNumber: true })}
+                          value={watchedYear || ""}
+                          onChange={(e) =>
+                            setValue(
+                              "year",
+                              e.target.value ? parseInt(e.target.value, 10) : null,
+                              {
+                                shouldDirty: true,
+                              },
+                            )
+                          }
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Exact Month</Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="MM (1-12)"
+                          min="1"
+                          max="12"
+                          disabled={!watchedYear}
+                          {...control.register("month", {
+                            valueAsNumber: true,
+                            min: { value: 1, message: "Month must be between 1 and 12" },
+                            max: { value: 12, message: "Month must be between 1 and 12" },
+                          })}
+                          value={watchedMonth || ""}
+                          onChange={(e) => {
+                            const newMonth = e.target.value ? parseInt(e.target.value, 10) : null;
+                            setValue("month", newMonth, { shouldDirty: true });
+                            // Clear day when month changes
+                            if (!newMonth) {
+                              setValue("day", null, { shouldDirty: true });
+                            }
+                          }}
+                        />
+                        {!watchedYear && (
+                          <Form.Text className="text-muted">
+                            Requires a year to be selected first
+                          </Form.Text>
+                        )}
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Exact Day</Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="DD (1-31)"
+                          min="1"
+                          max="31"
+                          disabled={!watchedMonth}
+                          {...control.register("day", {
+                            valueAsNumber: true,
+                            min: { value: 1, message: "Day must be between 1 and 31" },
+                            max: { value: 31, message: "Day must be between 1 and 31" },
+                          })}
+                          value={watchedDay || ""}
+                          onChange={(e) =>
+                            setValue("day", e.target.value ? parseInt(e.target.value, 10) : null, {
+                              shouldDirty: true,
+                            })
+                          }
+                        />
+                        {!watchedMonth && (
+                          <Form.Text className="text-muted">
+                            Requires a month to be selected first
+                          </Form.Text>
+                        )}
+                      </Form.Group>
+                    </Accordion.Body>
+                  </Accordion.Item>
+
+                  {/* Advanced Options */}
+                  <Accordion.Item eventKey="3">
+                    <Accordion.Header>
+                      <div className="d-flex align-items-center w-100">
+                        <i className="fas fa-cog me-2"></i>
+                        Advanced
+                        {watchedRequireAll && (
+                          <Badge bg="success" className="ms-auto me-2">
+                            Active
+                          </Badge>
+                        )}
+                      </div>
+                    </Accordion.Header>
+                    <Accordion.Body>
+                      {/* Sort By Filter */}
+                      <Form.Group className="mb-3">
+                        <Form.Label>Sort By</Form.Label>
+                        <Form.Select
+                          {...control.register("sort_by")}
+                          value={watchedSortBy}
+                          onChange={(e) =>
+                            setValue(
+                              "sort_by",
+                              e.target.value as ImageFilterFormInputs["sort_by"],
+                              {
+                                shouldDirty: true,
+                              },
+                            )
+                          }
+                        >
+                          <option value="pk">Default (ID)</option>
+                          <option value="created_at">Created (Ascending)</option>
+                          <option value="-created_at">Created (Descending)</option>
+                          <option value="updated_at">Modified (Ascending)</option>
+                          <option value="-updated_at">Modified (Descending)</option>
+                          <option value="title">Title (Ascending)</option>
+                          <option value="-title">Title (Descending)</option>
+                        </Form.Select>
+                      </Form.Group>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                </Accordion>
+              </Card.Body>
+              <Card.Footer className="bg-body-secondary">
+                <div className="d-grid gap-2">
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={() => {
+                      reset();
+                      setSearchParams(new URLSearchParams());
+                    }}
+                    disabled={!isDirty && searchParams.toString() === ""}
+                  >
+                    Clear All
+                  </Button>
                 </div>
-              </Form.Group>
-            )}
-
-            <hr />
-
-            {/* Date Range Filters */}
-            <Form.Group className="mb-3">
-              <Form.Label>Date Start</Form.Label>
-              <Form.Control
-                type="date"
-                {...control.register("date_start")}
-                value={watchedDateStart}
-                onChange={(e) => setValue("date_start", e.target.value, { shouldDirty: true })}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Date End</Form.Label>
-              <Form.Control
-                type="date"
-                {...control.register("date_end")}
-                value={watchedDateEnd}
-                onChange={(e) => setValue("date_end", e.target.value, { shouldDirty: true })}
-              />
-            </Form.Group>
-
-            {/* Exact Date Filters */}
-            <Form.Group className="mb-3">
-              <Form.Label>Exact Year</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="YYYY"
-                {...control.register("year", { valueAsNumber: true })}
-                value={watchedYear || ""}
-                onChange={(e) =>
-                  setValue("year", e.target.value ? parseInt(e.target.value, 10) : null, {
-                    shouldDirty: true,
-                  })
-                }
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Exact Month</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="MM (1-12)"
-                min="1"
-                max="12"
-                disabled={!watchedYear}
-                {...control.register("month", {
-                  valueAsNumber: true,
-                  min: { value: 1, message: "Month must be between 1 and 12" },
-                  max: { value: 12, message: "Month must be between 1 and 12" },
-                })}
-                value={watchedMonth || ""}
-                onChange={(e) => {
-                  const newMonth = e.target.value ? parseInt(e.target.value, 10) : null;
-                  setValue("month", newMonth, { shouldDirty: true });
-                  // Clear day when month changes
-                  if (!newMonth) {
-                    setValue("day", null, { shouldDirty: true });
-                  }
-                }}
-              />
-              {!watchedYear && (
-                <Form.Text className="text-muted">Requires a year to be selected first</Form.Text>
-              )}
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Exact Day</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="DD (1-31)"
-                min="1"
-                max="31"
-                disabled={!watchedMonth}
-                {...control.register("day", {
-                  valueAsNumber: true,
-                  min: { value: 1, message: "Day must be between 1 and 31" },
-                  max: { value: 31, message: "Day must be between 1 and 31" },
-                })}
-                value={watchedDay || ""}
-                onChange={(e) =>
-                  setValue("day", e.target.value ? parseInt(e.target.value, 10) : null, {
-                    shouldDirty: true,
-                  })
-                }
-              />
-              {!watchedMonth && (
-                <Form.Text className="text-muted">Requires a month to be selected first</Form.Text>
-              )}
-            </Form.Group>
-
-            <hr />
-
-            {/* Sort By Filter */}
-            <Form.Group className="mb-3">
-              <Form.Label>Sort By</Form.Label>
-              <Form.Select
-                {...control.register("sort_by")}
-                value={watchedSortBy}
-                onChange={(e) =>
-                  setValue("sort_by", e.target.value as ImageFilterFormInputs["sort_by"], {
-                    shouldDirty: true,
-                  })
-                }
-              >
-                <option value="pk">Default (ID)</option>
-                <option value="created_at">Created (Ascending)</option>
-                <option value="-created_at">Created (Descending)</option>
-                <option value="updated_at">Modified (Ascending)</option>
-                <option value="-updated_at">Modified (Descending)</option>
-                <option value="title">Title (Ascending)</option>
-                <option value="-title">Title (Descending)</option>
-              </Form.Select>
-            </Form.Group>
-            <Button
-              variant="outline-secondary"
-              className="w-100 mt-2"
-              onClick={() => {
-                reset(); // Resets to defaultValues (from searchParams on initial render)
-                setSearchParams(new URLSearchParams()); // Clear all search params
-              }}
-              disabled={!isDirty && searchParams.toString() === ""}
-            >
-              Clear Filters
-            </Button>
-          </Form>
+              </Card.Footer>
+            </Card>
+          </div>
         </Col>
 
         {/* Image Gallery Column */}
