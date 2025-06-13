@@ -1,9 +1,9 @@
 import datetime
 from datetime import date
+from enum import IntEnum
 from typing import TYPE_CHECKING
 
 from django.http import HttpRequest
-from exifmwg.models import RotationEnum
 from ninja import Schema
 from pydantic import Field
 from pydantic import FilePath
@@ -16,6 +16,17 @@ from memoria.routes.common.schemas import IdMixin
 
 if TYPE_CHECKING:
     from django.http import HttpRequest
+
+
+class RotationEnum(IntEnum):
+    HORIZONTAL = 1
+    MIRROR_HORIZONTAL = 2
+    ROTATE_180 = 3
+    MIRROR_VERTICAL = 4
+    MIRROR_HORIZONTAL_AND_ROTATE_270_CW = 5
+    ROTATE_90_CW = 6
+    MIRROR_HORIZONTAL_AND_ROTATE_90_CW = 7
+    ROTATE_270_CW = 8
 
 
 class ImageThumbnailSchemaOut(IdMixin, Schema):

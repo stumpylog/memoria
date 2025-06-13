@@ -127,10 +127,14 @@ class ImageDateFilterSchema(FilterSchema):
         if self.month_start is not None and self.year_start is None:
             raise ValueError("Starting month filter is missing a starting year value")  # noqa: EM101, TRY003
 
-        if self.date_end is not None and self.month_end is None:
+        if self.day_end is not None and self.month_end is None:
             raise ValueError("Ending day filter is missing an ending month")  # noqa: EM101, TRY003
         if self.month_end is not None and self.year_end is None:
             raise ValueError("Ending month filter is missing an ending year value")  # noqa: EM101, TRY003
+
+        if self.date_start and self.date_end and (self.date_end < self.date_start):
+            raise ValueError("Ending date is before the starting date")  # noqa: EM101, TRY003
+
         return self
 
     def filter_queryset(self, queryset):

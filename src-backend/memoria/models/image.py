@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from exifmwg.models import RotationEnum
 
 from memoria.models.abstract import AbstractTimestampMixin
 from memoria.models.abstract import ObjectPermissionModelMixin
@@ -82,14 +81,14 @@ class Image(AbstractTimestampMixin, ObjectPermissionModelMixin, models.Model):
     """
 
     class OrientationChoices(models.IntegerChoices):
-        HORIZONTAL = RotationEnum.HORIZONTAL.value
-        MIRROR_HORIZONTAL = RotationEnum.MIRROR_HORIZONTAL.value
-        ROTATE_180 = RotationEnum.ROTATE_180.value
-        MIRROR_VERTICAL = RotationEnum.MIRROR_VERTICAL.value
-        MIRROR_HORIZONTAL_AND_ROTATE_270_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_270_CW.value
-        ROTATE_90_CW = RotationEnum.ROTATE_90_CW.value
-        MIRROR_HORIZONTAL_AND_ROTATE_90_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_90_CW.value
-        ROTATE_270_CW = RotationEnum.ROTATE_270_CW.value
+        HORIZONTAL = 1, _("Horizontal")
+        MIRROR_HORIZONTAL = 2, _("Mirror Horizontal")
+        ROTATE_180 = 3, _("Rotate 180")
+        MIRROR_VERTICAL = 4, _("Mirror Vertical")
+        MIRROR_HORIZONTAL_AND_ROTATE_270_CW = 5, _("Mirror Horizontal And Rotate 270 Cw")
+        ROTATE_90_CW = 6, _("Rotate 90 Cw")
+        MIRROR_HORIZONTAL_AND_ROTATE_90_CW = 7, _("Mirror Horizontal And Rotate 90 Cw")
+        ROTATE_270_CW = 8, _("Rotate 270 Cw")
 
     original_checksum = models.CharField(
         max_length=64,

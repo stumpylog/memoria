@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import cast
 
-from exifmwg import ExifTool
+from exifmwg import KeywordInfo
+from exifmwg import read_metadata as read_image_metadata
 
 from memoria.imageops.metadata import update_image_date_from_keywords
 from memoria.imageops.metadata import update_image_folder_structure
@@ -57,7 +58,7 @@ def handle_moved_image(pkg: ImageMovedTaskModel) -> None:
     pkg.logger.info(f"  {pkg.image_path.name} updates completed")
 
 
-def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
+def handle_new_image(pkg: ImageIndexTaskModel) -> None:
     """
     Handles a completely new image
     """
@@ -67,7 +68,21 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
 
     pkg.logger.info("Processing new image")
 
-    metadata = tool.read_image_metadata(pkg.image_path)
+    metadata = read_image_metadata(pkg.image_path)
+
+    keyword_info = KeywordInfo(hierarchy=[]) if not metadata.keyword_info else metadata.keyword_info
+
+    if metadata.catalog_sets:
+        keyword_info = keyword_info | KeywordInfo(metadata.catalog_sets, "|")
+    if metadata.hierarchical_subject:
+        keyword_info = keyword_info | KeywordInfo(metadata.hierarchical_subject, "|")
+    if metadata.tags_list:
+        keyword_info = keyword_info | KeywordInfo(metadata.tags_list, "/")
+    if metadata.last_keyword_xmp:
+        keyword_info = keyword_info | KeywordInfo(metadata.last_keyword_xmp, "/")
+
+    if keyword_info.hierarchy:
+        metadata.keyword_info = keyword_info
 
     with file_lock_with_cleanup(LOCK_DIR / "metadata.lock"):
         containing_folder = update_image_folder_structure(pkg)
@@ -75,11 +90,11 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     new_img: ImageModel = ImageModel.objects.create(
         file_size=pkg.image_path.stat().st_size,
         original=str(pkg.image_path.resolve()),
-        title=metadata.Title or pkg.image_path.stem,
-        orientation=metadata.Orientation or ImageModel.OrientationChoices.HORIZONTAL,
-        description=metadata.Description,
-        original_height=metadata.ImageHeight,
-        original_width=metadata.ImageWidth,
+        title=metadata.title or pkg.image_path.stem,
+        orientation=metadata.orientation or ImageModel.OrientationChoices.HORIZONTAL,
+        description=metadata.description,
+        original_height=metadata.image_height,
+        original_width=metadata.image_width,
         original_checksum=pkg.original_hash,
         phash=calculate_image_phash(pkg.image_path),
         folder=containing_folder,
@@ -134,7 +149,7 @@ def handle_new_image(pkg: ImageIndexTaskModel, tool: ExifTool) -> None:
     pkg.logger.info("  Indexing completed")
 
 
-def handle_replaced_image(pkg: ImageReplaceTaskModel, tool: ExifTool) -> None:
+def handle_replaced_image(pkg: ImageReplaceTaskModel) -> None:
     """
     Handles an image that has already been indexed via Path, but the checksum has changed
     """
@@ -147,7 +162,7 @@ def handle_replaced_image(pkg: ImageReplaceTaskModel, tool: ExifTool) -> None:
     if TYPE_CHECKING:
         assert isinstance(image, ImageModel)
 
-    metadata = tool.read_image_metadata(image.original_path)
+    metadata = read_image_metadata(image.original_path)
 
     with file_lock_with_cleanup(LOCK_DIR / "metadata.lock"):
         image.tags.clear()

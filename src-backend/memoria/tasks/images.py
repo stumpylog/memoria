@@ -1,10 +1,11 @@
 import logging
 from datetime import timedelta
+from pathlib import Path
 
 from django.db import transaction
 from django.utils import timezone
-from exifmwg import ExifTool
-from exifmwg.models import ImageMetadata
+from exifmwg import ImageMetadata
+from exifmwg import write_metadata
 from huey import crontab
 from huey.contrib.djhuey import db_periodic_task
 from huey.contrib.djhuey import db_task
@@ -18,8 +19,6 @@ from memoria.models import Image as ImageModel
 from memoria.tasks.models import ImageIndexTaskModel
 from memoria.tasks.models import ImageMovedTaskModel
 from memoria.tasks.models import ImageReplaceTaskModel
-from memoria.utils.constants import BATCH_SIZE
-from memoria.utils.constants import EXIF_TOOL_EXE
 from memoria.utils.hashing import calculate_blake3_hash
 
 logger = logging.getLogger(__name__)
@@ -36,9 +35,8 @@ def sync_metadata_to_files(images: list[ImageModel]) -> None:
     for image in images:
         try:
             metadata = ImageMetadata(
-                SourceFile=image.original_path,
-                ImageHeight=image.original_height,
-                ImageWidth=image.original_width,
+                image_height=image.original_height,
+                image_width=image.original_width,
             )
 
             updated = fill_image_metadata_from_db(image, metadata)
@@ -52,10 +50,9 @@ def sync_metadata_to_files(images: list[ImageModel]) -> None:
 
     if metadata_items:
         with transaction.atomic():
-            with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool:
-                for idx in range(0, len(metadata_items), BATCH_SIZE):
-                    batch = metadata_items[idx : idx + BATCH_SIZE]
-                    tool.bulk_write_image_metadata(batch)
+            for item in metadata_items:
+                # TODO: Need the path
+                write_metadata(Path(), item)
             for image in images:
                 image.original_checksum = calculate_blake3_hash(image.original_path, hash_threads=8)
                 image.save()
@@ -67,14 +64,14 @@ def index_new_images(pkgs: list[ImageIndexTaskModel]) -> None:
     """
     These are all new images (the hash did not already exist), nor did the Path
     """
-    with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool, transaction.atomic():
+    with transaction.atomic():
         for pkg in pkgs:
             if not pkg.logger:
                 pkg.logger = logger
 
             pkg.logger.info(f"Indexing {pkg.image_path.name}")
 
-            handle_new_image(pkg, tool)
+            handle_new_image(pkg)
 
 
 @db_task()
@@ -97,14 +94,14 @@ def index_changed_image(pkgs: list[ImageReplaceTaskModel]) -> None:
     """
     Index images with a new checksum, but an existing Path
     """
-    with ExifTool(EXIF_TOOL_EXE, encoding="utf8") as tool, transaction.atomic():
+    with transaction.atomic():
         for pkg in pkgs:
             if not pkg.logger:
                 pkg.logger = logger
 
             pkg.logger.info(f"Replacing {pkg.image_path.stem} metadata")
 
-            handle_replaced_image(pkg, tool)
+            handle_replaced_image(pkg)
 
 
 @db_task()
