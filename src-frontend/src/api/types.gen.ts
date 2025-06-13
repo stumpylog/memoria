@@ -1231,7 +1231,6 @@ export type RootFolderSchemaOut = {
 
 /**
  * RotationEnum
- * https://exiftool.org/TagNames/EXIF.html (0x0112)
  */
 export type RotationEnum = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 

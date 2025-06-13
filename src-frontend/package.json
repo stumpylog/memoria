@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
-    "@hey-api/openapi-ts": "^0.69.2",
+    "@hey-api/openapi-ts": "^0.72.2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
