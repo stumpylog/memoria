@@ -17,8 +17,8 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(react@19.1.0)
       "@hey-api/client-axios":
-        specifier: ^0.8.0
-        version: 0.8.0(@hey-api/openapi-ts@0.72.2(typescript@5.8.3))(axios@1.9.0)
+        specifier: ^0.9.1
+        version: 0.9.1(@hey-api/openapi-ts@0.72.2(typescript@5.8.3))(axios@1.9.0)
       "@tanstack/react-query":
         specifier: ^5.80.7
         version: 5.80.7(react@19.1.0)
@@ -735,10 +735,10 @@ packages:
         integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==,
       }
 
-  "@hey-api/client-axios@0.8.0":
+  "@hey-api/client-axios@0.9.1":
     resolution:
       {
-        integrity: sha512-We3QY26J42iRVtdh2blvB5O7CU1X9kcLUZqS3+eJQyV24VkJmTx8004fcggrd0z6B+yUdKEjkeZC3NvU9S4eQw==,
+        integrity: sha512-fvpOdnEz6tu5T2+IMNZW3g9mAZwaXavqpsvtapEZNtYxyYtQ+lQs9wJn/VPhZEvdXAXu8HPTCRpmfa0t1aRATA==,
       }
     peerDependencies:
       "@hey-api/openapi-ts": < 2
@@ -4555,7 +4555,7 @@ snapshots:
 
   "@floating-ui/utils@0.2.9": {}
 
-  "@hey-api/client-axios@0.8.0(@hey-api/openapi-ts@0.72.2(typescript@5.8.3))(axios@1.9.0)":
+  "@hey-api/client-axios@0.9.1(@hey-api/openapi-ts@0.72.2(typescript@5.8.3))(axios@1.9.0)":
     dependencies:
       "@hey-api/openapi-ts": 0.72.2(typescript@5.8.3)
       axios: 1.9.0
