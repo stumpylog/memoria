@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:lts-alpine AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:lts-alpine AS frontend-builder
 
 RUN set -eux \
   && npm install -g npm@11.4.2 \
