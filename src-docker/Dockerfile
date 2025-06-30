@@ -115,6 +115,7 @@ RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
         pkgconfig \
         vips-dev \
         build-base \
+        git \
   && echo "Installing Python requirements" \
     # We rename the folder in the image for better ux
     && sed -i 's/"src-backend"/"memoria"/' /app/pyproject.toml \
