@@ -3,8 +3,8 @@
 FROM node:lts-alpine AS frontend-builder
 
 RUN set -eux \
-  && npm install -g npm@11.4.0 \
-  && npm install -g pnpm@10.11.0 \
+  && npm install -g npm@11.4.2 \
+  && npm install -g pnpm@10.12.4 \
   && npm install -g corepack@latest \
   && corepack enable
 
@@ -112,7 +112,6 @@ RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
   && echo "Installing build system packages" \
     && apk add --no-cache --virtual .python-build \
         postgresql-dev \
-        mariadb-dev \
         pkgconfig \
         vips-dev \
   && echo "Installing Python requirements" \
@@ -132,9 +131,7 @@ RUN --mount=type=cache,target=${UV_CACHE_DIR},id=python-cache \
       --requirements requirements.txt \
       --compile-bytecode \
   && echo "Cleaning up image" \
-    && apk del --no-cache .python-build \
-    # While not cleaning the image, prunes the saved build cache, just for local development
-    && uv cache prune
+    && apk del --no-cache .python-build
 
 COPY --chown=1000:1000 ["src-backend/", "/app/memoria/"]
 
