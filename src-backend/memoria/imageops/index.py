@@ -3,8 +3,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import cast
 
-from exifmwg import KeywordInfo
-from exifmwg import read_metadata as read_image_metadata
+from exifmwg import ImageMetadata
 
 from memoria.imageops.metadata import update_image_date_from_keywords
 from memoria.imageops.metadata import update_image_folder_structure
@@ -68,21 +67,7 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
 
     pkg.logger.info("Processing new image")
 
-    metadata = read_image_metadata(pkg.image_path)
-
-    keyword_info = KeywordInfo(hierarchy=[]) if not metadata.keyword_info else metadata.keyword_info
-
-    if metadata.catalog_sets:
-        keyword_info = keyword_info | KeywordInfo(metadata.catalog_sets, "|")
-    if metadata.hierarchical_subject:
-        keyword_info = keyword_info | KeywordInfo(metadata.hierarchical_subject, "|")
-    if metadata.tags_list:
-        keyword_info = keyword_info | KeywordInfo(metadata.tags_list, "/")
-    if metadata.last_keyword_xmp:
-        keyword_info = keyword_info | KeywordInfo(metadata.last_keyword_xmp, "/")
-
-    if keyword_info.hierarchy:
-        metadata.keyword_info = keyword_info
+    metadata = ImageMetadata(pkg.image_path)
 
     with file_lock_with_cleanup(LOCK_DIR / "metadata.lock"):
         containing_folder = update_image_folder_structure(pkg)
@@ -162,7 +147,7 @@ def handle_replaced_image(pkg: ImageReplaceTaskModel) -> None:
     if TYPE_CHECKING:
         assert isinstance(image, ImageModel)
 
-    metadata = read_image_metadata(image.original_path)
+    metadata = ImageMetadata(image.original_path)
 
     with file_lock_with_cleanup(LOCK_DIR / "metadata.lock"):
         image.tags.clear()

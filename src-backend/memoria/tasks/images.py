@@ -1,11 +1,9 @@
 import logging
 from datetime import timedelta
-from pathlib import Path
 
 from django.db import transaction
 from django.utils import timezone
 from exifmwg import ImageMetadata
-from exifmwg import write_metadata
 from huey import crontab
 from huey.contrib.djhuey import db_periodic_task
 from huey.contrib.djhuey import db_task
@@ -52,7 +50,7 @@ def sync_metadata_to_files(images: list[ImageModel]) -> None:
         with transaction.atomic():
             for item in metadata_items:
                 # TODO: Need the path
-                write_metadata(Path(), item)
+                pass
             for image in images:
                 image.original_checksum = calculate_blake3_hash(image.original_path, hash_threads=8)
                 image.save()
