@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { Alert, Button, Form, Modal } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
 
-import type { UserOutSchema, UserUpdateInSchemeWritable } from "../../api";
+import type { UserOutSchema, UserUpdateInScheme } from "../../api";
 
 // Define the shape of the form data
 interface EditUserFormData {
@@ -21,7 +21,7 @@ interface EditUserFormData {
 interface EditUserModalProps {
   show: boolean;
   handleClose: () => void;
-  handleSave: (userId: number, userData: UserUpdateInSchemeWritable) => Promise<void>;
+  handleSave: (userId: number, userData: UserUpdateInScheme) => Promise<void>;
   user: UserOutSchema | null;
   loading: boolean;
   error: string | null;
@@ -112,7 +112,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
       return;
     }
 
-    const dataToSave: UserUpdateInSchemeWritable = {};
+    const dataToSave: UserUpdateInScheme = {};
 
     // Iterate over form data and add fields to dataToSave if they are dirty
     // dirtyFields tells us which fields were modified. We get the current value from formData.
@@ -133,7 +133,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
           (dataToSave[key] as string | null) = value === "" ? null : (value as string | null);
         } else {
           // For other fields (like booleans), add the value directly
-          // Use type assertion to match UserUpdateInSchemeWritable field type
+          // Use type assertion to match UserUpdateInScheme field type
           if (typeof value === "boolean") {
             (dataToSave[key] as boolean) = value;
           } else if (value === null) {

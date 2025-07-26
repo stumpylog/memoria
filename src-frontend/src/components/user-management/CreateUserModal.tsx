@@ -5,17 +5,17 @@ import React, { useEffect, useMemo } from "react"; // Import useMemo
 import { Alert, Button, Form, Modal } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 
-import type { UserInCreateSchemaWritable } from "../../api";
+import type { UserInCreateSchema } from "../../api";
 
 interface CreateUserModalProps {
   show: boolean;
   handleClose: () => void;
-  handleSave: (userData: UserInCreateSchemaWritable) => Promise<void>;
+  handleSave: (userData: UserInCreateSchema) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
 
-type CreateUserFormData = UserInCreateSchemaWritable & {
+type CreateUserFormData = UserInCreateSchema & {
   email: string;
   first_name: string;
   last_name: string;
@@ -66,7 +66,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
   }, [show, reset, defaultValues]); // defaultValues is now a stable reference
 
   const onSubmit: SubmitHandler<CreateUserFormData> = async (data) => {
-    const userDataToSave: UserInCreateSchemaWritable = {
+    const userDataToSave: UserInCreateSchema = {
       ...data,
       email: data.email === "" ? null : data.email,
       first_name: data.first_name === "" ? null : data.first_name,
