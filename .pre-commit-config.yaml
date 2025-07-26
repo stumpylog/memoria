@@ -38,7 +38,7 @@ repos:
           - json
   # See https://github.com/prettier/prettier/issues/15742 for the fork reason
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: "v3.5.3"
+    rev: "v3.6.2"
     hooks:
       - id: prettier
         types_or:
@@ -51,7 +51,7 @@ repos:
           - tsx
           - ts
   - repo: https://github.com/thibaudcolas/pre-commit-stylelint
-    rev: v16.20.0
+    rev: v16.22.0
     hooks:
       - id: stylelint
         args: [--fix]
@@ -61,7 +61,7 @@ repos:
           - stylelint-config-prettier@9.0.5
   # Python hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.11.12"
+    rev: "v0.12.5"
     hooks:
       # Run the linter.
       - id: ruff-check
