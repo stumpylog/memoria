@@ -1,13 +1,12 @@
+import { getAuthToken } from "../core/auth";
 import type { QuerySerializer, QuerySerializerOptions } from "../core/bodySerializer";
 import type { ArraySeparatorStyle } from "../core/pathSerializer";
-import type { Client, ClientOptions, Config, RequestOptions } from "./types";
-
-import { getAuthToken } from "../core/auth";
 import {
   serializeArrayParam,
   serializeObjectParam,
   serializePrimitiveParam,
 } from "../core/pathSerializer";
+import type { Client, ClientOptions, Config, RequestOptions } from "./types";
 
 interface PathSerializer {
   path: Record<string, unknown>;

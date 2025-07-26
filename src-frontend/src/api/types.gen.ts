@@ -185,18 +185,7 @@ export type AlbumWithImagesOutSchema = {
 /**
  * AuthLoginSchema
  */
-export type AuthLoginSchemaReadable = {
-  /**
-   * Username
-   * The user's login name.
-   */
-  username: string;
-};
-
-/**
- * AuthLoginSchema
- */
-export type AuthLoginSchemaWritable = {
+export type AuthLoginSchema = {
   /**
    * Password
    * The user's password (treated as a secret).
@@ -1628,41 +1617,7 @@ export type UserGroupAssignInSchema = {
 /**
  * UserInCreateSchema
  */
-export type UserInCreateSchemaReadable = {
-  /**
-   * Email
-   */
-  email?: string | null;
-  /**
-   * First Name
-   */
-  first_name?: string | null;
-  /**
-   * Is Active
-   */
-  is_active?: boolean;
-  /**
-   * Is Staff
-   */
-  is_staff?: boolean;
-  /**
-   * Is Superuser
-   */
-  is_superuser?: boolean;
-  /**
-   * Last Name
-   */
-  last_name?: string | null;
-  /**
-   * Username
-   */
-  username: string;
-};
-
-/**
- * UserInCreateSchema
- */
-export type UserInCreateSchemaWritable = {
+export type UserInCreateSchema = {
   /**
    * Email
    */
@@ -1852,41 +1807,7 @@ export type UserStatisticsSchema = {
 /**
  * UserUpdateInScheme
  */
-export type UserUpdateInSchemeReadable = {
-  /**
-   * Email
-   */
-  email?: string | null;
-  /**
-   * First Name
-   */
-  first_name?: string | null;
-  /**
-   * Is Active
-   */
-  is_active?: boolean | null;
-  /**
-   * Is Staff
-   */
-  is_staff?: boolean | null;
-  /**
-   * Is Superuser
-   */
-  is_superuser?: boolean | null;
-  /**
-   * Last Name
-   */
-  last_name?: string | null;
-  /**
-   * Password
-   */
-  password?: string | null;
-};
-
-/**
- * UserUpdateInScheme
- */
-export type UserUpdateInSchemeWritable = {
+export type UserUpdateInScheme = {
   /**
    * Email
    */
@@ -2157,7 +2078,7 @@ export type AuthGetCsrfTokenResponses = {
 export type AuthGetCsrfTokenResponse = AuthGetCsrfTokenResponses[keyof AuthGetCsrfTokenResponses];
 
 export type AuthLoginData = {
-  body: AuthLoginSchemaWritable;
+  body: AuthLoginSchema;
   path?: never;
   query?: never;
   url: "/api/auth/login/";
@@ -3284,7 +3205,7 @@ export type UsersListResponses = {
 export type UsersListResponse = UsersListResponses[keyof UsersListResponses];
 
 export type UsersCreateData = {
-  body: UserInCreateSchemaWritable;
+  body: UserInCreateSchema;
   path?: never;
   query?: never;
   url: "/api/user/";
@@ -3409,7 +3330,7 @@ export type UsersGetByIdResponses = {
 export type UsersGetByIdResponse = UsersGetByIdResponses[keyof UsersGetByIdResponses];
 
 export type UsersUpdateData = {
-  body: UserUpdateInSchemeWritable;
+  body: UserUpdateInScheme;
   path: {
     /**
      * User Id
