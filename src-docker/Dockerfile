@@ -3,8 +3,8 @@
 FROM --platform=$BUILDPLATFORM node:lts-alpine AS frontend-builder
 
 RUN set -eux \
-  && npm install -g npm@11.4.2 \
-  && npm install -g pnpm@10.12.4 \
+  && npm install -g npm@11.6.0 \
+  && npm install -g pnpm@10.17.0 \
   && npm install -g corepack@latest \
   && corepack enable
 
@@ -96,7 +96,6 @@ RUN set -eux \
       nginx \
       nginx-mod-http-brotli \
       postgresql-client \
-      exiftool \
       tzdata \
       shadow \
       vips
