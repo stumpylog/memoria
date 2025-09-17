@@ -5,7 +5,7 @@
 repos:
   # General hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-docstring-first
       - id: check-json
@@ -51,7 +51,7 @@ repos:
           - tsx
           - ts
   - repo: https://github.com/thibaudcolas/pre-commit-stylelint
-    rev: v16.22.0
+    rev: v16.24.0
     hooks:
       - id: stylelint
         args: [--fix]
@@ -61,7 +61,7 @@ repos:
           - stylelint-config-prettier@9.0.5
   # Python hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.12.5"
+    rev: "v0.13.0"
     hooks:
       # Run the linter.
       - id: ruff-check
