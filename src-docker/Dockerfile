@@ -28,7 +28,7 @@ RUN set -eux && pnpm run build
 #  - Don't leave anything extra in here either
 FROM docker.io/python:3.12-alpine3.22 AS s6-overlay-base
 
-COPY --from=ghcr.io/astral-sh/uv:0.7.17 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.8.17 /uv /uvx /bin/
 
 WORKDIR /usr/src/s6
 
