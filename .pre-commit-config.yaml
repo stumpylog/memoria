@@ -1,7 +1,6 @@
 # This file configures pre-commit hooks.
 # See https://pre-commit.com/ for general information
 # See https://pre-commit.com/hooks.html for a listing of possible hooks
-
 repos:
   # General hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -45,13 +44,12 @@ repos:
           - markdown
           - json
           - html
-          - yaml
           - javascript
           - css
           - tsx
           - ts
   - repo: https://github.com/thibaudcolas/pre-commit-stylelint
-    rev: v16.24.0
+    rev: v16.25.0
     hooks:
       - id: stylelint
         args: [--fix]
@@ -61,7 +59,7 @@ repos:
           - stylelint-config-prettier@9.0.5
   # Python hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.13.0"
+    rev: "v0.14.1"
     hooks:
       # Run the linter.
       - id: ruff-check
@@ -69,6 +67,10 @@ repos:
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "v2.6.0"
+    rev: "v2.11.0"
     hooks:
       - id: pyproject-fmt
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.20.0
+    hooks:
+      - id: yamlfmt

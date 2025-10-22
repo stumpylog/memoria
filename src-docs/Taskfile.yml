@@ -1,13 +1,11 @@
 # ./src-docs/Taskfile.yml
 version: "3"
-
 tasks:
   default:
     cmds:
       - task --list-all
     silent: true
     desc: List documentation-specific tasks
-
   deps:install:
     desc: Install documentation Python dependencies using uv.
     dir: .
@@ -16,21 +14,18 @@ tasks:
     sources:
       - pyproject.toml
       - uv.lock
-
   dev:
     desc: Serves the documentation locally with MkDocs.
     dir: .
     cmds:
       - uv run mkdocs serve -a 0.0.0.0:8001
-    deps: [deps:install]
-
+    deps: ["deps:install"]
   build:
     desc: Builds the static documentation site.
     dir: .
     cmds:
       - uv run mkdocs build
-    deps: [deps:install]
-
+    deps: ["deps:install"]
   clean:
     desc: Cleans documentation build artifacts.
     dir: .

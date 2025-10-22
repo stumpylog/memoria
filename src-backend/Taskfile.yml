@@ -1,55 +1,47 @@
 # https://taskfile.dev
 version: "3"
-
 tasks:
   default:
     cmds:
       - task --list-all
     silent: true
     desc: List backend-specific tasks
-
   deps:install:
     desc: Install backend Python dependencies using uv.
     dir: ./src-backend
     cmds:
       - uv sync --dev
-
   dev:
     desc: Runs the Django development server.
     dir: .
     cmds:
       - uv run python manage.py runserver
-    deps: [deps:install]
-
+    deps: ["deps:install"]
   test:
     desc: Runs backend tests with pytest.
     dir: .
     cmds:
       - uv run pytest
-    deps: [deps:install]
-
+    deps: ["deps:install"]
   lint:
     desc: Runs ruff, mypy checks.
     dir: .
     cmds:
       - uv run ruff check . --fix
       - uv run mypy .
-    deps: [deps:install]
-
+    deps: ["deps:install"]
   migrations:makemigrations:
     desc: Creates Django migrations.
     dir: .
     cmds:
       - uv run python manage.py makemigrations
-    deps: [deps:install]
-
+    deps: ["deps:install"]
   migrations:migrate:
     desc: Applies Django migrations.
     dir: .
     cmds:
       - uv run python manage.py migrate
-    deps: [deps:install]
-
+    deps: ["deps:install"]
   clean:
     desc: Cleans backend build artifacts and caches.
     dir: .
@@ -58,7 +50,6 @@ tasks:
       - find . -type d -name "__pycache__" -exec rm -rf {} +
       - find . -type f -name "*.pyc" -delete
     silent: true
-
   api:export-schema:
     desc: Exports the OpenAPI schema from the backend.
     dir: ./src-backend
@@ -66,8 +57,7 @@ tasks:
       MEMORIA_DEBUG: "true"
     cmds:
       - uv run python manage.py export_openapi_schema --output ../api-spec.json --sorted --indent 2
-    deps: [deps:install]
-
+    deps: ["deps:install"]
   reset:
     cmds:
       - rm data/db.sqlite3 || true

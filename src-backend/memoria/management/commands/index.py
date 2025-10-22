@@ -3,7 +3,6 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Annotated
-from typing import Optional
 
 from django.contrib.auth.models import Group
 from django.db.models import QuerySet
@@ -79,8 +78,8 @@ class Command(TyperCommand):
         ],
         paths: Annotated[list[Path], Argument(help="The paths to index for new images")],
         hash_threads: Annotated[int, Option(help="Number of threads to use for hashing")] = 4,
-        view_group: Annotated[Optional[list[str]], Option("--view-group", help="Specify view groups")] = None,  # noqa: UP007
-        edit_group: Annotated[Optional[list[str]], Option("--edit-group", help="Specify edit groups")] = None,  # noqa: UP007
+        view_group: Annotated[list[str] | None, Option("--view-group", help="Specify view groups")] = None,
+        edit_group: Annotated[list[str] | None, Option("--edit-group", help="Specify edit groups")] = None,
         *,
         synchronous: Annotated[bool, Option(help="If True, run the indexing in the same process")] = True,
         overwrite: Annotated[

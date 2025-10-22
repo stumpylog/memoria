@@ -4,7 +4,6 @@ networks:
   reverse-proxy:
     name: "reverse-proxy"
     external: true
-
 services:
   memoria-db:
     image: postgres:17-alpine

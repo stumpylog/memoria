@@ -1,24 +1,20 @@
 # https://taskfile.dev
 version: "3"
-
 # Variables that can be used across sub-Taskfiles (if passed down or read by them)
 vars:
   PROJECT_NAME: memoria
   PYTHON_VERSION: 3.12
   DOCKER_IMAGE_NAME: "{{.PROJECT_NAME}}:{{.VERSION}}" # Dynamic image name
-
 includes:
   backend: ./src-backend
   src-frontend: ./src-frontend
   docs: ./src-docs
-
 tasks:
   default:
     cmds:
       - task --list-all
     silent: true
     desc: List all available tasks
-
   # -----------------------------------------------------------
   # Version Management
   # -----------------------------------------------------------
@@ -32,7 +28,6 @@ tasks:
       - src-backend/pyproject.toml
       - src-docs/pyproject.toml
       - src-frontend/package.json
-
   # -----------------------------------------------------------
   # Global Dependency Management
   # -----------------------------------------------------------
@@ -43,7 +38,6 @@ tasks:
       - task: docs:deps:install
       - task: src-frontend:deps:install
       - echo "All dependencies installed."
-
   # -----------------------------------------------------------
   # Development Commands
   # -----------------------------------------------------------
@@ -55,7 +49,6 @@ tasks:
       - task: src-frontend:dev &
       - task: docs:dev &
       - wait # Wait for all background tasks to complete (or use Ctrl+C to stop)
-
   # -----------------------------------------------------------
   # Build Commands
   # -----------------------------------------------------------
@@ -67,7 +60,6 @@ tasks:
       - task: src-frontend:build
       - task: docs:build
       - echo "All projects built."
-
   # -----------------------------------------------------------
   # Testing & Linting
   # -----------------------------------------------------------
@@ -75,13 +67,11 @@ tasks:
     desc: Runs all tests across the backend.
     cmds:
       - task: backend:test
-
   lint:
     desc: Runs all linting checks across the backend and src-frontend.
     cmds:
       - task: backend:lint
       - task: src-frontend:lint
-
   # -----------------------------------------------------------
   # Cleanup
   # -----------------------------------------------------------
@@ -92,7 +82,6 @@ tasks:
       - task: src-frontend:clean
       - task: docs:clean
       - echo "All projects cleaned."
-
   # -----------------------------------------------------------
   # API Client Generation Workflow
   # -----------------------------------------------------------
@@ -101,7 +90,6 @@ tasks:
     cmds:
       - task: backend:api:export-schema
       - task: src-frontend:api:generate-client
-
   repomix:
     cmds:
       - repomix --style markdown --remove-comments --ignore src-frontend/.prettierignore,src-frontend/.stylelintignore,src-frontend/eslint.config.js,src-frontend/index.html,src-frontend/openapi-ts.config.ts,src-frontend/pnpm-workspace.yaml,src-frontend/README.md,src-frontend/vite.config.ts,src-frontend/tsconfig.app.json,src-frontend/tsconfig.json,src-frontend/tsconfig.node.json,src-frontend/public/,docker/,src-frontend/.env,src-frontend/.gitignore,src-backend/memoria/migrations/,api-spec.json,docs/ --remove-empty-lines .

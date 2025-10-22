@@ -1,17 +1,13 @@
 site_name: memoria
-
 site_url: https://stumpylog.github.io/memoria/
 site_author: Trenton H
-
 repo_name: stumpylog/memoria
 repo_url: https://github.com/stumpylog/memoria
-
 nav:
   - "architecture.md"
   - "roles_chatgpt.md"
   - "roles_gemini.md"
   - "roadmap.md"
-
 markdown_extensions:
   - admonition
   - pymdownx.highlight:
@@ -23,7 +19,6 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - toc:
       permalink: true
-
 theme:
   name: material
   features:
@@ -55,14 +50,12 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
-
 plugins:
   - search
   - minify:
       minify_html: true
       minify_js: true
       minify_css: true
-
 extra:
   version:
     provider: mike
@@ -72,7 +65,4 @@ extra:
   consent:
     title: Cookie consent
     description: >-
-      We use cookies to recognize your repeated visits and preferences, as well
-      as to measure the effectiveness of our documentation and whether users
-      find what they're searching for. With your consent, you're helping us to
-      make our documentation better.
+      We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.
