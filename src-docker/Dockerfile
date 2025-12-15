@@ -4,7 +4,7 @@ FROM --platform=$BUILDPLATFORM node:lts-alpine AS frontend-builder
 
 RUN set -eux \
   && npm install -g npm@11.6.2 \
-  && npm install -g pnpm@10.19.0 \
+  && npm install -g pnpm@10.26.0 \
   && npm install -g corepack@latest \
   && corepack enable
 
