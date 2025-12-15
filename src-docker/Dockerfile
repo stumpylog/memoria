@@ -26,7 +26,7 @@ RUN set -eux && pnpm run build
 # Purpose: Installs s6-overlay, uv and rootfs
 # Comments:
 #  - Don't leave anything extra in here either
-FROM docker.io/python:3.12-alpine3.22 AS s6-overlay-base
+FROM docker.io/python:3.14-alpine3.23 AS s6-overlay-base
 
 COPY --from=ghcr.io/astral-sh/uv:0.9.5 /uv /uvx /bin/
 
