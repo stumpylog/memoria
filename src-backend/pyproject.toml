@@ -17,7 +17,7 @@ dependencies = [
   "concurrent-log-handler~=0.9.6",
   "django~=5.2",
   "django-cors-headers~=4.7",
-  "django-ninja~=1.4.1",
+  "django-ninja~=1.5.1",
   "django-timezone-field~=7.1",
   "django-treenode",
   "django-typer[rich]>=2.2.1",
@@ -39,10 +39,10 @@ dependencies = [
 #   "mysqlclient~=2.2.7",
 # ]
 optional-dependencies.postgres = [
-  "psycopg[c,pool]~=3.2.8",
+  "psycopg[c,pool]~=3.3.0",
 ]
 optional-dependencies.webserver = [
-  "granian[uvloop]~=2.4.0",
+  "granian[uvloop]~=2.7.0",
 ]
 
 [dependency-groups]
@@ -195,9 +195,8 @@ DJANGO_SETTINGS_MODULE = "memoria.settings"
 [tool.pytest_env]
 MEMORIA_DEBUG = 1
 
-[tool.coverage.run]
-branch = true
-omit = [ "*/tests/*" ]
+[tool.coverage.html]
+directory = "coverage_html_report"
 
 [tool.coverage.report]
 exclude_also = [
@@ -209,8 +208,9 @@ exclude_also = [
   "def __get_pydantic_json_schema__",
 ]
 
-[tool.coverage.html]
-directory = "coverage_html_report"
+[tool.coverage.run]
+branch = true
+omit = [ "*/tests/*" ]
 
 [tool.mypy]
 plugins = [ "pydantic.mypy", "mypy_django_plugin.main" ]
