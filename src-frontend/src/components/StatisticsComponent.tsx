@@ -2,26 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { Alert, Badge, Card, Col, Container, Row, Spinner } from "react-bootstrap";
 
-import type { StatisticsResponseSchema } from "../api";
-
-import { getSystemStatistics } from "../api";
+import { getSystemStatisticsOptions } from "../api/@tanstack/react-query.gen";
 
 const StatisticsDisplay: React.FC = () => {
-  const {
-    data: statistics,
-    isLoading,
-    isError,
-    error,
-  } = useQuery<StatisticsResponseSchema, Error>({
-    queryKey: ["systemStatistics"],
-    queryFn: async () => {
-      const response = await getSystemStatistics();
-      if (!response.data) {
-        throw new Error("API did not return expected statistics data.");
-      }
-      return response.data;
-    },
-  });
+  const { data: statistics, isLoading, isError, error } = useQuery(getSystemStatisticsOptions());
 
   if (isLoading) {
     return (
