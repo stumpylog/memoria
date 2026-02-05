@@ -3,8 +3,8 @@
 FROM --platform=$BUILDPLATFORM node:lts-alpine AS frontend-builder
 
 RUN set -eux \
-  && npm install -g npm@11.6.2 \
-  && npm install -g pnpm@10.26.0 \
+  && npm install -g npm@11.9.0 \
+  && npm install -g pnpm@10.28.2 \
   && npm install -g corepack@latest \
   && corepack enable
 
@@ -28,7 +28,7 @@ RUN set -eux && pnpm run build
 #  - Don't leave anything extra in here either
 FROM docker.io/python:3.14-alpine3.23 AS s6-overlay-base
 
-COPY --from=ghcr.io/astral-sh/uv:0.9.17 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.10.0 /uv /uvx /bin/
 
 WORKDIR /usr/src/s6
 

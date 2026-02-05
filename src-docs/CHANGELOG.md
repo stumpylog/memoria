@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updates `uv` to 0.9.17
+- Updates `uv` to 0.10.0
 - Updates Docker image to use Python 3.14
-- Updates npm to 11.6.2
-- Updates pnpm to 10.02.0
+- Updates npm to 11.9.0
+- Updates pnpm to 10.28.2
 - Updates Alpine to 3.23
 
 ### Added
