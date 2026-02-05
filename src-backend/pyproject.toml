@@ -17,7 +17,7 @@ dependencies = [
   "concurrent-log-handler~=0.9.6",
   "django~=5.2",
   "django-cors-headers~=4.7",
-  "django-ninja~=1.5.1",
+  "django-ninja~=1.4.1",
   "django-timezone-field~=7.1",
   "django-treenode",
   "django-typer[rich]>=2.2.1",
