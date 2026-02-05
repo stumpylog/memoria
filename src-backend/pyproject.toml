@@ -26,7 +26,7 @@ dependencies = [
   "huey>=2.5.1",
   "imagehash",
   "orjson",
-  "pillow~=11.2.1",
+  "pillow~=12.1.0",
   "pydantic[email]",
   "pydantic-extra-types",
   "pyvips; sys_platform=='linux'",
