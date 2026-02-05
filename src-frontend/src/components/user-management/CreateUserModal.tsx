@@ -1,24 +1,29 @@
 // src/components/UserManagement/CreateUserModal.tsx
 import type { SubmitHandler } from "react-hook-form";
 
-import React, { useEffect, useMemo } from "react"; // Import useMemo
+import React, { useEffect, useMemo } from "react";
 import { Alert, Button, Form, Modal } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 
-import type { UserInCreateSchema } from "../../api";
+import type { UserInCreateSchemaWritable } from "../../api";
 
 interface CreateUserModalProps {
   show: boolean;
   handleClose: () => void;
-  handleSave: (userData: UserInCreateSchema) => Promise<void>;
+  handleSave: (userData: UserInCreateSchemaWritable) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
 
-type CreateUserFormData = UserInCreateSchema & {
+type CreateUserFormData = UserInCreateSchemaWritable & {
+  username: string;
+  password: string;
   email: string;
   first_name: string;
   last_name: string;
+  is_active: boolean;
+  is_staff: boolean;
+  is_superuser: boolean;
 };
 
 const CreateUserModal: React.FC<CreateUserModalProps> = ({
@@ -28,7 +33,6 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
   loading,
   error,
 }) => {
-  // Use useMemo to memoize the defaultValues object
   const defaultValues: CreateUserFormData = useMemo(
     () => ({
       username: "",
@@ -41,7 +45,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
       is_superuser: false,
     }),
     [],
-  ); // Empty dependency array means this object is created once
+  );
 
   const {
     register,
@@ -53,20 +57,18 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
     defaultValues: defaultValues,
   });
 
-  // Watch required fields to enable/disable save button
   const username = watch("username");
   const password = watch("password");
   const isFormValid = username.trim() !== "" && password.trim() !== "";
 
-  // Reset the form when the modal is opened using the memoized defaultValues
   useEffect(() => {
     if (show) {
       reset(defaultValues);
     }
-  }, [show, reset, defaultValues]); // defaultValues is now a stable reference
+  }, [show, reset, defaultValues]);
 
   const onSubmit: SubmitHandler<CreateUserFormData> = async (data) => {
-    const userDataToSave: UserInCreateSchema = {
+    const userDataToSave: UserInCreateSchemaWritable = {
       ...data,
       email: data.email === "" ? null : data.email,
       first_name: data.first_name === "" ? null : data.first_name,

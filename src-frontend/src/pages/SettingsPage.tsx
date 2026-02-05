@@ -14,9 +14,9 @@ import type {
   SiteSettingsUpdateSchemaIn,
   ThumbnailSizeEnum,
   UserGroupAssignInSchema,
-  UserInCreateSchema,
+  UserInCreateSchemaWritable,
   UserOutSchema,
-  UserUpdateInScheme,
+  UserUpdateInSchemeWritable,
 } from "../api";
 
 // API functions
@@ -156,7 +156,7 @@ const SettingsPage: React.FC = () => {
 
   // --- User Management Mutations ---
   const createUserMutation = useMutation({
-    mutationFn: (userData: UserInCreateSchema) => usersCreate({ body: userData }),
+    mutationFn: (userData: UserInCreateSchemaWritable) => usersCreate({ body: userData }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       handleCloseCreateUserModal();
@@ -167,7 +167,7 @@ const SettingsPage: React.FC = () => {
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ userId, userData }: { userId: number; userData: UserUpdateInScheme }) =>
+    mutationFn: ({ userId, userData }: { userId: number; userData: UserUpdateInSchemeWritable }) =>
       usersUpdate({ path: { user_id: userId }, body: userData }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -259,7 +259,7 @@ const SettingsPage: React.FC = () => {
     setShowCreateUserModal(false);
   };
 
-  const handleCreateUser = async (userData: UserInCreateSchema): Promise<void> => {
+  const handleCreateUser = async (userData: UserInCreateSchemaWritable): Promise<void> => {
     setUserError(null);
     await createUserMutation.mutateAsync(userData);
   };
@@ -276,7 +276,10 @@ const SettingsPage: React.FC = () => {
     setSelectedUser(null);
   };
 
-  const handleEditUser = async (userId: number, userData: UserUpdateInScheme): Promise<void> => {
+  const handleEditUser = async (
+    userId: number,
+    userData: UserUpdateInSchemeWritable,
+  ): Promise<void> => {
     setUserError(null);
     await updateUserMutation.mutateAsync({ userId, userData });
   };

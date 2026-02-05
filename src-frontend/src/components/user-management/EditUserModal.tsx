@@ -5,9 +5,8 @@ import React, { useEffect, useState } from "react";
 import { Alert, Button, Form, Modal } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
 
-import type { UserOutSchema, UserUpdateInScheme } from "../../api";
+import type { UserOutSchema, UserUpdateInSchemeWritable } from "../../api";
 
-// Define the shape of the form data
 interface EditUserFormData {
   email: string | null;
   first_name: string | null;
@@ -21,7 +20,7 @@ interface EditUserFormData {
 interface EditUserModalProps {
   show: boolean;
   handleClose: () => void;
-  handleSave: (userId: number, userData: UserUpdateInScheme) => Promise<void>;
+  handleSave: (userId: number, userData: UserUpdateInSchemeWritable) => Promise<void>;
   user: UserOutSchema | null;
   loading: boolean;
   error: string | null;
@@ -35,16 +34,14 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   loading,
   error,
 }) => {
-  // Use react-hook-form's useForm hook
   const {
     control,
     register,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting, isDirty, dirtyFields },
-    getValues, // Access getValues here
+    getValues,
   } = useForm<EditUserFormData>({
-    // mode: "onChange", // Optional: Validate on change
     defaultValues: {
       email: null,
       first_name: null,
@@ -56,28 +53,22 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     },
   });
 
-  // Local error state for modal-specific errors (optional, can use parent error)
   const [localError, setLocalError] = useState<string | null>(null);
 
-  // Effect to reset the form when the user prop changes
-  // reset also resets the dirty state
   useEffect(() => {
     if (user) {
       const initialData: EditUserFormData = {
-        // Ensure null or default values for fields that could be null/undefined from API
         email: user.email ?? null,
         first_name: user.first_name ?? null,
         last_name: user.last_name ?? null,
-        is_active: user.is_active ?? true, // Provide a default if null/undefined is possible
+        is_active: user.is_active ?? true,
         is_staff: user.is_staff ?? false,
         is_superuser: user.is_superuser ?? false,
-        password: "", // Password field is always empty initially
+        password: "",
       };
-      // Reset the form with the user's data. This also resets the dirty state.
       reset(initialData);
-      setLocalError(null); // Clear local errors
+      setLocalError(null);
     } else {
-      // Reset form if user becomes null (modal is closed)
       reset({
         email: null,
         first_name: null,
@@ -89,16 +80,15 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
       });
       setLocalError(null);
     }
-  }, [user, reset]); // Add reset to dependency array
+  }, [user, reset]);
 
-  // This is the function that will be called when the form is valid and submitted
   const onSubmit: SubmitHandler<EditUserFormData> = async (formData) => {
     if (!user) {
       setLocalError("No user selected for editing.");
       return;
     }
 
-    setLocalError(null); // Clear previous local errors
+    setLocalError(null);
 
     // Check if any fields managed by react-hook-form are dirty OR if the password field is filled
     // We check the password separately because its initial value is always "", so isDirty wouldn't
@@ -112,7 +102,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
       return;
     }
 
-    const dataToSave: UserUpdateInScheme = {};
+    const dataToSave: UserUpdateInSchemeWritable = {};
 
     // Iterate over form data and add fields to dataToSave if they are dirty
     // dirtyFields tells us which fields were modified. We get the current value from formData.
@@ -261,10 +251,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                   label="Is Active"
                   // Manually wire up field props to Form.Check props
                   name={field.name}
-                  onChange={field.onChange} // react-hook-form's change handler
-                  onBlur={field.onBlur} // react-hook-form's blur handler
-                  ref={field.ref} // react-hook-form's ref
-                  checked={field.value} // Use field.value for the 'checked' prop
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  checked={field.value}
                   disabled={isLoading}
                 />
               )}
