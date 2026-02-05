@@ -5,34 +5,21 @@ import { Alert, Button, Card, Col, Container, Form, Row, Spinner, Table } from "
 import { useForm } from "react-hook-form";
 import { Navigate } from "react-router-dom";
 
-// Types
 import type {
-  GroupCreateInSchema,
   GroupOutSchema,
-  GroupUpdateInSchema,
   ImageScaledSideMaxEnum,
   SiteSettingsUpdateSchemaIn,
   ThumbnailSizeEnum,
-  UserGroupAssignInSchema,
-  UserInCreateSchemaWritable,
   UserOutSchema,
-  UserUpdateInSchemeWritable,
 } from "../api";
 
-// API functions
 import {
-  createGroups,
-  deleteGroup,
-  getSystemSettings,
-  listGroups,
-  updateGroup,
-  updateSystemSettings,
-  usersCreate,
-  usersGroupsList,
-  usersGroupsUpdate,
-  usersList,
-  usersUpdate,
-} from "../api";
+  getSystemSettingsOptions,
+  listGroupsOptions,
+  updateSystemSettingsMutation,
+  usersGroupsListOptions,
+  usersListOptions,
+} from "../api/@tanstack/react-query.gen";
 import CreateGroupModal from "../components/group-management/CreateGroupModal";
 import DeleteGroupModal from "../components/group-management/DeleteGroupModal";
 import EditGroupModal from "../components/group-management/EditGroupModal";
@@ -52,7 +39,7 @@ const SettingsPage: React.FC = () => {
   const { user: currentUser, profile } = useAuth();
   const queryClient = useQueryClient();
 
-  // React Hook Form setup
+  // React Hook Form setup for system settings
   const {
     register,
     handleSubmit,
@@ -60,36 +47,49 @@ const SettingsPage: React.FC = () => {
     formState: { isDirty, dirtyFields },
   } = useForm<SystemSettingsFormData>();
 
-  // --- User Management State ---
+  // --- User Management State (just visibility and selection) ---
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [showManageUserGroupsModal, setShowManageUserGroupsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserOutSchema | null>(null);
-  const [userError, setUserError] = useState<string | null>(null);
 
-  // --- Group Management State ---
+  // --- Group Management State (just visibility and selection) ---
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [showEditGroupModal, setShowEditGroupModal] = useState(false);
   const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<GroupOutSchema | null>(null);
-  const [groupError, setGroupError] = useState<string | null>(null);
 
-  // --- System Settings State ---
+  // --- System Settings State (kept here since form is on this page) ---
   const [systemSettingsError, setSystemSettingsError] = useState<string | null>(null);
   const [systemSettingsSuccess, setSystemSettingsSuccess] = useState<string | null>(null);
 
-  // --- System Settings Query ---
+  // --- Queries using generated options ---
   const {
     data: systemSettings,
     isLoading: systemSettingsLoading,
     error: systemSettingsQueryError,
-  } = useQuery({
-    queryKey: ["systemSettings"],
-    queryFn: async () => {
-      const response = await getSystemSettings();
-      return response?.data;
-    },
+  } = useQuery(getSystemSettingsOptions());
+
+  const {
+    data: users = [],
+    isLoading: usersLoading,
+    error: usersQueryError,
+  } = useQuery(usersListOptions());
+
+  const {
+    data: groups = [],
+    isLoading: groupsLoading,
+    error: groupsQueryError,
+  } = useQuery(listGroupsOptions());
+
+  const { data: userGroups = [], isLoading: userGroupsLoading } = useQuery({
+    ...usersGroupsListOptions({
+      path: { user_id: selectedUser?.id ?? 0 },
+    }),
+    enabled: !!selectedUser && showManageUserGroupsModal,
   });
+
+  const userGroupIds = userGroups.map((group) => group.id);
 
   // Reset form when systemSettings data is loaded
   useEffect(() => {
@@ -102,133 +102,23 @@ const SettingsPage: React.FC = () => {
     }
   }, [systemSettings, reset]);
 
-  // --- User Management Queries ---
-  const {
-    data: users = [],
-    isLoading: usersLoading,
-    error: usersQueryError,
-  } = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      const response = await usersList();
-      return response?.data || [];
-    },
-  });
-
-  const { data: userGroupIds = [], isLoading: userGroupsLoading } = useQuery({
-    queryKey: ["userGroups", selectedUser?.id],
-    queryFn: async () => {
-      if (!selectedUser) return [];
-      const response = await usersGroupsList({ path: { user_id: selectedUser.id } });
-      return response?.data?.map((group) => group.id) || [];
-    },
-    enabled: !!selectedUser && showManageUserGroupsModal,
-  });
-
-  const {
-    data: groups = [],
-    isLoading: groupsLoading,
-    error: groupsQueryError,
-  } = useQuery({
-    queryKey: ["groups"],
-    queryFn: async () => {
-      const response = await listGroups();
-      return response?.data || [];
-    },
-  });
-
-  // --- System Settings Mutation ---
-  const updateSystemSettingsMutation = useMutation({
-    mutationFn: (settingsData: SiteSettingsUpdateSchemaIn) =>
-      updateSystemSettings({ body: settingsData }),
+  // --- System Settings Mutation (kept here since form is on this page) ---
+  const systemSettingsMutation = useMutation({
+    ...updateSystemSettingsMutation(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["systemSettings"] });
+      queryClient.invalidateQueries({ queryKey: ["getSystemSettings"] });
       setSystemSettingsError(null);
       setSystemSettingsSuccess("System settings updated successfully!");
-      // Clear success message after 3 seconds
       setTimeout(() => setSystemSettingsSuccess(null), 3000);
     },
-    onError: (err: any) => {
+    onError: (err) => {
       setSystemSettingsError(err.message || "Failed to update system settings.");
       setSystemSettingsSuccess(null);
     },
   });
 
-  // --- User Management Mutations ---
-  const createUserMutation = useMutation({
-    mutationFn: (userData: UserInCreateSchemaWritable) => usersCreate({ body: userData }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      handleCloseCreateUserModal();
-    },
-    onError: (err: any) => {
-      setUserError(err.message || "Failed to create user.");
-    },
-  });
-
-  const updateUserMutation = useMutation({
-    mutationFn: ({ userId, userData }: { userId: number; userData: UserUpdateInSchemeWritable }) =>
-      usersUpdate({ path: { user_id: userId }, body: userData }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      handleCloseEditUserModal();
-    },
-    onError: (err: any) => {
-      setUserError(err.message || `Failed to update user.`);
-    },
-  });
-
-  const updateUserGroupsMutation = useMutation({
-    mutationFn: ({ userId, groupIds }: { userId: number; groupIds: UserGroupAssignInSchema[] }) =>
-      usersGroupsUpdate({ path: { user_id: userId }, body: groupIds }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] }); // Users table might show group info
-      queryClient.invalidateQueries({ queryKey: ["userGroups", selectedUser?.id] }); // Invalidate the specific user's groups
-      handleCloseManageUserGroupsModal();
-    },
-    onError: (err: any) => {
-      setUserError(err.message || `Failed to update user groups.`);
-    },
-  });
-
-  // --- Group Management Mutations ---
-  const createGroupMutation = useMutation({
-    mutationFn: (groupData: GroupCreateInSchema) => createGroups({ body: groupData }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["groups"] });
-      handleCloseCreateGroupModal();
-    },
-    onError: (err: any) => {
-      setGroupError(err.message || "Failed to create group.");
-    },
-  });
-
-  const updateGroupMutation = useMutation({
-    mutationFn: ({ groupId, groupData }: { groupId: number; groupData: GroupUpdateInSchema }) =>
-      updateGroup({ path: { group_id: groupId }, body: groupData }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["groups"] });
-      handleCloseEditGroupModal();
-    },
-    onError: (err: any) => {
-      setGroupError(err.message || `Failed to update group.`);
-    },
-  });
-
-  const deleteGroupMutation = useMutation({
-    mutationFn: (groupId: number) => deleteGroup({ path: { group_id: groupId } }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["groups"] });
-      handleCloseDeleteGroupModal();
-    },
-    onError: (err: any) => {
-      setGroupError(err.message || `Failed to delete group.`);
-    },
-  });
-
-  // --- System Settings Handlers ---
+  // --- System Settings Handler ---
   const onSubmitSystemSettings = (data: SystemSettingsFormData) => {
-    // Only send fields that have been modified
     const changedFields: Partial<SiteSettingsUpdateSchemaIn> = {};
 
     if (dirtyFields.large_image_max_size) {
@@ -244,120 +134,56 @@ const SettingsPage: React.FC = () => {
     if (Object.keys(changedFields).length > 0) {
       setSystemSettingsError(null);
       setSystemSettingsSuccess(null);
-      updateSystemSettingsMutation.mutate(changedFields as SiteSettingsUpdateSchemaIn);
+      systemSettingsMutation.mutate({ body: changedFields as SiteSettingsUpdateSchemaIn });
     }
   };
 
-  // --- User Management Modal Handlers ---
-  const handleShowCreateUserModal = () => {
-    setUserError(null);
-    setShowCreateUserModal(true);
-  };
-
-  const handleCloseCreateUserModal = () => {
-    setUserError(null);
-    setShowCreateUserModal(false);
-  };
-
-  const handleCreateUser = async (userData: UserInCreateSchemaWritable): Promise<void> => {
-    setUserError(null);
-    await createUserMutation.mutateAsync(userData);
-  };
+  // --- User Management Modal Handlers (simplified - no error/loading management) ---
+  const handleShowCreateUserModal = () => setShowCreateUserModal(true);
+  const handleCloseCreateUserModal = () => setShowCreateUserModal(false);
 
   const handleShowEditUserModal = (user: UserOutSchema) => {
-    setUserError(null);
     setSelectedUser(user);
     setShowEditUserModal(true);
   };
 
   const handleCloseEditUserModal = () => {
-    setUserError(null);
     setShowEditUserModal(false);
     setSelectedUser(null);
   };
 
-  const handleEditUser = async (
-    userId: number,
-    userData: UserUpdateInSchemeWritable,
-  ): Promise<void> => {
-    setUserError(null);
-    await updateUserMutation.mutateAsync({ userId, userData });
-  };
-
   const handleShowManageUserGroupsModal = (user: UserOutSchema) => {
-    setUserError(null);
     setSelectedUser(user);
     setShowManageUserGroupsModal(true);
   };
 
   const handleCloseManageUserGroupsModal = () => {
-    setUserError(null);
     setShowManageUserGroupsModal(false);
     setSelectedUser(null);
-    // Invalidate userGroups query when closing the modal just in case (though mutation success also does this)
-    queryClient.invalidateQueries({ queryKey: ["userGroups"] });
   };
 
-  const handleSetUserGroups = async (
-    userId: number,
-    groupIds: UserGroupAssignInSchema[],
-  ): Promise<void> => {
-    setUserError(null);
-    await updateUserGroupsMutation.mutateAsync({ userId, groupIds });
-  };
-
-  // --- Group Management Modal Handlers ---
-  const handleShowCreateGroupModal = () => {
-    setGroupError(null);
-    setShowCreateGroupModal(true);
-  };
-
-  const handleCloseCreateGroupModal = () => {
-    setGroupError(null);
-    setShowCreateGroupModal(false);
-  };
-
-  const handleCreateGroup = async (groupData: GroupCreateInSchema): Promise<void> => {
-    setGroupError(null);
-    await createGroupMutation.mutateAsync(groupData);
-  };
+  // --- Group Management Modal Handlers (simplified) ---
+  const handleShowCreateGroupModal = () => setShowCreateGroupModal(true);
+  const handleCloseCreateGroupModal = () => setShowCreateGroupModal(false);
 
   const handleShowEditGroupModal = (group: GroupOutSchema) => {
-    setGroupError(null);
     setSelectedGroup(group);
     setShowEditGroupModal(true);
   };
 
   const handleCloseEditGroupModal = () => {
-    setGroupError(null);
     setShowEditGroupModal(false);
     setSelectedGroup(null);
   };
 
-  const handleEditGroup = async (
-    groupId: number,
-    groupData: GroupUpdateInSchema,
-  ): Promise<void> => {
-    setGroupError(null);
-    await updateGroupMutation.mutateAsync({ groupId, groupData });
-  };
-
   const handleShowDeleteGroupModal = (group: GroupOutSchema) => {
-    setGroupError(null);
     setSelectedGroup(group);
     setShowDeleteGroupModal(true);
   };
 
   const handleCloseDeleteGroupModal = () => {
-    setGroupError(null);
     setShowDeleteGroupModal(false);
     setSelectedGroup(null);
-  };
-
-  // Simplified to rely on mutation's onError for error handling
-  const handleDeleteGroup = async (groupId: number): Promise<void> => {
-    setGroupError(null);
-    await deleteGroupMutation.mutateAsync(groupId);
   };
 
   // Define the actual enum values for iteration
@@ -487,9 +313,9 @@ const SettingsPage: React.FC = () => {
                   <Button
                     type="submit"
                     variant="primary"
-                    disabled={updateSystemSettingsMutation.isPending || !isDirty}
+                    disabled={systemSettingsMutation.isPending || !isDirty}
                   >
-                    {updateSystemSettingsMutation.isPending ? (
+                    {systemSettingsMutation.isPending ? (
                       <>
                         <Spinner animation="border" size="sm" className="me-2" />
                         Updating...
@@ -505,7 +331,6 @@ const SettingsPage: React.FC = () => {
 
           {/* User Management Section */}
           <h3 className="mt-4">User Management</h3>
-          {userError && <Alert variant="danger">{userError}</Alert>}
           <Button variant="primary" onClick={handleShowCreateUserModal} className="mb-3">
             Create New User
           </Button>
@@ -583,9 +408,9 @@ const SettingsPage: React.FC = () => {
               </tbody>
             </Table>
           )}
+
           {/* Group Management Section */}
           <h3 className="mt-4">Group Management</h3>
-          {groupError && <Alert variant="danger">{groupError}</Alert>}
           <Button variant="primary" onClick={handleShowCreateGroupModal} className="mb-3">
             Create New Group
           </Button>
@@ -652,52 +477,36 @@ const SettingsPage: React.FC = () => {
         </Card.Body>
       </Card>
 
-      {/* --- User Management Modals --- */}
-      <CreateUserModal
-        show={showCreateUserModal}
-        handleClose={handleCloseCreateUserModal}
-        handleSave={handleCreateUser}
-        loading={createUserMutation.isPending}
-        error={userError}
-      />
+      {/* --- User Management Modals (simplified props) --- */}
+      <CreateUserModal show={showCreateUserModal} handleClose={handleCloseCreateUserModal} />
 
-      <EditUserModal
-        show={showEditUserModal}
-        handleClose={handleCloseEditUserModal}
-        handleSave={handleEditUser}
-        user={selectedUser}
-        loading={updateUserMutation.isPending}
-        error={userError}
-      />
+      {selectedUser && (
+        <EditUserModal
+          show={showEditUserModal}
+          handleClose={handleCloseEditUserModal}
+          user={selectedUser}
+        />
+      )}
 
-      <ManageGroupsModal
-        show={showManageUserGroupsModal}
-        handleClose={handleCloseManageUserGroupsModal}
-        handleSave={handleSetUserGroups}
-        user={selectedUser}
-        loading={updateUserGroupsMutation.isPending || userGroupsLoading}
-        error={userError}
-        allGroups={groups} // Pass the fetched groups to the user group management modal
-        userGroupIds={userGroupIds}
-      />
+      {selectedUser && (
+        <ManageGroupsModal
+          show={showManageUserGroupsModal}
+          handleClose={handleCloseManageUserGroupsModal}
+          user={selectedUser}
+          allGroups={groups}
+          userGroupIds={userGroupIds}
+          userGroupsLoading={userGroupsLoading}
+        />
+      )}
 
-      {/* --- Group Management Modals --- */}
-      <CreateGroupModal
-        show={showCreateGroupModal}
-        handleClose={handleCloseCreateGroupModal}
-        handleSave={handleCreateGroup}
-        loading={createGroupMutation.isPending}
-        error={groupError}
-      />
+      {/* --- Group Management Modals (simplified props) --- */}
+      <CreateGroupModal show={showCreateGroupModal} handleClose={handleCloseCreateGroupModal} />
 
       {selectedGroup && (
         <EditGroupModal
           show={showEditGroupModal}
           handleClose={handleCloseEditGroupModal}
-          handleSave={handleEditGroup}
           group={selectedGroup}
-          loading={updateGroupMutation.isPending}
-          error={groupError}
         />
       )}
 
@@ -705,10 +514,7 @@ const SettingsPage: React.FC = () => {
         <DeleteGroupModal
           show={showDeleteGroupModal}
           handleClose={handleCloseDeleteGroupModal}
-          handleDelete={handleDeleteGroup}
           group={selectedGroup}
-          loading={deleteGroupMutation.isPending}
-          error={groupError}
         />
       )}
     </Container>

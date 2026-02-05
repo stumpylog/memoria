@@ -1,18 +1,20 @@
 // src/components/UserManagement/CreateUserModal.tsx
 import type { SubmitHandler } from "react-hook-form";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useMemo } from "react";
 import { Alert, Button, Form, Modal } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 
 import type { UserInCreateSchemaWritable } from "../../api";
 
+import { usersCreateMutation, usersListQueryKey } from "../../api/@tanstack/react-query.gen";
+import { getErrorMessage } from "../../utils/getErrorMessage";
+
 interface CreateUserModalProps {
   show: boolean;
   handleClose: () => void;
-  handleSave: (userData: UserInCreateSchemaWritable) => Promise<void>;
-  loading: boolean;
-  error: string | null;
+  onSuccess?: () => void;
 }
 
 type CreateUserFormData = UserInCreateSchemaWritable & {
@@ -26,13 +28,23 @@ type CreateUserFormData = UserInCreateSchemaWritable & {
   is_superuser: boolean;
 };
 
-const CreateUserModal: React.FC<CreateUserModalProps> = ({
-  show,
-  handleClose,
-  handleSave,
-  loading,
-  error,
-}) => {
+const CreateUserModal: React.FC<CreateUserModalProps> = ({ show, handleClose, onSuccess }) => {
+  const queryClient = useQueryClient();
+
+  const {
+    mutateAsync,
+    isPending,
+    error,
+    reset: resetMutation,
+  } = useMutation({
+    ...usersCreateMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: usersListQueryKey() });
+      onSuccess?.();
+      handleClose();
+    },
+  });
+
   const defaultValues: CreateUserFormData = useMemo(
     () => ({
       username: "",
@@ -51,10 +63,10 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
     register,
     handleSubmit,
     formState: { errors },
-    reset,
+    reset: resetForm,
     watch,
   } = useForm<CreateUserFormData>({
-    defaultValues: defaultValues,
+    defaultValues,
   });
 
   const username = watch("username");
@@ -63,9 +75,10 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
   useEffect(() => {
     if (show) {
-      reset(defaultValues);
+      resetForm(defaultValues);
+      resetMutation();
     }
-  }, [show, reset, defaultValues]);
+  }, [show, resetForm, resetMutation, defaultValues]);
 
   const onSubmit: SubmitHandler<CreateUserFormData> = async (data) => {
     const userDataToSave: UserInCreateSchemaWritable = {
@@ -74,8 +87,11 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
       first_name: data.first_name === "" ? null : data.first_name,
       last_name: data.last_name === "" ? null : data.last_name,
     };
-    await handleSave(userDataToSave);
+
+    await mutateAsync({ body: userDataToSave });
   };
+
+  const errorMessage = getErrorMessage(error);
 
   return (
     <Modal show={show} onHide={handleClose}>
@@ -83,7 +99,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
         <Modal.Title>Create New User</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {error && <Alert variant="danger">{error}</Alert>}
+        {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
         <Form onSubmit={handleSubmit(onSubmit)}>
           <Form.Group className="mb-3" controlId="formUsername">
             <Form.Label>Username</Form.Label>
@@ -187,13 +203,13 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
             )}
           </Form.Group>
 
-          <Button variant="primary" type="submit" disabled={loading || !isFormValid}>
-            {loading ? "Saving..." : "Create User"}
+          <Button variant="primary" type="submit" disabled={isPending || !isFormValid}>
+            {isPending ? "Saving..." : "Create User"}
           </Button>
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose} disabled={loading}>
+        <Button variant="secondary" onClick={handleClose} disabled={isPending}>
           Close
         </Button>
       </Modal.Footer>

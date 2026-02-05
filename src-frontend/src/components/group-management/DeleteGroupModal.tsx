@@ -1,43 +1,53 @@
 // src/components/group-management/DeleteGroupModal.tsx
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect } from "react";
 import { Alert, Button, Modal, Spinner } from "react-bootstrap";
 
 import type { GroupOutSchema } from "../../api";
 
+import { deleteGroupMutation, listGroupsQueryKey } from "../../api/@tanstack/react-query.gen";
+import { getErrorMessage } from "../../utils/getErrorMessage";
+
 interface DeleteGroupModalProps {
   show: boolean;
   handleClose: () => void;
-  handleDelete: (groupId: number) => Promise<void>;
-  group: GroupOutSchema | null; // The group being deleted
-  loading: boolean;
-  error: string | null;
+  group: GroupOutSchema;
+  onSuccess?: () => void;
 }
 
 const DeleteGroupModal: React.FC<DeleteGroupModalProps> = ({
   show,
   handleClose,
-  handleDelete,
   group,
-  loading,
-  error,
+  onSuccess,
 }) => {
-  // Clear error when modal is shown
+  const queryClient = useQueryClient();
+
+  const {
+    mutateAsync,
+    isPending,
+    error,
+    reset: resetMutation,
+  } = useMutation({
+    ...deleteGroupMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: listGroupsQueryKey() });
+      onSuccess?.();
+      handleClose();
+    },
+  });
+
   useEffect(() => {
     if (show) {
-      // Clear any previous errors when the modal opens
+      resetMutation();
     }
-  }, [show]);
+  }, [show, resetMutation]);
 
   const onDelete = async () => {
-    if (!group) return; // Should not happen if modal is shown
-
-    await handleDelete(group.id);
+    await mutateAsync({ path: { group_id: group.id } });
   };
 
-  // Don't render if no group is selected (though parent handles this with conditional rendering)
-  if (!group && show) {
-    return null;
-  }
+  const errorMessage = getErrorMessage(error);
 
   return (
     <Modal show={show} onHide={handleClose} centered>
@@ -45,18 +55,18 @@ const DeleteGroupModal: React.FC<DeleteGroupModalProps> = ({
         <Modal.Title>Confirm Group Deletion</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {error && <Alert variant="danger">{error}</Alert>}
+        {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
         <p>
-          Are you sure you want to delete the group "<strong>{group?.name}</strong>"? This action
+          Are you sure you want to delete the group "<strong>{group.name}</strong>"? This action
           cannot be undone.
         </p>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose} disabled={loading}>
+        <Button variant="secondary" onClick={handleClose} disabled={isPending}>
           Cancel
         </Button>
-        <Button variant="danger" onClick={onDelete} disabled={loading}>
-          {loading ? (
+        <Button variant="danger" onClick={onDelete} disabled={isPending}>
+          {isPending ? (
             <>
               <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
               {" Deleting..."}

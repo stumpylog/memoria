@@ -1,20 +1,26 @@
+// src/components/UserManagement/ManageGroupsModal.tsx
 import type { SubmitHandler } from "react-hook-form";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useMemo } from "react";
-import { Alert, Button, Form, Modal } from "react-bootstrap";
+import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
 
 import type { GroupOutSchema, UserGroupAssignInSchema, UserOutSchema } from "../../api";
 
+import {
+  usersGroupsListQueryKey,
+  usersGroupsUpdateMutation,
+  usersListQueryKey,
+} from "../../api/@tanstack/react-query.gen";
+import { getErrorMessage } from "../../utils/getErrorMessage";
 import ThemedSelect from "../common/ThemedSelect";
 
-// Option type for react-select
 interface GroupOption {
   value: number;
   label: string;
 }
 
-// Define the structure of our form data
 interface FormData {
   selectedGroups: GroupOption[];
 }
@@ -22,32 +28,51 @@ interface FormData {
 interface ManageGroupsModalProps {
   show: boolean;
   handleClose: () => void;
-  handleSave: (userId: number, groupIds: UserGroupAssignInSchema[]) => Promise<void>;
-  user: UserOutSchema | null;
-  loading: boolean;
-  error: string | null;
-  allGroups: GroupOutSchema[]; // List of all available groups
-  userGroupIds: number[]; // List of IDs of groups the user is currently in
+  user: UserOutSchema;
+  allGroups: GroupOutSchema[];
+  userGroupIds: number[];
+  userGroupsLoading: boolean;
+  onSuccess?: () => void;
 }
 
 const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
   show,
   handleClose,
-  handleSave,
   user,
-  loading,
-  error,
   allGroups,
   userGroupIds,
+  userGroupsLoading,
+  onSuccess,
 }) => {
-  // Initialize react-hook-form
-  const { control, handleSubmit, reset } = useForm<FormData>({
+  const queryClient = useQueryClient();
+
+  const {
+    mutateAsync,
+    isPending,
+    error,
+    reset: resetMutation,
+  } = useMutation({
+    ...usersGroupsUpdateMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: usersListQueryKey() });
+      queryClient.invalidateQueries({
+        queryKey: usersGroupsListQueryKey({ path: { user_id: user.id } }),
+      });
+      onSuccess?.();
+      handleClose();
+    },
+  });
+
+  const {
+    control,
+    handleSubmit,
+    reset: resetForm,
+  } = useForm<FormData>({
     defaultValues: {
       selectedGroups: [],
     },
   });
 
-  // Transform groups into react-select options
   const groupOptions: GroupOption[] = useMemo(
     () =>
       allGroups.map((group) => ({
@@ -57,81 +82,85 @@ const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
     [allGroups],
   );
 
-  // Get currently selected groups as options
   const selectedGroupOptions: GroupOption[] = useMemo(
     () => groupOptions.filter((option) => userGroupIds.includes(option.value)),
     [groupOptions, userGroupIds],
   );
 
-  // Use effect to reset form values when the user or their group IDs change
   useEffect(() => {
-    if (user) {
-      reset({
-        selectedGroups: selectedGroupOptions,
-      });
-    } else {
-      reset({
-        selectedGroups: [],
-      });
+    if (show && user) {
+      resetForm({ selectedGroups: selectedGroupOptions });
+      resetMutation();
     }
-  }, [user, selectedGroupOptions, reset]);
+  }, [show, user, selectedGroupOptions, resetForm, resetMutation]);
 
-  // Handle form submission
   const onSubmit: SubmitHandler<FormData> = async (formData) => {
-    if (!user) return;
-
-    // Transform the selected groups into the required UserGroupAssignInSchema format
     const groupAssignments: UserGroupAssignInSchema[] = formData.selectedGroups.map((option) => ({
       id: option.value,
     }));
 
-    await handleSave(user.id, groupAssignments);
+    await mutateAsync({
+      path: { user_id: user.id },
+      body: groupAssignments,
+    });
   };
+
+  const errorMessage = getErrorMessage(error);
+  const isLoading = isPending || userGroupsLoading;
 
   return (
     <Modal show={show} onHide={handleClose} size="lg">
       <Modal.Header closeButton>
-        <Modal.Title>Manage Groups for {user?.username}</Modal.Title>
+        <Modal.Title>Manage Groups for {user.username}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {error && <Alert variant="danger">{error}</Alert>}
-        <Form onSubmit={handleSubmit(onSubmit)}>
-          <Form.Group className="mb-3">
-            <Form.Label>Select Groups</Form.Label>
-            <Controller
-              name="selectedGroups"
-              control={control}
-              render={({ field }) => (
-                <ThemedSelect
-                  {...field}
-                  isMulti
-                  options={groupOptions}
-                  placeholder="Search and select groups..."
-                  isClearable
-                  isSearchable
-                  closeMenuOnSelect={false}
-                  noOptionsMessage={({ inputValue }) =>
-                    inputValue ? `No groups found matching "${inputValue}"` : "No groups available"
-                  }
-                  // Add custom formatting for the placeholder when no groups are available
-                  isDisabled={groupOptions.length === 0}
-                />
-              )}
-            />
-            {groupOptions.length === 0 && (
-              <Form.Text className="text-muted">No groups are available to assign.</Form.Text>
-            )}
-          </Form.Group>
-
-          <div className="d-flex gap-2">
-            <Button variant="primary" type="submit" disabled={loading} className="flex-grow-1">
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-            <Button variant="secondary" onClick={handleClose} disabled={loading}>
-              Cancel
-            </Button>
+        {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
+        {userGroupsLoading ? (
+          <div className="d-flex justify-content-center py-4">
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Loading groups...</span>
+            </Spinner>
           </div>
-        </Form>
+        ) : (
+          <Form onSubmit={handleSubmit(onSubmit)}>
+            <Form.Group className="mb-3">
+              <Form.Label>Select Groups</Form.Label>
+              <Controller
+                name="selectedGroups"
+                control={control}
+                render={({ field }) => (
+                  <ThemedSelect
+                    {...field}
+                    isMulti
+                    options={groupOptions}
+                    placeholder="Search and select groups..."
+                    isClearable
+                    isSearchable
+                    closeMenuOnSelect={false}
+                    noOptionsMessage={({ inputValue }) =>
+                      inputValue
+                        ? `No groups found matching "${inputValue}"`
+                        : "No groups available"
+                    }
+                    isDisabled={groupOptions.length === 0 || isPending}
+                  />
+                )}
+              />
+              {groupOptions.length === 0 && (
+                <Form.Text className="text-muted">No groups are available to assign.</Form.Text>
+              )}
+            </Form.Group>
+
+            <div className="d-flex gap-2">
+              <Button variant="primary" type="submit" disabled={isLoading} className="flex-grow-1">
+                {isPending ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button variant="secondary" onClick={handleClose} disabled={isLoading}>
+                Cancel
+              </Button>
+            </div>
+          </Form>
+        )}
       </Modal.Body>
     </Modal>
   );
