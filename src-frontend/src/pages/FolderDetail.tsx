@@ -3,11 +3,13 @@ import React, { useState } from "react";
 import { Alert, Breadcrumb, Button, Container, Spinner } from "react-bootstrap";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import type { AlbumAddImageInSchema } from "../api";
-import type { FolderDetailSchemaOut, ImageThumbnailSchemaOut } from "../api";
+import type { AlbumAddImageInSchema, ImageThumbnailSchemaOut } from "../api";
 
-import { folderGetDetails, imageGetThumbnailsBulkInfo } from "../api";
-import { addImageToAlbum } from "../api";
+import { imageGetThumbnailsBulkInfo } from "../api";
+import {
+  addImageToAlbumMutation,
+  folderGetDetailsOptions,
+} from "../api/@tanstack/react-query.gen";
 import EditFolderModal from "../components/folder/EditFolderModal";
 import FolderWall from "../components/folder/FolderWall";
 import AddToAlbumModal from "../components/image/AddToAlbumModal";
@@ -39,19 +41,9 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
     error: folderError,
     refetch: refetchFolder, // Add refetch
   } = useQuery({
-    queryKey: ["folder", folderId],
-    queryFn: async (): Promise<FolderDetailSchemaOut> => {
-      if (!folderId) {
-        throw new Error("Invalid folder ID.");
-      }
-      const response = await folderGetDetails({
-        path: { folder_id: folderId },
-      });
-      if (!response.data) {
-        throw new Error("Folder not found.");
-      }
-      return response.data;
-    },
+    ...folderGetDetailsOptions({
+      path: { folder_id: folderId },
+    }),
     enabled: !!folderId && folderId > 0,
   });
 
@@ -66,24 +58,15 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
       if (!folderDetail?.folder_images?.length) {
         return [];
       }
-
-      try {
-        const response = await imageGetThumbnailsBulkInfo({ body: folderDetail.folder_images });
-        return response.data || [];
-      } catch (err) {
-        console.error(`Error fetching thumbnail info for folder ${folderId}:`, err);
-        throw err;
-      }
+      const response = await imageGetThumbnailsBulkInfo({ body: folderDetail.folder_images });
+      return response.data || [];
     },
-    enabled: !!folderDetail && folderDetail.folder_images?.length > 0,
+    enabled: !!folderDetail && (folderDetail.folder_images?.length || 0) > 0,
   });
 
   // Add to Album Mutation
-  const addToAlbumMutation = useMutation({
-    mutationFn: async ({ albumId, imageIds }: { albumId: number; imageIds: number[] }) => {
-      const updatedData: AlbumAddImageInSchema = { image_ids: imageIds };
-      return await addImageToAlbum({ path: { album_id: albumId }, body: updatedData });
-    },
+  const addToAlbumMutationResult = useMutation({
+    ...addImageToAlbumMutation(),
     onSuccess: () => {
       setSelectedImageIds([]);
       setShowAlbumModal(false);
@@ -111,7 +94,8 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
   };
 
   const handleAddToAlbum = async (albumId: number, imageIds: number[]) => {
-    addToAlbumMutation.mutate({ albumId, imageIds });
+    const updatedData: AlbumAddImageInSchema = { image_ids: imageIds };
+    addToAlbumMutationResult.mutate({ path: { album_id: albumId }, body: updatedData });
   };
 
   if (folderLoading) {
@@ -220,9 +204,9 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
             <Button
               variant="primary"
               onClick={handleOpenAlbumModal}
-              disabled={addToAlbumMutation.isPending}
+              disabled={addToAlbumMutationResult.isPending}
             >
-              {addToAlbumMutation.isPending ? (
+              {addToAlbumMutationResult.isPending ? (
                 <>
                   <Spinner
                     as="span"
@@ -273,9 +257,9 @@ const FolderDetail: React.FC<FolderDetailProps> = () => {
         onHide={() => setShowAlbumModal(false)}
         selectedImageIds={selectedImageIds}
         onAddToAlbum={handleAddToAlbum}
-        isLoading={addToAlbumMutation.isPending}
-        isError={addToAlbumMutation.isError}
-        error={addToAlbumMutation.error}
+        isLoading={addToAlbumMutationResult.isPending}
+        isError={addToAlbumMutationResult.isError}
+        error={addToAlbumMutationResult.error}
       />
 
       {/* Edit Folder Modal */}

@@ -7,7 +7,10 @@ import { Controller, useForm } from "react-hook-form";
 
 import type { GroupSchemaOut, PersonDetailOutSchema, PersonUpdateInSchema } from "../../api";
 
-import { listGroups, updatePersonDetail } from "../../api";
+import {
+  listGroupsOptions,
+  updatePersonDetailMutation,
+} from "../../api/@tanstack/react-query.gen";
 import ThemedSelect from "../common/ThemedSelect";
 
 interface EditPersonModalProps {
@@ -35,12 +38,11 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
 
   // Fetch all available groups
   const { data: groupsResponse, isLoading: groupsLoading } = useQuery({
-    queryKey: ["groups"],
-    queryFn: () => listGroups(),
+    ...listGroupsOptions(),
     enabled: show, // Only fetch when modal is open
   });
 
-  const groups: GroupSchemaOut[] = groupsResponse?.data ?? [];
+  const groups: GroupSchemaOut[] = groupsResponse ?? [];
 
   const { register, handleSubmit, formState, reset, control } = useForm<EditPersonFormData>({
     defaultValues: {
@@ -62,19 +64,15 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
   }, [person, reset]);
 
   const updatePersonMutation = useMutation({
-    mutationFn: (data: PersonUpdateInSchema) =>
-      updatePersonDetail({
-        path: { person_id: person.id },
-        body: data,
-      }),
+    ...updatePersonDetailMutation(),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["person", person.id] }); // Invalidate person details
       // Invalidate images that might be affected by permission changes
       queryClient.invalidateQueries({ queryKey: ["person-image-ids"] });
       queryClient.invalidateQueries({ queryKey: ["person-images-thumbnails"] });
 
-      if (response && response.data) {
-        onSaveSuccess(response.data);
+      if (response) {
+        onSaveSuccess(response);
       } else {
         onSaveSuccess(person);
       }
@@ -113,7 +111,10 @@ const EditPersonModal: React.FC<EditPersonModalProps> = ({
       return;
     }
 
-    updatePersonMutation.mutate(updatedData); // Use the mutation
+    updatePersonMutation.mutate({
+      path: { person_id: person.id },
+      body: updatedData,
+    }); // Use the mutation
   };
 
   // Prepare options for react-select - Convert value to string

@@ -5,14 +5,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { Alert, Button, Col, Container, Row, Spinner } from "react-bootstrap";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-import type {
-  ImagesPerPageChoices,
-  ImageThumbnailSchemaOut,
-  PetImageOutSchema,
-  PetReadDetailSchemaOut,
-} from "../api";
+import type { ImagesPerPageChoices, ImageThumbnailSchemaOut } from "../api";
 
-import { addImageToAlbum, getPetDetail, getPetImages, imageGetThumbnailsBulkInfo } from "../api";
+import { imageGetThumbnailsBulkInfo } from "../api";
+import {
+  addImageToAlbumMutation,
+  getPetDetailOptions,
+  getPetImagesOptions,
+} from "../api/@tanstack/react-query.gen";
 import AddToAlbumModal from "../components/image/AddToAlbumModal";
 import SelectableImageWall from "../components/image/SelectableImageWall";
 import EditPetModal from "../components/pets/EditPetModal";
@@ -68,17 +68,14 @@ const PetDetailsPage: React.FC = () => {
   }, [profile, searchParams, setSearchParams, limit]);
 
   const {
-    data: pet,
+    data: pet = null,
     isLoading: isLoadingPet,
     isError: isErrorPet,
     error: errorPet,
-  } = useQuery<PetReadDetailSchemaOut | null>({
-    queryKey: ["pet", petId],
-    queryFn: async () => {
-      if (!isValidId) throw new Error("Invalid pet ID.");
-      const response = await getPetDetail({ path: { pet_id: petId! } });
-      return response.data || null;
-    },
+  } = useQuery({
+    ...getPetDetailOptions({
+      path: { pet_id: petId! },
+    }),
     enabled: isValidId,
     staleTime: 5 * 60 * 1000,
   });
@@ -88,18 +85,16 @@ const PetDetailsPage: React.FC = () => {
     isLoading: isLoadingImageIds,
     isError: isErrorImageIds,
     error: errorImageIds,
-  } = useQuery<PetImageOutSchema[]>({
-    queryKey: ["pet-image-ids", petId, limit, offset],
-    queryFn: async () => {
-      if (!petId) throw new Error("Pet ID is undefined.");
-      const response = await getPetImages({ path: { pet_id: petId }, query: { limit, offset } });
-      return response.data?.items || [];
-    },
+  } = useQuery({
+    ...getPetImagesOptions({
+      path: { pet_id: petId! },
+      query: { limit, offset },
+    }),
     enabled: isValidId && !!pet,
     staleTime: 5 * 60 * 1000,
   });
 
-  const imageIds = pagedImageData?.map((img) => img.id) || [];
+  const imageIds = pagedImageData?.items?.map((img) => img.id) || [];
 
   const {
     data: images,
@@ -121,9 +116,8 @@ const PetDetailsPage: React.FC = () => {
   const currentPage = Math.floor(offset / limit) + 1;
   const totalPages = totalImageCount ? Math.ceil(totalImageCount / limit) : 0;
 
-  const addToAlbumMutation = useMutation({
-    mutationFn: ({ albumId, imageIds }: { albumId: number; imageIds: number[] }) =>
-      addImageToAlbum({ path: { album_id: albumId }, body: { image_ids: imageIds } }),
+  const addToAlbumMutationResult = useMutation({
+    ...addImageToAlbumMutation(),
     onSuccess: () => {
       setSelectedImageIds([]);
       setShowAlbumModal(false);
@@ -155,7 +149,10 @@ const PetDetailsPage: React.FC = () => {
   };
 
   const handleAddToAlbum = async (albumId: number, imageIds: number[]) => {
-    addToAlbumMutation.mutate({ albumId, imageIds });
+    addToAlbumMutationResult.mutate({
+      path: { album_id: albumId },
+      body: { image_ids: imageIds },
+    });
   };
 
   if (isLoadingPet) {
@@ -261,9 +258,9 @@ const PetDetailsPage: React.FC = () => {
         onHide={() => setShowAlbumModal(false)}
         selectedImageIds={selectedImageIds}
         onAddToAlbum={handleAddToAlbum}
-        isLoading={addToAlbumMutation.isPending}
-        isError={addToAlbumMutation.isError}
-        error={addToAlbumMutation.error}
+        isLoading={addToAlbumMutationResult.isPending}
+        isError={addToAlbumMutationResult.isError}
+        error={addToAlbumMutationResult.error}
       />
     </Container>
   );

@@ -4,7 +4,7 @@ import { Button, Form, ListGroup, Modal, Spinner } from "react-bootstrap";
 
 import type { AlbumBasicReadOutSchema } from "../../api";
 
-import { getAllAlbums } from "../../api";
+import { getAllAlbumsOptions } from "../../api/@tanstack/react-query.gen";
 
 interface AddToAlbumModalProps {
   show: boolean;
@@ -40,21 +40,18 @@ const AddToAlbumModal: React.FC<AddToAlbumModalProps> = ({
 
   // Use react-query for album search
   const {
-    data: searchResults = [],
+    data: searchResponse,
     isLoading: isSearching,
     error: searchError,
   } = useQuery({
-    queryKey: ["albums", "search", searchQuery],
-    queryFn: async (): Promise<AlbumBasicReadOutSchema[]> => {
-      if (searchQuery.trim().length < 2) {
-        return [];
-      }
-      const results = await getAllAlbums({ query: { album_name: searchQuery } });
-      return results.data?.items || [];
-    },
+    ...getAllAlbumsOptions({
+      query: { album_name: searchQuery },
+    }),
     enabled: searchQuery.trim().length >= 2 && show,
     staleTime: 30000, // Cache results for 30 seconds
   });
+
+  const searchResults = searchResponse?.items || [];
 
   // Effect to set error message if search fails
   useEffect(() => {

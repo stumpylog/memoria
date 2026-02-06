@@ -8,7 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import type { AlbumUpdateInSchema, AlbumWithImagesOutSchema, GroupSchemaOut } from "../../api";
 
-import { listGroups } from "../../api";
+import { listGroupsOptions } from "../../api/@tanstack/react-query.gen";
 import ThemedSelect from "../common/ThemedSelect";
 
 interface EditAlbumInfoModalProps {
@@ -46,16 +46,14 @@ const EditAlbumInfoModal: React.FC<EditAlbumInfoModalProps> = ({
   });
 
   const {
-    data: allGroups,
+    data: allGroupsResponse,
     isLoading: isLoadingGroups,
     error: groupsError,
-  } = useQuery<GroupSchemaOut[], Error>({
-    queryKey: ["allGroups"],
-    queryFn: async () => {
-      const response = await listGroups();
-      return response.data || [];
-    },
+  } = useQuery({
+    ...listGroupsOptions(),
   });
+
+  const allGroups: GroupSchemaOut[] = allGroupsResponse ?? [];
 
   useEffect(() => {
     if (album && show && allGroups) {

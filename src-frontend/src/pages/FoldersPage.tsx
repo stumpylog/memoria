@@ -3,9 +3,7 @@ import React from "react";
 import { Alert, Container, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
-import type { RootFolderSchemaOut } from "../api";
-
-import { folderListRoots } from "../api";
+import { folderListRootsOptions } from "../api/@tanstack/react-query.gen";
 import FolderWall from "../components/folder/FolderWall";
 
 interface FoldersPageProps {
@@ -21,17 +19,7 @@ const FoldersPage: React.FC<FoldersPageProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const {
-    data: folders = [],
-    isLoading,
-    error,
-  } = useQuery<RootFolderSchemaOut[]>({
-    queryKey: ["folders", "roots"],
-    queryFn: async () => {
-      const response = await folderListRoots();
-      return response.data || [];
-    },
-  });
+  const { data: folders = [], isLoading, error } = useQuery(folderListRootsOptions());
 
   const handleFolderClick = (id: number) => {
     if (onFolderClick) {

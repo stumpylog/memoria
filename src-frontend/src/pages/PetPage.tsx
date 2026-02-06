@@ -14,9 +14,9 @@ import {
 } from "react-bootstrap";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import type { PagedPetReadSchemaOut, PetReadSchemaOut, PetTypeChoices } from "../api";
+import type { PetReadSchemaOut, PetTypeChoices } from "../api";
 
-import { getAllPets } from "../api";
+import { getAllPetsOptions } from "../api/@tanstack/react-query.gen";
 import PaginationComponent from "../components/common/PaginationComponent";
 import ThemedSelect from "../components/common/ThemedSelect";
 import { useAuth } from "../hooks/useAuth";
@@ -61,27 +61,17 @@ const PetsPage: React.FC = () => {
 
   const offset = (currentPage - 1) * pageSize;
 
-  const currentQueryKeyPage = searchParams.get("page") || "1";
-
-  const { data, isLoading, isError, error } = useQuery<PagedPetReadSchemaOut>({
-    queryKey: ["pets", currentQueryKeyPage, pageSize, searchTerm, selectedPetType, sortBy],
-    queryFn: async ({ signal }) => {
-      const response = await getAllPets({
-        query: {
-          limit: pageSize,
-          offset: offset,
-          // Pass null if selectedPetType is null or an empty string, otherwise pass the value
-          pet_type: selectedPetType || null,
-          pet_name: searchTerm || undefined,
-          sort_by: sortBy,
-        },
-        signal,
-      });
-      if (!response.data) {
-        throw new Error("No data received from pets API.");
-      }
-      return response.data;
-    },
+  const { data, isLoading, isError, error } = useQuery({
+    ...getAllPetsOptions({
+      query: {
+        limit: pageSize,
+        offset: offset,
+        // Pass null if selectedPetType is null or an empty string, otherwise pass the value
+        pet_type: selectedPetType || null,
+        pet_name: searchTerm || undefined,
+        sort_by: sortBy,
+      },
+    }),
     placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
   });

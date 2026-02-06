@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 
 import type { ImageMetadataSchemaOut, ImageMetadataUpdateSchemaIn } from "../../api";
 
-import { imageUpdateMetadata } from "../../api";
+import { imageUpdateMetadataMutation } from "../../api/@tanstack/react-query.gen";
 
 interface MetadataEditModalProps {
   show: boolean;
@@ -49,11 +49,7 @@ const MetadataEditModal: React.FC<MetadataEditModalProps> = ({
   }, [reset, show, currentMetadata]);
 
   const updateMetadataMutation = useMutation({
-    mutationFn: (data: ImageMetadataUpdateSchemaIn) =>
-      imageUpdateMetadata({
-        path: { image_id: imageId },
-        body: data,
-      }),
+    ...imageUpdateMetadataMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["metadata", imageId] });
       onHide();
@@ -71,7 +67,10 @@ const MetadataEditModal: React.FC<MetadataEditModalProps> = ({
       title: data.title === "" ? null : data.title,
       description: data.description === "" ? null : data.description,
     };
-    updateMetadataMutation.mutate(sanitizedData);
+    updateMetadataMutation.mutate({
+      path: { image_id: imageId },
+      body: sanitizedData,
+    });
   };
 
   return (

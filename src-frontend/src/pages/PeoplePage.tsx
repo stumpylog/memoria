@@ -13,9 +13,9 @@ import {
 } from "react-bootstrap";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import type { PagedPersonReadOutSchema, PersonReadOutSchema } from "../api";
+import type { PersonReadOutSchema } from "../api";
 
-import { getAllPeople } from "../api";
+import { getAllPeopleOptions } from "../api/@tanstack/react-query.gen";
 import PaginationComponent from "../components/common/PaginationComponent";
 import { useAuth } from "../hooks/useAuth";
 import { useDebounce } from "../hooks/useDebounce";
@@ -54,22 +54,16 @@ const PeoplePage: React.FC = () => {
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const pageSize = profile?.items_per_page || 10;
   const offset = (currentPage - 1) * pageSize;
-  const currentQueryKeyPage = searchParams.get("page") || "1";
 
   const { data, isLoading, isError, error, isFetching } = useQuery({
-    queryKey: ["people", currentQueryKeyPage, pageSize, debouncedSearchTerm, sortBy],
-    queryFn: async ({ signal }) => {
-      const response = await getAllPeople({
-        query: {
-          limit: pageSize,
-          offset: offset,
-          person_name: debouncedSearchTerm || undefined,
-          sort_by: sortBy,
-        },
-        signal,
-      });
-      return response.data as PagedPersonReadOutSchema;
-    },
+    ...getAllPeopleOptions({
+      query: {
+        limit: pageSize,
+        offset: offset,
+        person_name: debouncedSearchTerm || undefined,
+        sort_by: sortBy,
+      },
+    }),
     placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
   });

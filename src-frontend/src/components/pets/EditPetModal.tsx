@@ -7,7 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import type { PetReadDetailSchemaOut, PetTypeChoices, PetUpdateInSchema } from "../../api";
 
-import { updatePet } from "../../api";
+import { updatePetMutation } from "../../api/@tanstack/react-query.gen";
 import ThemedSelect from "../common/ThemedSelect";
 
 // Define a runtime constant for pet types here, outside the API generated file
@@ -50,13 +50,13 @@ const EditPetModal: React.FC<EditPetModalProps> = ({ show, handleClose, pet, onS
     }
   }, [show, pet, reset]);
 
-  const updatePetMutation = useMutation({
-    mutationFn: (data: PetUpdateInSchema) => updatePet({ path: { pet_id: pet.id }, body: data }),
+  const updatePetMutationResult = useMutation({
+    ...updatePetMutation(),
     onSuccess: (data) => {
-      if (data.data === undefined) {
+      if (data === undefined) {
         throw new Error();
       }
-      onSaveSuccess(data.data); // Pass the updated pet data
+      onSaveSuccess(data); // Pass the updated pet data
       queryClient.invalidateQueries({ queryKey: ["pet", pet.id] }); // Invalidate specific pet query
       queryClient.invalidateQueries({ queryKey: ["pets"] }); // Invalidate pet list query
     },
@@ -74,7 +74,7 @@ const EditPetModal: React.FC<EditPetModalProps> = ({ show, handleClose, pet, onS
     if (data.pet_type !== pet.pet_type) updatedFields.pet_type = data.pet_type;
 
     if (Object.keys(updatedFields).length > 0) {
-      updatePetMutation.mutate(updatedFields);
+      updatePetMutationResult.mutate({ path: { pet_id: pet.id }, body: updatedFields });
     } else {
       handleClose(); // Close if no changes
     }
@@ -153,9 +153,9 @@ const EditPetModal: React.FC<EditPetModalProps> = ({ show, handleClose, pet, onS
             <Button
               variant="primary"
               type="submit"
-              disabled={formState.isSubmitting || updatePetMutation.isPending}
+              disabled={formState.isSubmitting || updatePetMutationResult.isPending}
             >
-              {formState.isSubmitting || updatePetMutation.isPending
+              {formState.isSubmitting || updatePetMutationResult.isPending
                 ? "Saving..."
                 : "Save Changes"}
             </Button>

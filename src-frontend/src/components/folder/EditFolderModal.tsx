@@ -7,7 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import type { FolderDetailSchemaOut, FolderUpdateSchemaIn, GroupSchemaOut } from "../../api";
 
-import { listGroups, updateFolderInfo } from "../../api";
+import { listGroupsOptions, updateFolderInfoMutation } from "../../api/@tanstack/react-query.gen";
 import ThemedSelect from "../common/ThemedSelect";
 
 interface EditFolderModalProps {
@@ -35,12 +35,11 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
 
   // Fetch all available groups
   const { data: groupsResponse, isLoading: groupsLoading } = useQuery({
-    queryKey: ["groups"],
-    queryFn: () => listGroups(),
+    ...listGroupsOptions(),
     enabled: show,
   });
 
-  const groups: GroupSchemaOut[] = groupsResponse?.data ?? [];
+  const groups: GroupSchemaOut[] = groupsResponse ?? [];
 
   const { register, handleSubmit, formState, reset, control } = useForm<EditFolderFormData>({
     defaultValues: {
@@ -62,11 +61,7 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
   }, [folder, reset]);
 
   const updateFolderMutation = useMutation({
-    mutationFn: (data: FolderUpdateSchemaIn) =>
-      updateFolderInfo({
-        path: { folder_id: folder.id },
-        body: data,
-      }),
+    ...updateFolderInfoMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folder", folder.id] });
       queryClient.invalidateQueries({ queryKey: ["folderImages"] }); // Invalidate images associated with the folder
@@ -103,7 +98,10 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
       return;
     }
 
-    updateFolderMutation.mutate(updatedData);
+    updateFolderMutation.mutate({
+      path: { folder_id: folder.id },
+      body: updatedData,
+    });
   };
 
   const groupOptions = groups.map((group) => ({

@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -15,14 +15,13 @@ import {
 } from "react-bootstrap";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import type {
-  AlbumBasicReadOutSchema,
-  AlbumCreateInSchema,
-  GroupOutSchema,
-  PagedAlbumBasicReadOutSchema,
-} from "../api";
+import type { AlbumBasicReadOutSchema, AlbumCreateInSchema } from "../api";
 
-import { createAlbum, getAllAlbums, listGroups } from "../api";
+import {
+  createAlbumMutation,
+  getAllAlbumsOptions,
+  listGroupsOptions,
+} from "../api/@tanstack/react-query.gen";
 import PaginationComponent from "../components/common/PaginationComponent";
 import { useAuth } from "../hooks/useAuth";
 
@@ -30,10 +29,7 @@ const AlbumsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { profile } = useAuth();
-
-  const [groups, setGroups] = useState<GroupOutSchema[]>([]);
-  const [loadingGroups, setLoadingGroups] = useState<boolean>(true);
-  const [errorGroups, setErrorGroups] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [newAlbumData, setNewAlbumData] = useState<AlbumCreateInSchema>({
@@ -42,8 +38,7 @@ const AlbumsPage: React.FC = () => {
     view_group_ids: [],
     edit_group_ids: [],
   });
-  const [creatingAlbum, setCreatingAlbum] = useState<boolean>(false);
-  const [createAlbumError, setCreateAlbumError] = useState<string | null>(null);
+  const [clientCreateAlbumError, setClientCreateAlbumError] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("album_name") || "");
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -58,41 +53,24 @@ const AlbumsPage: React.FC = () => {
     isLoading: isLoadingAlbums,
     isError: isErrorAlbums,
     error: albumsError,
-    refetch: refetchAlbums,
-  } = useQuery<PagedAlbumBasicReadOutSchema, Error>({
-    queryKey: ["albums", currentPage, pageSize, searchTerm],
-    queryFn: async ({ signal }) => {
-      const response = await getAllAlbums({
-        query: {
-          limit: pageSize,
-          offset: offset,
-          album_name: searchTerm || undefined,
-        },
-        signal,
-      });
-      return response.data as PagedAlbumBasicReadOutSchema;
-    },
+  } = useQuery({
+    ...getAllAlbumsOptions({
+      query: {
+        limit: pageSize,
+        offset: offset,
+        album_name: searchTerm || undefined,
+      },
+    }),
     placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
   });
 
-  useEffect(() => {
-    const fetchGroups = async () => {
-      try {
-        setLoadingGroups(true);
-        const data = await listGroups();
-        setGroups(data.data || []);
-        setErrorGroups(null);
-      } catch (error) {
-        console.error("Failed to fetch groups:", error);
-        setErrorGroups("Failed to load groups.");
-      } finally {
-        setLoadingGroups(false);
-      }
-    };
-
-    fetchGroups();
-  }, []);
+  const {
+    data: groups = [],
+    isLoading: loadingGroups,
+    isError: isErrorGroups,
+  } = useQuery(listGroupsOptions());
+  const errorGroups = isErrorGroups ? "Failed to load groups." : null;
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -119,7 +97,7 @@ const AlbumsPage: React.FC = () => {
       view_group_ids: [],
       edit_group_ids: [],
     });
-    setCreateAlbumError(null);
+    setClientCreateAlbumError(null);
   };
 
   const handleCloseModal = () => setShowCreateModal(false);
@@ -149,25 +127,37 @@ const AlbumsPage: React.FC = () => {
     }));
   };
 
+  const {
+    mutateAsync: createAlbumAsync,
+    isPending: creatingAlbum,
+    error: createMutationError,
+  } = useMutation({
+    ...createAlbumMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["albums"] });
+      handleCloseModal();
+    },
+  });
+
+  const createAlbumError =
+    clientCreateAlbumError ||
+    (createMutationError
+      ? "Failed to create album. Please check the details and try again."
+      : null);
+
   const handleCreateAlbum = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!newAlbumData.name) {
-      setCreateAlbumError("Album name is required.");
+      setClientCreateAlbumError("Album name is required.");
       return;
     }
 
     try {
-      setCreatingAlbum(true);
-      setCreateAlbumError(null);
-      await createAlbum({ body: newAlbumData });
-      refetchAlbums();
-      handleCloseModal();
+      setClientCreateAlbumError(null);
+      await createAlbumAsync({ body: newAlbumData });
     } catch (error) {
       console.error("Failed to create album:", error);
-      setCreateAlbumError("Failed to create album. Please check the details and try again.");
-    } finally {
-      setCreatingAlbum(false);
     }
   };
 

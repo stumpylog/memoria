@@ -11,7 +11,10 @@ import type {
   ImageMetadataUpdateSchemaIn,
 } from "../../api";
 
-import { imageUpdateMetadata, listGroups } from "../../api";
+import {
+  imageUpdateMetadataMutation,
+  listGroupsOptions,
+} from "../../api/@tanstack/react-query.gen";
 import ThemedSelect from "../common/ThemedSelect";
 
 interface GroupPermissionsModalProps {
@@ -37,12 +40,11 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({
   const queryClient = useQueryClient();
 
   const { data: groupsResponse, isLoading: groupsLoading } = useQuery({
-    queryKey: ["groups"],
-    queryFn: () => listGroups(),
+    ...listGroupsOptions(),
     enabled: show,
   });
 
-  const groups: GroupSchemaOut[] = groupsResponse?.data ?? [];
+  const groups: GroupSchemaOut[] = groupsResponse ?? [];
 
   const {
     control,
@@ -66,11 +68,7 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({
   }, [reset, show, currentMetadata]);
 
   const updatePermissionsMutation = useMutation({
-    mutationFn: (data: ImageMetadataUpdateSchemaIn) =>
-      imageUpdateMetadata({
-        path: { image_id: imageId },
-        body: data,
-      }),
+    ...imageUpdateMetadataMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["metadata", imageId] });
       onHide();
@@ -88,7 +86,10 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({
       view_group_ids: data.view_group_ids,
       edit_group_ids: data.edit_group_ids,
     };
-    updatePermissionsMutation.mutate(updateData);
+    updatePermissionsMutation.mutate({
+      path: { image_id: imageId },
+      body: updateData,
+    });
   };
 
   // Prepare options for react-select - Convert value to string

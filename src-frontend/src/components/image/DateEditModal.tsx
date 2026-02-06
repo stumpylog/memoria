@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 
 import type { ImageDateSchemaOut, ImageDateUpdateSchemaIn } from "../../api";
 
-import { imageUpdateDate } from "../../api";
+import { imageUpdateDateMutation } from "../../api/@tanstack/react-query.gen";
 
 interface DateEditModalProps {
   show: boolean;
@@ -76,11 +76,7 @@ const DateEditModal: React.FC<DateEditModalProps> = ({
   }, [reset, show, currentDate]);
 
   const updateDateMutation = useMutation({
-    mutationFn: (data: ImageDateUpdateSchemaIn) =>
-      imageUpdateDate({
-        path: { image_id: imageId },
-        body: data,
-      }),
+    ...imageUpdateDateMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["date", imageId] });
       onHide();
@@ -92,7 +88,10 @@ const DateEditModal: React.FC<DateEditModalProps> = ({
   });
 
   const onSubmit = (data: ImageDateUpdateSchemaIn) => {
-    updateDateMutation.mutate(data);
+    updateDateMutation.mutate({
+      path: { image_id: imageId },
+      body: data,
+    });
   };
 
   return (
