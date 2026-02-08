@@ -3,13 +3,14 @@ import type { SubmitHandler } from "react-hook-form";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect } from "react";
-import { Alert, Button, Form, Modal } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
 
 import type { UserOutSchema, UserUpdateInSchemeWritable } from "../../api";
 
 import { usersListQueryKey, usersUpdateMutation } from "../../api/@tanstack/react-query.gen";
 import { getErrorMessage } from "../../utils/getErrorMessage";
+import FormModal from "../common/FormModal";
 
 interface EditUserFormData {
   email: string | null;
@@ -45,14 +46,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, handleClose, user, 
     },
   });
 
-  const {
-    control,
-    register,
-    handleSubmit,
-    reset: resetForm,
-    formState: { errors, isDirty, dirtyFields },
-    getValues,
-  } = useForm<EditUserFormData>({
+  const form = useForm<EditUserFormData>({
     defaultValues: {
       email: null,
       first_name: null,
@@ -64,9 +58,12 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, handleClose, user, 
     },
   });
 
+  const { control, register, formState, getValues } = form;
+  const { errors, isDirty, dirtyFields } = formState;
+
   useEffect(() => {
     if (show && user) {
-      resetForm({
+      form.reset({
         email: user.email ?? null,
         first_name: user.first_name ?? null,
         last_name: user.last_name ?? null,
@@ -77,7 +74,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, handleClose, user, 
       });
       resetMutation();
     }
-  }, [show, user, resetForm, resetMutation]);
+  }, [show, user, form, resetMutation]);
 
   const onSubmit: SubmitHandler<EditUserFormData> = async (formData) => {
     const passwordChanged = !!formData.password;
@@ -121,137 +118,124 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, handleClose, user, 
   const errorMessage = getErrorMessage(error);
 
   return (
-    <Modal show={show} onHide={handleClose}>
-      <Modal.Header closeButton>
-        <Modal.Title>Edit User: {user.username}</Modal.Title>
-      </Modal.Header>
-      <Form onSubmit={handleSubmit(onSubmit)}>
-        <Modal.Body>
-          {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
+    <FormModal
+      show={show}
+      onHide={handleClose}
+      title={`Edit User: ${user.username}`}
+      isLoading={isPending}
+      error={errorMessage}
+      form={form}
+      onSubmit={onSubmit}
+    >
+      <Form.Group className="mb-3" controlId="formUsernameReadonly">
+        <Form.Label>Username</Form.Label>
+        <Form.Control type="text" value={user.username} readOnly disabled />
+      </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formUsernameReadonly">
-            <Form.Label>Username</Form.Label>
-            <Form.Control type="text" value={user.username} readOnly disabled />
-          </Form.Group>
+      <Form.Group className="mb-3" controlId="formPassword">
+        <Form.Label>Password (Leave blank to keep current)</Form.Label>
+        <Form.Control
+          type="password"
+          placeholder="Enter new password"
+          {...register("password")}
+          disabled={isPending}
+        />
+        {errors.password && <p className="text-danger">{errors.password.message}</p>}
+      </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formPassword">
-            <Form.Label>Password (Leave blank to keep current)</Form.Label>
-            <Form.Control
-              type="password"
-              placeholder="Enter new password"
-              {...register("password")}
+      <Form.Group className="mb-3" controlId="formEmail">
+        <Form.Label>Email address</Form.Label>
+        <Form.Control
+          type="email"
+          placeholder="Enter email"
+          {...register("email")}
+          disabled={isPending}
+        />
+        {errors.email && <p className="text-danger">{errors.email.message}</p>}
+      </Form.Group>
+
+      <Form.Group className="mb-3" controlId="formFirstName">
+        <Form.Label>First Name</Form.Label>
+        <Form.Control
+          type="text"
+          placeholder="Enter first name"
+          {...register("first_name")}
+          disabled={isPending}
+        />
+        {errors.first_name && <p className="text-danger">{errors.first_name.message}</p>}
+      </Form.Group>
+
+      <Form.Group className="mb-3" controlId="formLastName">
+        <Form.Label>Last Name</Form.Label>
+        <Form.Control
+          type="text"
+          placeholder="Enter last name"
+          {...register("last_name")}
+          disabled={isPending}
+        />
+        {errors.last_name && <p className="text-danger">{errors.last_name.message}</p>}
+      </Form.Group>
+
+      <Form.Group className="mb-3" controlId="formIsActive">
+        <Controller
+          name="is_active"
+          control={control}
+          render={({ field }) => (
+            <Form.Check
+              type="checkbox"
+              label="Is Active"
+              name={field.name}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              ref={field.ref}
+              checked={field.value}
               disabled={isPending}
             />
-            {errors.password && <p className="text-danger">{errors.password.message}</p>}
-          </Form.Group>
+          )}
+        />
+        {errors.is_active && <p className="text-danger">{errors.is_active.message}</p>}
+      </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formEmail">
-            <Form.Label>Email address</Form.Label>
-            <Form.Control
-              type="email"
-              placeholder="Enter email"
-              {...register("email")}
+      <Form.Group className="mb-3" controlId="formIsStaff">
+        <Controller
+          name="is_staff"
+          control={control}
+          render={({ field }) => (
+            <Form.Check
+              type="checkbox"
+              label="Is Staff"
+              name={field.name}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              ref={field.ref}
+              checked={field.value}
               disabled={isPending}
             />
-            {errors.email && <p className="text-danger">{errors.email.message}</p>}
-          </Form.Group>
+          )}
+        />
+        {errors.is_staff && <p className="text-danger">{errors.is_staff.message}</p>}
+      </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formFirstName">
-            <Form.Label>First Name</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter first name"
-              {...register("first_name")}
+      <Form.Group className="mb-3" controlId="formIsSuperuser">
+        <Controller
+          name="is_superuser"
+          control={control}
+          render={({ field }) => (
+            <Form.Check
+              type="checkbox"
+              label="Is Superuser"
+              name={field.name}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              ref={field.ref}
+              checked={field.value}
               disabled={isPending}
             />
-            {errors.first_name && <p className="text-danger">{errors.first_name.message}</p>}
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="formLastName">
-            <Form.Label>Last Name</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter last name"
-              {...register("last_name")}
-              disabled={isPending}
-            />
-            {errors.last_name && <p className="text-danger">{errors.last_name.message}</p>}
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="formIsActive">
-            <Controller
-              name="is_active"
-              control={control}
-              render={({ field }) => (
-                <Form.Check
-                  type="checkbox"
-                  label="Is Active"
-                  name={field.name}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  ref={field.ref}
-                  checked={field.value}
-                  disabled={isPending}
-                />
-              )}
-            />
-            {errors.is_active && <p className="text-danger">{errors.is_active.message}</p>}
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="formIsStaff">
-            <Controller
-              name="is_staff"
-              control={control}
-              render={({ field }) => (
-                <Form.Check
-                  type="checkbox"
-                  label="Is Staff"
-                  name={field.name}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  ref={field.ref}
-                  checked={field.value}
-                  disabled={isPending}
-                />
-              )}
-            />
-            {errors.is_staff && <p className="text-danger">{errors.is_staff.message}</p>}
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="formIsSuperuser">
-            <Controller
-              name="is_superuser"
-              control={control}
-              render={({ field }) => (
-                <Form.Check
-                  type="checkbox"
-                  label="Is Superuser"
-                  name={field.name}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  ref={field.ref}
-                  checked={field.value}
-                  disabled={isPending}
-                />
-              )}
-            />
-            {errors.is_superuser && <p className="text-danger">{errors.is_superuser.message}</p>}
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose} disabled={isPending}>
-            Close
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            disabled={isPending || (!isDirty && !getValues("password"))}
-          >
-            {isPending ? "Saving..." : "Save Changes"}
-          </Button>
-        </Modal.Footer>
-      </Form>
-    </Modal>
+          )}
+        />
+        {errors.is_superuser && <p className="text-danger">{errors.is_superuser.message}</p>}
+      </Form.Group>
+    </FormModal>
   );
 };
 

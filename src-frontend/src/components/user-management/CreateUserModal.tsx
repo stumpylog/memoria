@@ -3,13 +3,14 @@ import type { SubmitHandler } from "react-hook-form";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useMemo } from "react";
-import { Alert, Button, Form, Modal } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 
 import type { UserInCreateSchemaWritable } from "../../api";
 
 import { usersCreateMutation, usersListQueryKey } from "../../api/@tanstack/react-query.gen";
 import { getErrorMessage } from "../../utils/getErrorMessage";
+import FormModal from "../common/FormModal";
 
 interface CreateUserModalProps {
   show: boolean;
@@ -59,26 +60,19 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ show, handleClose, on
     [],
   );
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset: resetForm,
-    watch,
-  } = useForm<CreateUserFormData>({
+  const form = useForm<CreateUserFormData>({
     defaultValues,
   });
 
-  const username = watch("username");
-  const password = watch("password");
-  const isFormValid = username.trim() !== "" && password.trim() !== "";
+  const { register, formState } = form;
+  const { errors } = formState;
 
   useEffect(() => {
     if (show) {
-      resetForm(defaultValues);
+      form.reset(defaultValues);
       resetMutation();
     }
-  }, [show, resetForm, resetMutation, defaultValues]);
+  }, [show, form, resetMutation, defaultValues]);
 
   const onSubmit: SubmitHandler<CreateUserFormData> = async (data) => {
     const userDataToSave: UserInCreateSchemaWritable = {
@@ -94,126 +88,102 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ show, handleClose, on
   const errorMessage = getErrorMessage(error);
 
   return (
-    <Modal show={show} onHide={handleClose}>
-      <Modal.Header closeButton>
-        <Modal.Title>Create New User</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
-        <Form onSubmit={handleSubmit(onSubmit)}>
-          <Form.Group className="mb-3" controlId="formUsername">
-            <Form.Label>Username</Form.Label>
-            <Form.Control
-              type="text"
-              {...register("username", { required: "Username is required" })}
-              isInvalid={!!errors.username}
-            />
-            {errors.username && (
-              <Form.Control.Feedback type="invalid">
-                {errors.username.message}
-              </Form.Control.Feedback>
-            )}
-          </Form.Group>
+    <FormModal
+      show={show}
+      onHide={handleClose}
+      title="Create New User"
+      isLoading={isPending}
+      error={errorMessage}
+      form={form}
+      onSubmit={onSubmit}
+      submitLabel="Create User"
+    >
+      <Form.Group className="mb-3" controlId="formUsername">
+        <Form.Label>Username</Form.Label>
+        <Form.Control
+          type="text"
+          {...register("username", { required: "Username is required" })}
+          isInvalid={!!errors.username}
+        />
+        {errors.username && (
+          <Form.Control.Feedback type="invalid">{errors.username.message}</Form.Control.Feedback>
+        )}
+      </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formPassword">
-            <Form.Label>Password</Form.Label>
-            <Form.Control
-              type="password"
-              {...register("password", { required: "Password is required" })}
-              isInvalid={!!errors.password}
-            />
-            {errors.password && (
-              <Form.Control.Feedback type="invalid">
-                {errors.password.message}
-              </Form.Control.Feedback>
-            )}
-          </Form.Group>
+      <Form.Group className="mb-3" controlId="formPassword">
+        <Form.Label>Password</Form.Label>
+        <Form.Control
+          type="password"
+          {...register("password", { required: "Password is required" })}
+          isInvalid={!!errors.password}
+        />
+        {errors.password && (
+          <Form.Control.Feedback type="invalid">{errors.password.message}</Form.Control.Feedback>
+        )}
+      </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formEmail">
-            <Form.Label>Email address</Form.Label>
-            <Form.Control type="email" {...register("email")} isInvalid={!!errors.email} />
-            {errors.email && (
-              <Form.Control.Feedback type="invalid">{errors.email.message}</Form.Control.Feedback>
-            )}
-          </Form.Group>
+      <Form.Group className="mb-3" controlId="formEmail">
+        <Form.Label>Email address</Form.Label>
+        <Form.Control type="email" {...register("email")} isInvalid={!!errors.email} />
+        {errors.email && (
+          <Form.Control.Feedback type="invalid">{errors.email.message}</Form.Control.Feedback>
+        )}
+      </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formFirstName">
-            <Form.Label>First Name</Form.Label>
-            <Form.Control
-              type="text"
-              {...register("first_name")}
-              isInvalid={!!errors.first_name}
-            />
-            {errors.first_name && (
-              <Form.Control.Feedback type="invalid">
-                {errors.first_name.message}
-              </Form.Control.Feedback>
-            )}
-          </Form.Group>
+      <Form.Group className="mb-3" controlId="formFirstName">
+        <Form.Label>First Name</Form.Label>
+        <Form.Control type="text" {...register("first_name")} isInvalid={!!errors.first_name} />
+        {errors.first_name && (
+          <Form.Control.Feedback type="invalid">{errors.first_name.message}</Form.Control.Feedback>
+        )}
+      </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formLastName">
-            <Form.Label>Last Name</Form.Label>
-            <Form.Control type="text" {...register("last_name")} isInvalid={!!errors.last_name} />
-            {errors.last_name && (
-              <Form.Control.Feedback type="invalid">
-                {errors.last_name.message}
-              </Form.Control.Feedback>
-            )}
-          </Form.Group>
+      <Form.Group className="mb-3" controlId="formLastName">
+        <Form.Label>Last Name</Form.Label>
+        <Form.Control type="text" {...register("last_name")} isInvalid={!!errors.last_name} />
+        {errors.last_name && (
+          <Form.Control.Feedback type="invalid">{errors.last_name.message}</Form.Control.Feedback>
+        )}
+      </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formIsActive">
-            <Form.Check
-              type="checkbox"
-              label="Is Active"
-              {...register("is_active")}
-              isInvalid={!!errors.is_active}
-            />
-            {errors.is_active && (
-              <Form.Control.Feedback type="invalid">
-                {errors.is_active.message}
-              </Form.Control.Feedback>
-            )}
-          </Form.Group>
+      <Form.Group className="mb-3" controlId="formIsActive">
+        <Form.Check
+          type="checkbox"
+          label="Is Active"
+          {...register("is_active")}
+          isInvalid={!!errors.is_active}
+        />
+        {errors.is_active && (
+          <Form.Control.Feedback type="invalid">{errors.is_active.message}</Form.Control.Feedback>
+        )}
+      </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formIsStaff">
-            <Form.Check
-              type="checkbox"
-              label="Is Staff"
-              {...register("is_staff")}
-              isInvalid={!!errors.is_staff}
-            />
-            {errors.is_staff && (
-              <Form.Control.Feedback type="invalid">
-                {errors.is_staff.message}
-              </Form.Control.Feedback>
-            )}
-          </Form.Group>
+      <Form.Group className="mb-3" controlId="formIsStaff">
+        <Form.Check
+          type="checkbox"
+          label="Is Staff"
+          {...register("is_staff")}
+          isInvalid={!!errors.is_staff}
+        />
+        {errors.is_staff && (
+          <Form.Control.Feedback type="invalid">{errors.is_staff.message}</Form.Control.Feedback>
+        )}
+      </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formIsSuperuser">
-            <Form.Check
-              type="checkbox"
-              label="Is Superuser"
-              {...register("is_superuser")}
-              isInvalid={!!errors.is_superuser}
-            />
-            {errors.is_superuser && (
-              <Form.Control.Feedback type="invalid">
-                {errors.is_superuser.message}
-              </Form.Control.Feedback>
-            )}
-          </Form.Group>
-
-          <Button variant="primary" type="submit" disabled={isPending || !isFormValid}>
-            {isPending ? "Saving..." : "Create User"}
-          </Button>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose} disabled={isPending}>
-          Close
-        </Button>
-      </Modal.Footer>
-    </Modal>
+      <Form.Group className="mb-3" controlId="formIsSuperuser">
+        <Form.Check
+          type="checkbox"
+          label="Is Superuser"
+          {...register("is_superuser")}
+          isInvalid={!!errors.is_superuser}
+        />
+        {errors.is_superuser && (
+          <Form.Control.Feedback type="invalid">
+            {errors.is_superuser.message}
+          </Form.Control.Feedback>
+        )}
+      </Form.Group>
+    </FormModal>
   );
 };
 
