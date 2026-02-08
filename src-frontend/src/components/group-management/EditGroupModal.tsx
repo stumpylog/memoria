@@ -3,13 +3,14 @@ import type { SubmitHandler } from "react-hook-form";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect } from "react";
-import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 
 import type { GroupOutSchema } from "../../api";
 
 import { listGroupsQueryKey, updateGroupMutation } from "../../api/@tanstack/react-query.gen";
 import { getErrorMessage } from "../../utils/getErrorMessage";
+import FormModal from "../common/FormModal";
 
 interface FormValues {
   name: string;
@@ -44,17 +45,18 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
     },
   });
 
-  const {
-    register,
-    handleSubmit,
-    reset: resetForm,
-    formState: { errors, isDirty },
-  } = useForm<FormValues>({
+  const form = useForm<FormValues>({
     defaultValues: {
       name: "",
     },
     mode: "onChange",
   });
+
+  const {
+    register,
+    reset: resetForm,
+    formState: { errors },
+  } = form;
 
   useEffect(() => {
     if (show && group) {
@@ -73,46 +75,27 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({
   const errorMessage = getErrorMessage(error);
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>Edit Group: {group.name}</Modal.Title>
-      </Modal.Header>
-      <Form onSubmit={handleSubmit(onSubmit)}>
-        <Modal.Body>
-          {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
-          <Form.Group className="mb-3" controlId="formGroupName">
-            <Form.Label>Group Name</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter new group name"
-              {...register("name", { required: "Group name cannot be empty." })}
-              isInvalid={!!errors.name}
-              disabled={isPending}
-            />
-            <Form.Control.Feedback type="invalid">{errors.name?.message}</Form.Control.Feedback>
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose} disabled={isPending}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            disabled={isPending || !isDirty || !!errors.name}
-          >
-            {isPending ? (
-              <>
-                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                {" Saving..."}
-              </>
-            ) : (
-              "Save Changes"
-            )}
-          </Button>
-        </Modal.Footer>
-      </Form>
-    </Modal>
+    <FormModal
+      show={show}
+      onHide={handleClose}
+      title={`Edit Group: ${group.name}`}
+      isLoading={isPending}
+      error={errorMessage}
+      form={form}
+      onSubmit={onSubmit}
+    >
+      <Form.Group className="mb-3" controlId="formGroupName">
+        <Form.Label>Group Name</Form.Label>
+        <Form.Control
+          type="text"
+          placeholder="Enter new group name"
+          {...register("name", { required: "Group name cannot be empty." })}
+          isInvalid={!!errors.name}
+          disabled={isPending}
+        />
+        <Form.Control.Feedback type="invalid">{errors.name?.message}</Form.Control.Feedback>
+      </Form.Group>
+    </FormModal>
   );
 };
 
