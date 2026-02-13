@@ -58,7 +58,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, handleClose, user, 
     },
   });
 
-  const { control, register, formState, getValues } = form;
+  const { control, register, formState } = form;
   const { errors, isDirty, dirtyFields } = formState;
 
   useEffect(() => {

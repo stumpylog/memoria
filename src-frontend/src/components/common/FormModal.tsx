@@ -1,9 +1,9 @@
-import type { UseFormReturn } from "react-hook-form";
+import type { FieldValues, UseFormReturn } from "react-hook-form";
 
 import React from "react";
 import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 
-interface FormModalProps<TFormData> {
+interface FormModalProps<TFormData extends FieldValues> {
   show: boolean;
   onHide: () => void;
   title: string;
@@ -13,7 +13,7 @@ interface FormModalProps<TFormData> {
   submitLabel?: string;
   children: React.ReactNode;
   form: UseFormReturn<TFormData>;
-  onSubmit: (data: TFormData) => void | Promise<void>;
+  onSubmit: (data: TFormData) => unknown | Promise<unknown>;
 }
 
 /**
@@ -37,7 +37,7 @@ interface FormModalProps<TFormData> {
  *   </Form.Group>
  * </FormModal>
  */
-function FormModal<TFormData>({
+function FormModal<TFormData extends FieldValues>({
   show,
   onHide,
   title,

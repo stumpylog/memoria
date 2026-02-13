@@ -105,7 +105,6 @@ const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
   };
 
   const errorMessage = getErrorMessage(error);
-  const isLoading = isPending || userGroupsLoading;
 
   if (userGroupsLoading) {
     return (

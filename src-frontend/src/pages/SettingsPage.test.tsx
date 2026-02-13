@@ -3,7 +3,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import type { GroupOutSchema, SiteSettingsSchema, UserOutSchema } from "../api";
+import type { GroupOutSchema, SiteSettingsSchemaOut, UserOutSchema } from "../api";
 
 import { AuthContext } from "../contexts/AuthContext";
 import SettingsPage from "./SettingsPage";
@@ -160,11 +160,9 @@ const mockStaffUser: UserOutSchema = {
 };
 
 const mockProfile = {
-  id: 1,
-  user: 1,
-  date_format: "MM/DD/YYYY" as const,
-  time_format: "12h" as const,
-  timezone: "America/New_York",
+  bio: null,
+  items_per_page: 20 as const,
+  timezone_name: "America/New_York" as const,
 };
 
 // Helper function to render SettingsPage with common setup
@@ -202,7 +200,7 @@ describe("SettingsPage", () => {
       large_image_max_size: 2560,
       large_image_quality: 90,
       thumbnail_max_size: 512,
-    } as SiteSettingsSchema);
+    } as SiteSettingsSchemaOut);
     queryClient.setQueryData(["usersList"], [] as UserOutSchema[]);
     queryClient.setQueryData(["listGroups"], [] as GroupOutSchema[]);
 
@@ -239,7 +237,7 @@ describe("SettingsPage", () => {
       large_image_max_size: 2560,
       large_image_quality: 90,
       thumbnail_max_size: 512,
-    } as SiteSettingsSchema);
+    } as SiteSettingsSchemaOut);
     queryClient.setQueryData(["usersList"], [] as UserOutSchema[]);
     queryClient.setQueryData(["listGroups"], [] as GroupOutSchema[]);
 
@@ -278,7 +276,7 @@ describe("SettingsPage", () => {
       large_image_max_size: 2560,
       large_image_quality: 90,
       thumbnail_max_size: 512,
-    } as SiteSettingsSchema);
+    } as SiteSettingsSchemaOut);
     queryClient.setQueryData(["usersList"], [] as UserOutSchema[]);
     queryClient.setQueryData(["listGroups"], [] as GroupOutSchema[]);
 
