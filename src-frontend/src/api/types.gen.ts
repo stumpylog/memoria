@@ -1769,7 +1769,7 @@ export type UserOutSchema = {
   /**
    * Email
    */
-  email?: string | null;
+  email?: string | string | null;
   /**
    * First Name
    */
