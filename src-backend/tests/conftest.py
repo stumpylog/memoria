@@ -4,7 +4,6 @@ import shutil
 from pathlib import Path
 
 import pytest
-from django.core.management import call_command
 from django.db import models
 
 from memoria.models import Image
@@ -240,14 +239,16 @@ def _django_directories_settings_override(django_directories: DjangoDirectories,
     settings.LOGGING_DIR = django_directories.logs_dir
     settings.MEDIA_ROOT = django_directories.media_dir
     settings.THUMBNAIL_DIR = django_directories.thumbnail_dir
-    settings.FULL_SIZE_DIR = django_directories.full_size_dir
+    settings.LARGE_SIZE_DIR = django_directories.full_size_dir
 
 
 @pytest.fixture(name="sample_image_database")
-def _sample_image_database(sample_db_fixture_file: Path) -> None:
+def _sample_image_database() -> None:
     """
-    Configures a partial environment of samples, including only the database loaded from fixture
+    Configures a partial environment of samples, creating 4 Image records via factory.
     """
+    from tests.api.conftest import ImageFactory
+
     with (
         disable_signal(models.signals.post_save, mark_image_as_dirty, Image),
         disable_signal(models.signals.post_save, mark_images_as_dirty_on_m2m_change, Pet),
@@ -255,7 +256,7 @@ def _sample_image_database(sample_db_fixture_file: Path) -> None:
         disable_signal(models.signals.post_save, mark_images_as_dirty_on_fk_change, RoughLocation),
         disable_signal(models.signals.post_save, mark_images_as_dirty_on_fk_change, RoughDate),
     ):
-        call_command("loaddata", "--verbosity", "0", "--skip-checks", sample_db_fixture_file)
+        ImageFactory.create_batch(4)
 
 
 @pytest.fixture(name="sample_image_environment")
@@ -272,18 +273,11 @@ def _sample_image_environment(
     Configures a full environment of samples, include data base and image files in the proper directories.
     """
 
-    pk_to_image = {
-        1: sample_one_info,
-        2: sample_two_info,
-        3: sample_three_info,
-        4: sample_four_info,
-    }
+    sample_infos = [sample_one_info, sample_two_info, sample_three_info, sample_four_info]
 
-    for img in Image.objects.order_by("pk").all():
-        sample_info = pk_to_image[img.pk]
-
+    for img, sample_info in zip(Image.objects.order_by("pk").all()[:4], sample_infos):
         # The original needs to be updated
-        img.original_path = shutil.copy(sample_info.original, django_directories.base_dir)
+        img.original_path = Path(shutil.copy(sample_info.original, django_directories.base_dir))
         img.save()
         img.mark_as_clean()
 

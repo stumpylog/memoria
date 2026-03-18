@@ -11,12 +11,14 @@ from factory.django import DjangoModelFactory
 from pytest_factoryboy import register
 
 from memoria.models import Album
+from memoria.models import Image
 from memoria.models import Person
 from memoria.models import Pet
 from memoria.models import RoughDate
 from memoria.models import RoughLocation
 from memoria.models import Tag
 from memoria.models import UserProfile
+from memoria.models.metadata import ImageFolder
 
 User = get_user_model()
 
@@ -160,6 +162,34 @@ class SuperUserFactory(UserFactory):
     is_superuser = True
 
 
+class ImageFolderFactory(DjangoModelFactory):
+    class Meta:
+        model = ImageFolder
+
+    name = factory.Sequence(lambda n: f"Test Folder {n}")
+    tn_parent = None
+
+
+class ImageFactory(DjangoModelFactory):
+    class Meta:
+        model = Image
+
+    original_checksum = factory.Sequence(lambda n: f"{n:064x}")
+    phash = factory.Sequence(lambda n: f"{n:016x}")
+    file_size = 1_000_000
+    original_height = 1000
+    original_width = 1500
+    large_version_height = 800
+    large_version_width = 1200
+    thumbnail_height = 256
+    thumbnail_width = 384
+    orientation = 1
+    title = factory.Sequence(lambda n: f"Test Image {n}")
+    original = factory.Sequence(lambda n: f"/tmp/test_original_{n}.jpg")
+    folder = factory.SubFactory(ImageFolderFactory)
+    is_dirty = False
+
+
 # Register factories as pytest fixtures
 register(AlbumFactory)
 register(PersonFactory)
@@ -171,6 +201,8 @@ register(UserFactory)
 register(StaffUserFactory)
 register(SuperUserFactory)
 register(GroupFactory)
+register(ImageFactory)
+register(ImageFolderFactory)
 
 
 @pytest.fixture(scope="session")
@@ -206,3 +238,28 @@ def superuser_client(client: Client, super_user_factory: SuperUserFactory):
     user = super_user_factory.create()
     client.login(username=user.username, password="password123")
     return client
+
+
+@pytest.fixture
+def album_api_create_factory(client: Client, super_user_factory: SuperUserFactory, album_base_url: str):
+    """
+    Logs in as a superuser and returns a callable that creates albums via the API.
+
+    The client fixture is logged in as the superuser, so tests that receive both
+    `client` and `album_api_create_factory` share the same authenticated session
+    for all subsequent calls (PATCH, DELETE, GET, etc.).
+    """
+    user = super_user_factory.create()
+    client.login(username=user.username, password="password123")
+
+    def _create_album(name: str, description: str | None = None):
+        payload: dict = {"name": name}
+        if description is not None:
+            payload["description"] = description
+        return client.post(
+            album_base_url,
+            data=payload,
+            content_type="application/json",
+        )
+
+    return _create_album

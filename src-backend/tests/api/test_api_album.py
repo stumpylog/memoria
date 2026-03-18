@@ -1,4 +1,5 @@
 import itertools
+import logging
 import zipfile
 from http import HTTPStatus
 from pathlib import Path
@@ -27,7 +28,7 @@ class TestApiAlbumRead:
 
         assert resp.status_code == HTTPStatus.OK
 
-        assert resp.json() == []
+        assert resp.json() == {"count": 0, "items": []}
 
     def test_read_albums_no_access(self, logged_in_client: Client, album_factory: AlbumFactory, album_base_url: str):
         album_factory.create_batch(size=2)
@@ -36,7 +37,7 @@ class TestApiAlbumRead:
         assert resp.status_code == HTTPStatus.OK
 
         # No view/edit access
-        assert resp.json() == []
+        assert resp.json() == {"count": 0, "items": []}
 
     def test_read_albums_some_access(
         self,
@@ -59,19 +60,21 @@ class TestApiAlbumRead:
         assert resp.status_code == HTTPStatus.OK
         data = resp.json()
 
-        assert len(data) == 1
-        data = data[0]
-        assert data["id"] == viewable_album.id
-        assert data["name"] == viewable_album.name
-        assert data["description"] == viewable_album.description
-        assert data["view_group_ids"] == [view_group.pk]
-        assert data["edit_group_ids"] == [edit_group.pk]
-        assert data["image_count"] == 0
+        assert data["count"] == 1
+        items = data["items"]
+        assert len(items) == 1
+        item = items[0]
+        assert item["id"] == viewable_album.id
+        assert item["name"] == viewable_album.name
+        assert item["description"] == viewable_album.description
+        assert item["view_groups"] == [{"id": view_group.pk, "name": view_group.name}]
+        assert item["edit_groups"] == [{"id": edit_group.pk, "name": edit_group.name}]
+        assert item["image_count"] == 0
 
-    def test_get_single_album(self, client: Client, faker: Faker, album_base_url: str):
+    def test_get_single_album(self, superuser_client: Client, faker: Faker, album_base_url: str):
         instance = Album.objects.create(name=faker.unique.name())
 
-        resp = client.get(f"{album_base_url}{instance.pk}/")
+        resp = superuser_client.get(f"{album_base_url}{instance.pk}/")
 
         assert resp.status_code == HTTPStatus.OK
         assert resp.json()["name"] == instance.name
@@ -85,24 +88,21 @@ class TestApiAlbumRead:
             (-8,),
         ],
     )
-    def test_get_filtered_albums(self, client: Client, faker: Faker, last_idx: int):
+    def test_get_filtered_albums(self, superuser_client: Client, faker: Faker, last_idx: int):
         name = faker.unique.name()
 
         Album.objects.create(name=name)
 
-        resp = client.get("/api/album/", data={"name_like": name[:last_idx]})
+        resp = superuser_client.get("/api/album/", data={"album_name": name[:last_idx]})
 
         assert resp.status_code == HTTPStatus.OK
-        assert resp.json() == {
-            "count": 1,
-            "items": [
-                {
-                    "description": None,
-                    "id": 1,
-                    "name": "Norma Fisher",
-                },
-            ],
-        }
+        data = resp.json()
+        assert data["count"] == 1
+        assert len(data["items"]) == 1
+        item = data["items"][0]
+        assert item["name"] == name
+        assert item["description"] is None
+        assert "id" in item
 
 
 @pytest.mark.django_db
@@ -113,7 +113,9 @@ class TestApiAlbumCreate:
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
-        assert data == {"id": 1, "name": album_name, "description": None}
+        assert data["name"] == album_name
+        assert data["description"] is None
+        assert "id" in data
 
         assert Album.objects.filter(id=data["id"]).exists()
         assert Album.objects.get(id=data["id"]).name == album_name
@@ -126,7 +128,9 @@ class TestApiAlbumCreate:
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
-        assert data == {"id": 1, "name": album_name, "description": desc}
+        assert data["name"] == album_name
+        assert data["description"] == desc
+        assert "id" in data
 
         assert Album.objects.filter(id=data["id"]).exists()
         assert Album.objects.get(id=data["id"]).name == album_name
@@ -143,7 +147,8 @@ class TestApiAlbumUpdate:
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
 
-        assert data == {"id": 1, "name": album_name, "description": None}
+        assert data["name"] == album_name
+        assert data["description"] is None
         album_id = data["id"]
 
         assert Album.objects.filter(id=album_id).exists()
@@ -162,7 +167,9 @@ class TestApiAlbumUpdate:
 
         assert resp.status_code == HTTPStatus.OK
         data = resp.json()
-        assert data == {"id": album_id, "name": new_name, "description": None}
+        assert data["name"] == new_name
+        assert data["description"] is None
+        assert data["id"] == album_id
         assert Album.objects.filter(id=album_id).exists()
         assert Album.objects.get(id=album_id).name == new_name
         assert Album.objects.get(id=album_id).images.count() == 0
@@ -178,7 +185,8 @@ class TestApiAlbumUpdate:
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
-        assert data == {"id": 1, "name": album_name, "description": None}
+        assert data["name"] == album_name
+        assert data["description"] is None
         album_id = data["id"]
         assert Album.objects.get(id=album_id).name == album_name
         assert Album.objects.get(id=album_id).description is None
@@ -193,7 +201,9 @@ class TestApiAlbumUpdate:
 
         assert resp.status_code == HTTPStatus.OK
         data = resp.json()
-        assert data == {"id": album_id, "name": album_name, "description": desc}
+        assert data["name"] == album_name
+        assert data["description"] == desc
+        assert data["id"] == album_id
         assert Album.objects.get(id=album_id).name == album_name
         assert Album.objects.get(id=album_id).description == desc
 
@@ -225,15 +235,16 @@ class TestApiAlbumDelete:
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
-        assert data == {"id": 1, "name": album_name, "description": None}
+        assert data["name"] == album_name
+        assert data["description"] is None
         album_id = data["id"]
 
         resp = client.delete(f"/api/album/{album_id}/")
 
         assert resp.status_code == HTTPStatus.NO_CONTENT
 
-    def test_delete_does_not_exist(self, client: Client):
-        resp = client.delete("/api/album/1/")
+    def test_delete_does_not_exist(self, logged_in_client: Client):
+        resp = logged_in_client.delete("/api/album/1/")
 
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
@@ -248,7 +259,7 @@ class TestApiAlbumImages:
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
 
-        img = Image.objects.get(pk=1)
+        img = Image.objects.order_by("pk").first()
 
         resp = client.patch(
             f"/api/album/{album_id}/add/",
@@ -257,12 +268,20 @@ class TestApiAlbumImages:
         )
 
         assert resp.status_code == HTTPStatus.OK
-        assert resp.json() == {"name": album_name, "description": None, "id": album_id, "image_ids": [img.pk]}
+        data = resp.json()
+        assert data["name"] == album_name
+        assert data["description"] is None
+        assert data["id"] == album_id
+        assert data["image_ids"] == [img.pk]
 
         resp = client.get(f"/api/album/{album_id}/")
 
         assert resp.status_code == HTTPStatus.OK
-        assert resp.json() == {"name": album_name, "description": None, "id": album_id, "image_ids": [img.pk]}
+        data = resp.json()
+        assert data["name"] == album_name
+        assert data["description"] is None
+        assert data["id"] == album_id
+        assert data["image_ids"] == [img.pk]
 
     def test_add_multiple_images(
         self,
@@ -276,8 +295,7 @@ class TestApiAlbumImages:
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
 
-        img_one = Image.objects.get(pk=1)
-        img_two = Image.objects.get(pk=2)
+        img_one, img_two = Image.objects.order_by("pk")[:2]
 
         resp = client.patch(
             f"/api/album/{album_id}/add/",
@@ -286,12 +304,11 @@ class TestApiAlbumImages:
         )
 
         assert resp.status_code == HTTPStatus.OK
-        assert resp.json() == {
-            "name": album_name,
-            "description": None,
-            "id": album_id,
-            "image_ids": [img_one.pk, img_two.pk],
-        }
+        data = resp.json()
+        assert data["name"] == album_name
+        assert data["description"] is None
+        assert data["id"] == album_id
+        assert data["image_ids"] == [img_one.pk, img_two.pk]
 
         album = Album.objects.get(pk=album_id)
 
@@ -311,21 +328,20 @@ class TestApiAlbumImages:
         )
         assert resp.status_code == HTTPStatus.OK
 
-        removed_pk = 1
+        test_img = Image.objects.order_by("pk").first()
+        removed_pk = test_img.pk
 
-        test_img = Image.objects.get(pk=removed_pk)
         resp = client.patch(
             f"/api/album/{album_id}/remove/",
             content_type="application/json",
             data={"image_ids": [test_img.pk]},
         )
         assert resp.status_code == HTTPStatus.OK
-        assert resp.json() == {
-            "name": album_name,
-            "description": None,
-            "id": album_id,
-            "image_ids": [x.pk for x in Image.objects.exclude(pk=removed_pk).all()],
-        }
+        data = resp.json()
+        assert data["name"] == album_name
+        assert data["description"] is None
+        assert data["id"] == album_id
+        assert data["image_ids"] == [x.pk for x in Image.objects.exclude(pk=removed_pk).all()]
 
     def test_remove_image_not_in_album(
         self,
@@ -340,7 +356,8 @@ class TestApiAlbumImages:
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
 
-        dont_add_pk = 4
+        not_added_image = Image.objects.order_by("pk").last()
+        dont_add_pk = not_added_image.pk
         resp = client.patch(
             f"/api/album/{album_id}/add/",
             content_type="application/json",
@@ -348,28 +365,31 @@ class TestApiAlbumImages:
         )
         assert resp.status_code == HTTPStatus.OK
 
-        not_added_image = Image.objects.get(pk=dont_add_pk)
-
+        # The memoria logger has propagate=False in settings, so caplog can't
+        # capture its records via the root logger. Temporarily enable propagation.
+        memoria_logger = logging.getLogger("memoria")
+        memoria_logger.propagate = True
+        caplog.set_level(logging.WARNING)
         caplog.clear()
         resp = client.patch(
             f"/api/album/{album_id}/remove/",
             content_type="application/json",
             data={"image_ids": [not_added_image.pk]},
         )
+        memoria_logger.propagate = False
         assert len(caplog.records) == 1
         record = caplog.records[0]
-        assert record.message == f"Image {not_added_image.pk} not in album {album_id}"
+        assert record.message == f"No images from {[not_added_image.pk]} found in album {album_id}"
         assert record.levelname == "WARNING"
         assert resp.status_code == HTTPStatus.OK
 
         resp = client.get(f"/api/album/{album_id}/")
         assert resp.status_code == HTTPStatus.OK
-        assert resp.json() == {
-            "name": album_name,
-            "description": None,
-            "id": album_id,
-            "image_ids": [x.pk for x in Image.objects.exclude(pk=dont_add_pk).all()],
-        }
+        data = resp.json()
+        assert data["name"] == album_name
+        assert data["description"] is None
+        assert data["id"] == album_id
+        assert data["image_ids"] == [x.pk for x in Image.objects.exclude(pk=dont_add_pk).all()]
 
     def test_remove_last_album_image(
         self,
@@ -399,12 +419,11 @@ class TestApiAlbumImages:
             data={"image_ids": [test_img.pk]},
         )
         assert resp.status_code == HTTPStatus.OK
-        assert resp.json() == {
-            "name": album_name,
-            "description": None,
-            "id": album_id,
-            "image_ids": [x.pk for x in Image.objects.exclude(pk=test_img.pk).all()],
-        }
+        data = resp.json()
+        assert data["name"] == album_name
+        assert data["description"] is None
+        assert data["id"] == album_id
+        assert data["image_ids"] == [x.pk for x in Image.objects.exclude(pk=test_img.pk).all()]
 
     def test_add_remove_no_items(
         self,
@@ -466,16 +485,11 @@ class TestApiAlbumSorting:
 
         resp = client.get(f"/api/album/{album_id}/")
         assert resp.status_code == HTTPStatus.OK
-        assert (
-            resp.json()
-            == {
-                "name": album_name,
-                "description": None,
-                "id": album_id,
-                "image_ids": [img.pk for img in Image.objects.order_by("pk").all()],
-            }
-            == resp.json()
-        )
+        data = resp.json()
+        assert data["name"] == album_name
+        assert data["description"] is None
+        assert data["id"] == album_id
+        assert data["image_ids"] == [img.pk for img in Image.objects.order_by("pk").all()]
 
         resp = client.patch(
             f"/api/album/{album_id}/sort/",
@@ -484,16 +498,11 @@ class TestApiAlbumSorting:
         )
 
         assert resp.status_code == HTTPStatus.OK
-        assert (
-            resp.json()
-            == {
-                "name": album_name,
-                "description": None,
-                "id": album_id,
-                "image_ids": [img.pk for img in Image.objects.order_by("pk").all().reverse()],
-            }
-            == resp.json()
-        )
+        data = resp.json()
+        assert data["name"] == album_name
+        assert data["description"] is None
+        assert data["id"] == album_id
+        assert data["image_ids"] == [img.pk for img in Image.objects.order_by("pk").all().reverse()]
 
     def test_custom_sorting(self, client: Client, faker: Faker, album_api_create_factory):
         album_name = faker.unique.name()
@@ -521,16 +530,11 @@ class TestApiAlbumSorting:
             )
 
             assert resp.status_code == HTTPStatus.OK
-            assert (
-                resp.json()
-                == {
-                    "name": album_name,
-                    "description": None,
-                    "id": album_id,
-                    "image_ids": list(permutation),
-                }
-                == resp.json()
-            )
+            data = resp.json()
+            assert data["name"] == album_name
+            assert data["description"] is None
+            assert data["id"] == album_id
+            assert data["image_ids"] == list(permutation)
 
     def test_sorting_invalid_length(
         self,

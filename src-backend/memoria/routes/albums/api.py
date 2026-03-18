@@ -14,7 +14,6 @@ from django.db.models import When
 from django.db.models.functions import Coalesce
 from django.http import FileResponse
 from django.http import HttpRequest
-from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from ninja import Router
@@ -334,10 +333,10 @@ def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpd
     operation_id="delete_album",
     auth=active_user_auth,
 )
-async def delete_album(request: HttpRequest, album_id: int):
+def delete_album(request: HttpRequest, album_id: int):
     qs = Album.objects.editable_by(request.user)
-    instance = await aget_object_or_404(qs, id=album_id)
-    await instance.adelete()
+    instance = get_object_or_404(qs, id=album_id)
+    instance.delete()
     return HTTPStatus.NO_CONTENT, None
 
 
